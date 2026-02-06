@@ -130,7 +130,80 @@ async def _story_planner_node(state: AgentState) -> Dict[str, Any]:
     logger.info("Executing Story Planner Agent", user_id=user_id)
 
     try:
-        # 创建 Agent（会自动加载缓存的市场分析报告）
+        # 检查用户是否已选择分类（genre/setting）
+        user_config = state.get("user_config", {})
+        genre = user_config.get("genre")
+        setting = user_config.get("setting")
+
+        # 如果没有选择分类，返回分类选择 UI
+        if not genre:
+            from langchain_core.messages import AIMessage
+            from backend.schemas.common import (
+                UIInteractionBlock,
+                UIInteractionBlockType,
+                ActionButton,
+            )
+
+            logger.info("No genre selected, showing category selection UI")
+
+            category_buttons = [
+                ActionButton(
+                    label="🏙️ 现代都市",
+                    action="select_genre",
+                    payload={"genre": "现代都市", "setting": "modern"},
+                    style="secondary",
+                    icon="Building",
+                ),
+                ActionButton(
+                    label="👘 古装仙侠",
+                    action="select_genre",
+                    payload={"genre": "古装仙侠", "setting": "ancient"},
+                    style="secondary",
+                    icon="Crown",
+                ),
+                ActionButton(
+                    label="🎩 民国传奇",
+                    action="select_genre",
+                    payload={"genre": "民国传奇", "setting": "republic"},
+                    style="secondary",
+                    icon="History",
+                ),
+                ActionButton(
+                    label="🤖 未来科幻",
+                    action="select_genre",
+                    payload={"genre": "未来科幻", "setting": "future"},
+                    style="secondary",
+                    icon="Rocket",
+                ),
+                ActionButton(
+                    label="🎲 AI 随机方案",
+                    action="random_plan",
+                    payload={},
+                    style="ghost",
+                    icon="Shuffle",
+                ),
+            ]
+
+            category_ui = UIInteractionBlock(
+                block_type=UIInteractionBlockType.ACTION_GROUP,
+                title="选择故事背景",
+                description="请选择您想创作的故事背景：",
+                buttons=category_buttons,
+                dismissible=False,
+            )
+
+            return {
+                "messages": [
+                    AIMessage(
+                        content="🎬 **开始创作**：请选择故事背景",
+                        additional_kwargs={"ui_interaction": category_ui.dict()},
+                    )
+                ],
+                "ui_interaction": category_ui,
+                "last_successful_node": "story_planner_select_category",
+            }
+
+        # 已选择分类，创建 Agent 生成故事方案
         agent = await create_story_planner_agent(user_id, project_id)
 
         # 执行 Agent
@@ -343,11 +416,11 @@ def create_main_graph(checkpointer: BaseCheckpointSaver | None = None):
                         "create_storyboard": "storyboard_director",
                         "inspect_assets": "asset_inspector",
                         "random_plan": "story_planner",
-                        "select_genre": "market_analyst",
+                        "select_genre": "story_planner",
                         "select_plan": "story_planner",
                         "start_custom": "story_planner",
-                        "proceed_to_planning": "market_analyst",
-                        "reset_genre": "market_analyst",
+                        "proceed_to_planning": "story_planner",
+                        "reset_genre": "story_planner",
                     }
 
                     if action in sdui_action_map:

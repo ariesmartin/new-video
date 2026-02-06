@@ -409,25 +409,7 @@ export function AIAssistant() {
                         </div>
                       )}
                       
-                      {message.ui_interaction.data?.quick_categories && (
-                        <div className="pt-2 border-t border-border/50">
-                          <p className="text-xs text-text-tertiary mb-2">快速选择题材：</p>
-                          <div className="flex flex-wrap gap-2">
-                            {(message.ui_interaction.data.quick_categories as ActionButton[]).map((cat, idx) => (
-                              <Button
-                                key={idx}
-                                variant="ghost"
-                                size="sm"
-                                onClick={() => handleActionButton(cat)}
-                                className="text-xs h-7 gap-1 px-2"
-                              >
-                                {cat.icon && iconMap[cat.icon]}
-                                {cat.label}
-                              </Button>
-                            ))}
-                          </div>
-                        </div>
-                      )}
+
                     </div>
                   )}
                   

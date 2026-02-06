@@ -99,45 +99,6 @@ def create_welcome_message() -> tuple[AIMessage, UIInteractionBlock]:
         ),
     ]
 
-    # 快速分类按钮（用于"开始创作"）
-    quick_categories = [
-        ActionButton(
-            label="🏙️ 现代都市",
-            action="select_genre",
-            payload={"genre": "现代都市", "setting": "modern"},
-            style="secondary",
-            icon="Building",
-        ),
-        ActionButton(
-            label="👘 古装仙侠",
-            action="select_genre",
-            payload={"genre": "古装仙侠", "setting": "ancient"},
-            style="secondary",
-            icon="Crown",
-        ),
-        ActionButton(
-            label="🎩 民国传奇",
-            action="select_genre",
-            payload={"genre": "民国传奇", "setting": "republic"},
-            style="secondary",
-            icon="History",
-        ),
-        ActionButton(
-            label="🤖 未来科幻",
-            action="select_genre",
-            payload={"genre": "未来科幻", "setting": "future"},
-            style="secondary",
-            icon="Rocket",
-        ),
-        ActionButton(
-            label="🎲 AI随机方案",
-            action="random_plan",
-            payload={},
-            style="ghost",
-            icon="Shuffle",
-        ),
-    ]
-
     # 构造 Onboarding UI
     onboarding_ui = UIInteractionBlock(
         block_type=UIInteractionBlockType.ACTION_GROUP,
@@ -145,7 +106,6 @@ def create_welcome_message() -> tuple[AIMessage, UIInteractionBlock]:
         description="基于您的创作需求，选择以下功能入口：",
         buttons=buttons,
         data={
-            "quick_categories": [btn.dict() for btn in quick_categories],
             "show_input_hint": True,
             "input_placeholder": "告诉我你想创作什么类型的短剧...",
         },
