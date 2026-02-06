@@ -348,12 +348,12 @@ async def chat_init_endpoint(request: ChatInitRequest):
                     if isinstance(msg, (HumanMessage, AIMessage)):
                         role = "user" if isinstance(msg, HumanMessage) else "assistant"
                         formatted_content = format_message_content(str(msg.content))
-                        
+
                         # 从消息的 additional_kwargs 中提取 ui_interaction
                         # 这是最可靠的来源，因为 SDUI 在创建时就嵌入了消息中
                         msg_ui_interaction = None
-                        if hasattr(msg, 'additional_kwargs') and msg.additional_kwargs:
-                            ui_data = msg.additional_kwargs.get('ui_interaction')
+                        if hasattr(msg, "additional_kwargs") and msg.additional_kwargs:
+                            ui_data = msg.additional_kwargs.get("ui_interaction")
                             if ui_data:
                                 try:
                                     if isinstance(ui_data, UIInteractionBlock):
@@ -361,8 +361,10 @@ async def chat_init_endpoint(request: ChatInitRequest):
                                     elif isinstance(ui_data, dict):
                                         msg_ui_interaction = UIInteractionBlock(**ui_data)
                                 except Exception as e:
-                                    logger.warning(f"Failed to parse ui_interaction from additional_kwargs: {e}")
-                        
+                                    logger.warning(
+                                        f"Failed to parse ui_interaction from additional_kwargs: {e}"
+                                    )
+
                     # 处理 dict 格式消息 (从 checkpoint 加载的原始格式)
                     elif isinstance(msg, dict):
                         msg_ui_interaction = None
@@ -377,10 +379,12 @@ async def chat_init_endpoint(request: ChatInitRequest):
                                 else str(msg_data)
                             )
                             formatted_content = format_message_content(content)
-                            
+
                             # 从 data.additional_kwargs 中提取 ui_interaction
                             if isinstance(msg_data, dict):
-                                ui_data = msg_data.get('additional_kwargs', {}).get('ui_interaction')
+                                ui_data = msg_data.get("additional_kwargs", {}).get(
+                                    "ui_interaction"
+                                )
                                 if ui_data:
                                     try:
                                         if isinstance(ui_data, UIInteractionBlock):
@@ -401,7 +405,12 @@ async def chat_init_endpoint(request: ChatInitRequest):
                     # 如果消息本身没有 ui_interaction，尝试使用全局保存的 ui_interaction
                     # 但只为欢迎消息（第一条 AI 消息）附加
                     ui_interaction_data = msg_ui_interaction
-                    if not ui_interaction_data and idx == 0 and role == "assistant" and saved_ui_interaction:
+                    if (
+                        not ui_interaction_data
+                        and idx == 0
+                        and role == "assistant"
+                        and saved_ui_interaction
+                    ):
                         try:
                             if isinstance(saved_ui_interaction, UIInteractionBlock):
                                 ui_interaction_data = saved_ui_interaction
@@ -482,7 +491,7 @@ async def chat_init_endpoint(request: ChatInitRequest):
             # 处理 LangChain 消息对象
             role = "assistant" if hasattr(msg, "type") and msg.type == "ai" else "user"
             content = msg.content if hasattr(msg, "content") else str(msg)
-            
+
             # 构建 UI interaction block
             ui_block = None
             if idx == len(result_messages) - 1 and ui_interaction:
@@ -493,7 +502,7 @@ async def chat_init_endpoint(request: ChatInitRequest):
                         ui_block = UIInteractionBlock(**ui_interaction)
                 except Exception as e:
                     logger.warning("Failed to parse ui_interaction", error=str(e))
-            
+
             welcome_messages.append(
                 ChatMessage(
                     id=f"welcome-{uuid.uuid4()}",
@@ -533,6 +542,54 @@ async def chat_init_endpoint(request: ChatInitRequest):
     except Exception as e:
         logger.error("Chat init endpoint error", error=str(e))
         raise HTTPException(status_code=500, detail=f"初始化失败: {str(e)}")
+
+
+@router.post("/chat/reset")
+async def chat_reset_endpoint(request: ChatInitRequest):
+    """
+    重置聊天 - 物理删除指定 thread 的所有历史记录
+    """
+    try:
+        thread_id = request.session_id
+        if not thread_id:
+            logger.warning("Reset called without thread_id", project_id=request.project_id)
+            return {"status": "skipped", "message": "No thread_id provided"}
+
+        logger.info(
+            "Chat reset endpoint called",
+            user_id=request.user_id,
+            project_id=request.project_id,
+            thread_id=thread_id,
+        )
+
+        from backend.graph.checkpointer import get_or_create_checkpointer, checkpointer_manager
+
+        # 获取连接直接执行 SQL
+        _, conn = await get_or_create_checkpointer()
+
+        try:
+            async with conn.cursor() as cur:
+                # 执行删除操作
+                # 注意：这是物理删除，不可恢复
+                await cur.execute(
+                    "DELETE FROM checkpoint_writes WHERE thread_id = %s", (thread_id,)
+                )
+                await cur.execute("DELETE FROM checkpoint_blobs WHERE thread_id = %s", (thread_id,))
+                await cur.execute("DELETE FROM checkpoints WHERE thread_id = %s", (thread_id,))
+
+            logger.info("Chat history deleted from database", thread_id=thread_id)
+            return {"status": "success", "message": "Chat history deleted"}
+
+        except Exception as e:
+            logger.error("Database delete error", error=str(e))
+            raise e
+        finally:
+            if conn:
+                await checkpointer_manager._pool.putconn(conn)
+
+    except Exception as e:
+        logger.error("Chat reset error", error=str(e))
+        raise HTTPException(status_code=500, detail=f"重置失败: {str(e)}")
 
 
 @router.get("/health")
@@ -699,16 +756,16 @@ async def chat_sse_endpoint(
                         ai_content = msg.content
                         break
 
-            # 清理 AI 内容（提取 ui_feedback 或 thought_process）
+            # 清理 AI 内容（提取 ui_feedback、thought_process 或其他可读内容）
             def extract_display_content(content: str) -> str:
-                """从 Master Router JSON 中提取可显示内容"""
+                """从内容中提取可显示的文本"""
                 if not content or not isinstance(content, str):
                     return content or ""
 
                 content = content.strip()
-                if content.startswith("{") and (
-                    '"ui_feedback"' in content or '"thought_process"' in content
-                ):
+
+                # 尝试解析 JSON
+                if content.startswith("{"):
                     try:
                         parsed = json.loads(content)
                         if parsed and isinstance(parsed, dict):
@@ -717,14 +774,22 @@ async def chat_sse_endpoint(
                             if ui_feedback and isinstance(ui_feedback, str) and ui_feedback.strip():
                                 return ui_feedback.strip()
 
-                            # 如果没有 ui_feedback，尝试提取 thought_process
-                            thought_process = parsed.get("thought_process")
-                            if (
-                                thought_process
-                                and isinstance(thought_process, str)
-                                and thought_process.strip()
-                            ):
-                                return thought_process.strip()
+                            # 其次提取 thought_process 或 intent_analysis
+                            for field in [
+                                "thought_process",
+                                "intent_analysis",
+                                "response",
+                                "answer",
+                                "result",
+                                "output",
+                                "message",
+                            ]:
+                                value = parsed.get(field)
+                                if value and isinstance(value, str) and value.strip():
+                                    return value.strip()
+
+                            # 如果是其他 JSON，返回格式化后的字符串
+                            return json.dumps(parsed, ensure_ascii=False, indent=2)
                     except (json.JSONDecodeError, TypeError):
                         pass
 
@@ -770,3 +835,62 @@ async def chat_sse_endpoint(
             "X-Accel-Buffering": "no",
         },
     )
+
+
+@router.post("/market-analysis/trigger")
+async def trigger_market_analysis():
+    """
+    手动触发市场分析任务
+
+    立即执行市场分析并保存到缓存，不需要等待定时任务。
+    用于首次部署或需要立即更新缓存时。
+    """
+    try:
+        from backend.services.market_analysis import get_market_analysis_service
+
+        logger.info("Manual market analysis triggered")
+
+        service = get_market_analysis_service()
+        result = await service.run_daily_analysis()
+
+        return {
+            "status": "success",
+            "message": "市场分析已完成并保存到缓存",
+            "genre_count": len(result.get("genres", [])),
+            "insights": result.get("insights", "")[:100],
+        }
+
+    except Exception as e:
+        logger.error("Manual market analysis failed", error=str(e))
+        raise HTTPException(status_code=500, detail=f"市场分析失败: {str(e)}")
+
+
+@router.get("/market-analysis/status")
+async def get_market_analysis_status():
+    """
+    获取市场分析缓存状态
+
+    检查是否有有效的缓存数据。
+    """
+    try:
+        from backend.services.market_analysis import get_market_analysis_service
+
+        service = get_market_analysis_service()
+        report = await service.get_latest_analysis()
+
+        if report:
+            return {
+                "has_cache": True,
+                "analyzed_at": report.get("analyzed_at"),
+                "genre_count": len(report.get("genres", [])),
+                "insights": report.get("insights", "")[:100],
+            }
+        else:
+            return {
+                "has_cache": False,
+                "message": "暂无缓存，请执行市场分析任务",
+            }
+
+    except Exception as e:
+        logger.error("Failed to get market analysis status", error=str(e))
+        raise HTTPException(status_code=500, detail=f"获取状态失败: {str(e)}")
