@@ -56,8 +56,14 @@ export function cleanJsonFromContent(content: string): string {
                     return typeof parsed.text === 'string' ? parsed.text.trim() : String(parsed.text).trim();
                 }
 
-                // 如果是纯 JSON 但没有可读的文本内容，返回友好的提示
-                return '[结构化数据已处理]';
+                const possibleFields = ['response', 'answer', 'result', 'output', 'message', 'data'];
+                for (const field of possibleFields) {
+                    if (parsed[field] && typeof parsed[field] === 'string') {
+                        return parsed[field].trim();
+                    }
+                }
+                
+                return JSON.stringify(parsed, null, 2);
             }
         } catch {
             // JSON 解析失败，继续后续清理逻辑

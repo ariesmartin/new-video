@@ -10,16 +10,7 @@ import {
   TooltipProvider,
   TooltipTrigger,
 } from "@/components/ui/tooltip";
-import {
-  AlertDialog,
-  AlertDialogAction,
-  AlertDialogCancel,
-  AlertDialogContent,
-  AlertDialogDescription,
-  AlertDialogFooter,
-  AlertDialogHeader,
-  AlertDialogTitle,
-} from "@/components/ui/alert-dialog";
+import { ConfirmDialog } from "@/components/common/ConfirmDialog";
 import { chatService, type Message } from '@/api/services/chat';
 import { useAppStore, useUIStore } from '@/hooks/useStore';
 import ReactMarkdown from 'react-markdown';
@@ -43,7 +34,6 @@ export function AIAssistantPanel({ projectId: externalProjectId, sceneContext }:
   const [streamingContent, setStreamingContent] = useState('');
   const [thinkingStatus, setThinkingStatus] = useState('AI 正在思考中...');
   const [showResetDialog, setShowResetDialog] = useState(false);
-  const [currentThreadId, setCurrentThreadId] = useState<string | null>(null);
 
   const scrollRef = useRef<HTMLDivElement>(null);
   const abortControllerRef = useRef<(() => void) | null>(null);
@@ -59,9 +49,6 @@ export function AIAssistantPanel({ projectId: externalProjectId, sceneContext }:
     messages,
     setMessages,
     isLoading: isInitLoading,
-    isInitialized,
-    threadId,
-    initChat,
     resetChat,
   } = useAIChatInit({
     projectId,
@@ -72,11 +59,6 @@ export function AIAssistantPanel({ projectId: externalProjectId, sceneContext }:
 
   // 合并 loading 状态
   const isTyping = isInitLoading || !!abortControllerRef.current;
-
-  // 同步 threadId 到本地状态
-  useEffect(() => {
-    setCurrentThreadId(threadId);
-  }, [threadId]);
 
   // 自动滚动到底部
   useEffect(() => {
@@ -297,6 +279,12 @@ export function AIAssistantPanel({ projectId: externalProjectId, sceneContext }:
   const confirmResetSession = async () => {
     const effectiveProjectId = currentProject?.id || chatService.getTempProjectId();
 
+    if (!effectiveProjectId) {
+      addToast({ type: 'error', message: '无法重置：未找到项目 ID' });
+      setShowResetDialog(false);
+      return;
+    }
+
     if (abortControllerRef.current) {
       abortControllerRef.current();
       abortControllerRef.current = null;
@@ -304,11 +292,13 @@ export function AIAssistantPanel({ projectId: externalProjectId, sceneContext }:
 
     setStreamingContent('');
     setShowResetDialog(false);
-    addToast({ type: 'success', message: '会话已重置' });
-
-    // 使用 resetChat 强制触发冷启动
-    if (effectiveProjectId) {
+    
+    try {
       await resetChat(effectiveProjectId);
+      addToast({ type: 'success', message: '会话已重置' });
+    } catch (error) {
+      console.error('Reset chat failed:', error);
+      addToast({ type: 'error', message: '重置失败，请重试' });
     }
   };
 
@@ -462,20 +452,16 @@ export function AIAssistantPanel({ projectId: externalProjectId, sceneContext }:
       </div>
 
       {/* Reset Confirmation Dialog */}
-      <AlertDialog open={showResetDialog} onOpenChange={setShowResetDialog}>
-        <AlertDialogContent>
-          <AlertDialogHeader>
-            <AlertDialogTitle>确认重置会话？</AlertDialogTitle>
-            <AlertDialogDescription>
-              这将清空当前所有对话记录，并重新开始一个新的对话。此操作无法撤销。
-            </AlertDialogDescription>
-          </AlertDialogHeader>
-          <AlertDialogFooter>
-            <AlertDialogCancel>取消</AlertDialogCancel>
-            <AlertDialogAction onClick={confirmResetSession}>确认重置</AlertDialogAction>
-          </AlertDialogFooter>
-        </AlertDialogContent>
-      </AlertDialog>
+      <ConfirmDialog
+        open={showResetDialog}
+        onOpenChange={setShowResetDialog}
+        title="确认重置会话？"
+        description="这将清空当前所有对话记录，并重新开始一个新的对话。此操作无法撤销。"
+        confirmText="确认重置"
+        cancelText="取消"
+        onConfirm={confirmResetSession}
+        variant="destructive"
+      />
     </div>
   );
 }

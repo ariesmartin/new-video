@@ -56,6 +56,14 @@ function AppContent() {
       <Toaster 
         position="top-center"
         toastOptions={{
+          className: "bg-surface border border-border shadow-lg rounded-xl",
+          classNames: {
+            toast: "group toast group-[.toaster]:bg-surface group-[.toaster]:text-text-primary group-[.toaster]:border-border group-[.toaster]:shadow-lg group-[.toaster]:rounded-xl",
+            title: "group-[.toast]:font-medium group-[.toast]:text-sm",
+            description: "group-[.toast]:text-text-secondary group-[.toast]:text-xs",
+            actionButton: "group-[.toast]:bg-primary group-[.toast]:text-primary-foreground",
+            cancelButton: "group-[.toast]:bg-muted group-[.toast]:text-muted-foreground",
+          },
           style: {
             background: 'hsl(var(--surface))',
             color: 'hsl(var(--text-primary))',

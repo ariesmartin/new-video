@@ -61,6 +61,26 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/graph/chat/reset": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Chat Reset Endpoint
+         * @description 重置聊天 - 物理删除指定 thread 的所有历史记录
+         */
+        post: operations["chat_reset_endpoint_api_graph_chat_reset_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/graph/health": {
         parameters: {
             query?: never;
@@ -95,6 +115,51 @@ export interface paths {
          *     从 checkpointer 中获取指定 thread 的所有消息历史
          */
         get: operations["get_chat_messages_api_graph_messages__thread_id__get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/graph/market-analysis/trigger": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Trigger Market Analysis
+         * @description 手动触发市场分析任务
+         *
+         *     立即执行市场分析并保存到缓存，不需要等待定时任务。
+         *     用于首次部署或需要立即更新缓存时。
+         */
+        post: operations["trigger_market_analysis_api_graph_market_analysis_trigger_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/graph/market-analysis/status": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Get Market Analysis Status
+         * @description 获取市场分析缓存状态
+         *
+         *     检查是否有有效的缓存数据。
+         */
+        get: operations["get_market_analysis_status_api_graph_market_analysis_status_get"];
         put?: never;
         post?: never;
         delete?: never;
@@ -2256,6 +2321,39 @@ export interface operations {
             };
         };
     };
+    chat_reset_endpoint_api_graph_chat_reset_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["ChatInitRequest"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": unknown;
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
     graph_health_check_api_graph_health_get: {
         parameters: {
             query?: never;
@@ -2306,6 +2404,46 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    trigger_market_analysis_api_graph_market_analysis_trigger_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": unknown;
+                };
+            };
+        };
+    };
+    get_market_analysis_status_api_graph_market_analysis_status_get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": unknown;
                 };
             };
         };

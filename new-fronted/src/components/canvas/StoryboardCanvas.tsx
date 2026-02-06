@@ -6,6 +6,16 @@ import { ConnectionLines } from './ConnectionLines';
 import { useCanvasStore, useEpisodeStore, useUIStore } from '@/hooks/useStore';
 import { shotsService } from '@/api/services/shots';
 import type { ShotNode, ShotConnection } from '@/types';
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
 
 interface StoryboardCanvasProps {
   episodeId: string;
@@ -18,6 +28,7 @@ export function StoryboardCanvas({ episodeId, onNodeSelect }: StoryboardCanvasPr
   const [canvasContextMenu, setCanvasContextMenu] = useState<{ x: number; y: number } | null>(null);
   const [expandedScenes, setExpandedScenes] = useState<Set<string>>(new Set());
   const [isLoading, setIsLoading] = useState(false);
+  const [connectionToDelete, setConnectionToDelete] = useState<string | null>(null);
   
   // Store Hooks
   const { 
@@ -204,9 +215,14 @@ export function StoryboardCanvas({ episodeId, onNodeSelect }: StoryboardCanvasPr
 
   const handleConnectionClick = (connectionId: string, e: React.MouseEvent) => {
     e.stopPropagation();
-    if (confirm('Delete this connection?')) {
-      deleteConnection(connectionId);
+    setConnectionToDelete(connectionId);
+  };
+
+  const confirmDeleteConnection = () => {
+    if (connectionToDelete) {
+      deleteConnection(connectionToDelete);
       addToast({ type: 'success', message: 'Connection deleted' });
+      setConnectionToDelete(null);
     }
   };
 
@@ -383,6 +399,21 @@ export function StoryboardCanvas({ episodeId, onNodeSelect }: StoryboardCanvasPr
           }}
         />
       )}
+
+      <AlertDialog open={!!connectionToDelete} onOpenChange={(open) => !open && setConnectionToDelete(null)}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>删除连接？</AlertDialogTitle>
+            <AlertDialogDescription>
+              确定要删除这条连接线吗？此操作无法撤销。
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>取消</AlertDialogCancel>
+            <AlertDialogAction onClick={confirmDeleteConnection}>确认删除</AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </div>
   );
 }

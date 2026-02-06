@@ -84,7 +84,7 @@ export function useAIChatInit(options: UseAIChatInitOptions): UseAIChatInitRetur
     setThreadId(null);
     hasInitializedRef.current = false;
     
-    chatService.resetChat(targetProjectId);
+    await chatService.resetChat(targetProjectId);
     
     await initChat(targetProjectId);
   }, [initChat]);

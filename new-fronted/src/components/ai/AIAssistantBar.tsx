@@ -5,8 +5,9 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { Badge } from '@/components/ui/badge';
+import { ConfirmDialog } from "@/components/common/ConfirmDialog";
 import { chatService, type Message } from '@/api/services/chat';
-import { useAppStore } from '@/hooks/useStore';
+import { useAppStore, useUIStore } from '@/hooks/useStore';
 import ReactMarkdown from 'react-markdown';
 import remarkGfm from 'remark-gfm';
 import { ActionBlockRenderer } from './ActionBlockRenderer';
@@ -33,6 +34,7 @@ export function AIAssistantBar() {
   const [isResizing, setIsResizing] = useState(false);
   const [streamingContent, setStreamingContent] = useState('');
   const [thinkingStatus, setThinkingStatus] = useState('AI 正在思考中...');
+  const [showResetDialog, setShowResetDialog] = useState(false);
   
   const resizeStartY = useRef(0);
   const resizeStartHeight = useRef(height);
@@ -41,6 +43,7 @@ export function AIAssistantBar() {
   const streamPromiseRef = useRef<Promise<() => void> | null>(null);
 
   const { currentEpisode, currentProject } = useAppStore();
+  const addToast = useUIStore((state) => state.addToast);
   
   // 使用统一的 Hook 处理初始化 - 后端决定返回历史还是冷启动
   const projectId = currentProject?.id || chatService.getTempProjectId() || undefined;
@@ -49,7 +52,7 @@ export function AIAssistantBar() {
     setMessages,
     isLoading: isInitLoading,
     isInitialized,
-    initChat,
+    resetChat,
   } = useAIChatInit({ projectId });
 
   // 合并 loading 状态（初始化或消息发送中）
@@ -340,6 +343,32 @@ export function AIAssistantBar() {
     handleSendMessage();
   };
 
+  const handleResetSession = () => {
+    setShowResetDialog(true);
+  };
+
+  const confirmResetSession = async () => {
+    if (abortControllerRef.current) {
+      abortControllerRef.current();
+      abortControllerRef.current = null;
+    }
+
+    setStreamingContent('');
+    setShowResetDialog(false);
+
+    if (projectId) {
+      try {
+        await resetChat(projectId);
+        addToast({ type: 'success', message: '会话已重置' });
+      } catch (error) {
+        console.error('Reset chat failed:', error);
+        addToast({ type: 'error', message: '重置失败，请重试' });
+      }
+    } else {
+      addToast({ type: 'error', message: '无法重置：未找到项目 ID' });
+    }
+  };
+
   const currentHeight = isExpanded ? height : MIN_HEIGHT;
 
   return (
@@ -476,24 +505,7 @@ export function AIAssistantBar() {
                   variant="ghost"
                   size="sm"
                   className="h-8 gap-1.5 text-xs text-text-tertiary hover:text-red-500 hover:bg-red-500/10 transition-colors mr-1 hidden sm:flex"
-                  onClick={async () => {
-                    if (confirm('确定要清空会话并重新开始？')) {
-                      chatService.clearSession();
-
-                      if (abortControllerRef.current) {
-                        abortControllerRef.current();
-                        abortControllerRef.current = null;
-                      }
-
-                      setMessages([]);
-                      setStreamingContent('');
-
-                      // 重新初始化 - 后端决定返回什么
-                      if (projectId) {
-                        await initChat(projectId);
-                      }
-                    }
-                  }}
+                  onClick={handleResetSession}
                   title="重新开始"
                 >
                   <RotateCcw size={14} />
@@ -630,6 +642,17 @@ export function AIAssistantBar() {
       {isResizing && (
         <div className="absolute top-0 left-0 right-0 h-0.5 bg-primary z-50" />
       )}
+
+      <ConfirmDialog
+        open={showResetDialog}
+        onOpenChange={setShowResetDialog}
+        title="确认重置会话？"
+        description="这将清空当前所有对话记录，并重新开始一个新的对话。此操作无法撤销。"
+        confirmText="确认重置"
+        cancelText="取消"
+        onConfirm={confirmResetSession}
+        variant="destructive"
+      />
     </motion.div>
   );
 }

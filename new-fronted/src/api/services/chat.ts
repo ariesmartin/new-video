@@ -12,6 +12,7 @@ export interface Message {
     node_id?: string;
     action?: string;
     from_state?: boolean;
+    from_ui_interaction?: boolean;
   };
 }
 
@@ -240,6 +241,13 @@ export const chatService = {
   },
 
   /**
+   * 清除临时项目缓存
+   */
+  clearTempProject(): void {
+    localStorage.removeItem(TEMP_PROJECT_KEY);
+  },
+
+  /**
    * 清除 thread ID（用于重置会话）
    */
   clearThreadId(projectId: string): void {
@@ -247,14 +255,37 @@ export const chatService = {
   },
 
   /**
-   * 重置聊天 - 清除当前 thread 并生成新的，强制触发冷启动
+   * 重置聊天 - 请求后端删除历史并清除本地状态
    */
-  resetChat(projectId: string): void {
+  async resetChat(projectId: string): Promise<void> {
+    const threadId = this.getThreadId(projectId);
+    
+    if (threadId) {
+      try {
+        const apiUrl = import.meta.env.VITE_API_URL || 'http://localhost:8000';
+        console.log('[ChatService] Requesting backend reset for thread:', threadId);
+        
+        await fetch(`${apiUrl}/api/graph/chat/reset`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            user_id: 'user-' + Math.random().toString(36).substr(2, 9),
+            project_id: projectId,
+            session_id: threadId,
+          }),
+        });
+        console.log('[ChatService] Backend reset successful');
+      } catch (error) {
+        console.error('[ChatService] Failed to reset backend chat:', error);
+        // Continue to clear local state even if backend fails
+      }
+    }
+
     // 清除现有 thread
     this.clearThreadId(projectId);
-    // 生成新的 thread_id，这样后端会认为是新会话
-    const newThreadId = `thread-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`;
-    this.saveThreadId(projectId, newThreadId);
+    
+    // 不立即生成新 ID，让 initChat 去处理，或者这里生成也可以
+    // 为了确保干净的状态，这里不生成，留给 initChat
   },
 
   /**
