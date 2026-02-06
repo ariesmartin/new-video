@@ -12,7 +12,10 @@ celery_app = Celery(
     "ai_video_engine",
     broker=settings.redis_url,
     backend=settings.redis_url,
-    include=["backend.tasks.job_processor"],
+    include=[
+        "backend.tasks.job_processor",
+        "backend.tasks.market_analysis_task",  # 添加市场分析任务
+    ],
 )
 
 # Celery 配置

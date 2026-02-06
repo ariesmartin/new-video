@@ -1618,32 +1618,6 @@ class DatabaseService:
         )
         return response.status_code in (200, 204)
 
-
-# ===== Singleton Factory =====
-
-_db_service: DatabaseService | None = None
-
-
-async def init_db_service() -> DatabaseService:
-    """初始化数据库服务"""
-    global _db_service
-
-    if _db_service is None:
-        _db_service = DatabaseService(
-            base_url=settings.supabase_url,
-            service_key=settings.supabase_key,
-        )
-        logger.info("Database service initialized", url=settings.supabase_url)
-
-    return _db_service
-
-
-def get_db_service() -> DatabaseService:
-    """获取数据库服务实例"""
-    if _db_service is None:
-        raise RuntimeError("Database service not initialized. Call init_db_service() first.")
-    return _db_service
-
     # ===== Market Reports (Market Analysis Caching) =====
 
     async def create_market_report(self, data: dict[str, Any]) -> dict[str, Any]:
@@ -1688,3 +1662,29 @@ def get_db_service() -> DatabaseService:
         if result and len(result) > 0:
             return result[0]
         return None
+
+
+# ===== Singleton Factory =====
+
+_db_service: DatabaseService | None = None
+
+
+async def init_db_service() -> DatabaseService:
+    """初始化数据库服务"""
+    global _db_service
+
+    if _db_service is None:
+        _db_service = DatabaseService(
+            base_url=settings.supabase_url,
+            service_key=settings.supabase_key,
+        )
+        logger.info("Database service initialized", url=settings.supabase_url)
+
+    return _db_service
+
+
+def get_db_service() -> DatabaseService:
+    """获取数据库服务实例"""
+    if _db_service is None:
+        raise RuntimeError("Database service not initialized. Call init_db_service() first.")
+    return _db_service

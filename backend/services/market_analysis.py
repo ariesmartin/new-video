@@ -14,7 +14,7 @@ from backend.services.model_router import ModelRouter, get_model_router
 from backend.services.prompt_service import PromptService, get_prompt_service
 from backend.services.database import DatabaseService, get_db_service
 from backend.schemas.model_config import TaskType
-from backend.tools import metaso_search
+from backend.tools.metaso_search import metaso_search
 
 logger = structlog.get_logger(__name__)
 
@@ -92,7 +92,7 @@ class MarketAnalysisService:
         )
 
         # 加载 Prompt
-        system_prompt = self.prompt_service.get_raw_prompt("market_analyst_daily")
+        system_prompt = self.prompt_service.get_raw_prompt("market_analyst")
 
         # 构建消息
         messages = [
@@ -185,7 +185,7 @@ class MarketAnalysisService:
             }
 
             # 插入数据库
-            result = await self._db.create_market_report(data)
+            result = await self.db.create_market_report(data)
             logger.info("Market analysis saved", report_id=result.get("id"))
 
         except Exception as e:
@@ -196,7 +196,7 @@ class MarketAnalysisService:
         """获取最新的有效市场分析结果"""
         try:
             # 查询最新的有效报告
-            report = await self._db.get_latest_market_report()
+            report = await self.db.get_latest_market_report()
 
             if not report:
                 logger.info("No cached market report found")
