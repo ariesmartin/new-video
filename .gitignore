@@ -1,0 +1,11 @@
+.DS_Store
+node_modules/
+__pycache__/
+.venv/
+venv/
+.env
+*.log
+old*/
+backup/
+downloads/
+video_analysis/
