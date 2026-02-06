@@ -8,7 +8,7 @@
 | 版本号 | v4.0.2 |
 | 创建日期 | 2026-02-06 |
 | 最后更新 | 2026-02-06 |
-| 构建状态 | Step 2 完成，Step 3 进行中 (Agent 架构) |
+| 构建状态 | Step 3 完成，Celery + 缓存系统已修复 |
 | 目标 | 基于 LangChain Agent Skill 架构重构 |
 
 ---
@@ -682,7 +682,175 @@ async def node(state):
 
 ---
 
+### ADR-008: Celery + Market Analysis 缓存系统重构
+
+**决策**: 重构 Celery 配置和 Market Analysis 缓存系统，支持自动执行和手动触发
+
+**背景**:
+市场分析报告缓存系统存在多个问题：
+1. Celery 定时任务未正确加载 `market_analysis_task`
+2. `market_reports` 数据库表不存在
+3. `DatabaseService` 中的方法缩进错误，导致方法未定义
+4. 搜索工具调用失败 (`'StructuredTool' object is not callable`)
+5. 没有手动触发缓存生成的 API
+
+**问题修复**:
+
+1. **Celery 配置修复** (`celery_app.py`):
+```python
+celery_app = Celery(
+    "ai_video_engine",
+    broker=settings.redis_url,
+    backend=settings.redis_url,
+    include=[
+        "backend.tasks.job_processor",
+        "backend.tasks.market_analysis_task",  # 添加市场分析任务
+    ],
+)
+```
+
+2. **自动启动 Celery** (`main.py`):
+```python
+def start_celery():
+    """启动 Celery Worker 和 Beat 进程"""
+    # 设置 PYTHONPATH 解决导入问题
+    env["PYTHONPATH"] = project_root + ":" + env.get("PYTHONPATH", "")
+    
+    # 启动 Worker 和 Beat
+    celery_worker_process = subprocess.Popen(...)
+    celery_beat_process = subprocess.Popen(...)
+```
+
+3. **数据库表创建**:
+```sql
+CREATE TABLE public.market_reports (
+    id UUID DEFAULT extensions.uuid_generate_v4() PRIMARY KEY,
+    report_type VARCHAR(50),
+    genres JSONB,
+    tones JSONB,
+    insights TEXT,
+    target_audience TEXT,
+    search_queries JSONB,
+    raw_search_results TEXT,
+    valid_until TIMESTAMPTZ,
+    is_active BOOLEAN DEFAULT true,
+    created_at TIMESTAMPTZ DEFAULT now()
+);
+```
+
+4. **方法缩进修复** (`database.py`):
+```python
+# 将 create_market_report 和 get_latest_market_report 
+# 从 get_db_service() 函数内部移到 DatabaseService 类内部
+
+async def create_market_report(self, data: dict[str, Any]) -> dict[str, Any]:
+    """创建市场分析报告"""
+    ...
+
+async def get_latest_market_report(self) -> dict[str, Any] | None:
+    """获取最新的有效市场分析报告"""
+    ...
+```
+
+5. **搜索工具导入修复** (`market_analysis.py`):
+```python
+# ❌ 错误：从 tools 模块导入被 @tool 装饰的函数
+from backend.tools import metaso_search
+
+# ✅ 正确：直接导入原始函数
+from backend.tools.metaso_search import metaso_search
+```
+
+6. **手动触发 API** (`graph.py`):
+```python
+@router.post("/market-analysis/trigger")
+async def trigger_market_analysis():
+    """手动触发市场分析任务"""
+    ...
+
+@router.get("/market-analysis/status")
+async def get_market_analysis_status():
+    """获取市场分析缓存状态"""
+    ...
+```
+
+**修复清单**:
+- ✅ Celery 配置：添加 `market_analysis_task` 到 include
+- ✅ main.py：自动启动 Celery Worker 和 Beat
+- ✅ 数据库：创建 `market_reports` 表
+- ✅ database.py：修复方法缩进错误
+- ✅ market_analysis.py：修复搜索工具导入
+- ✅ graph.py：添加手动触发和状态查询 API
+- ✅ story_planner.py：添加无缓存提示
+- ✅ prompts：修复 `market_analyst_daily` → `market_analyst`
+
+**验证结果**:
+```bash
+# 1. 启动服务，Celery 自动启动
+python -m uvicorn main:app --reload
+
+# 2. 手动触发市场分析
+curl -X POST http://localhost:8000/api/graph/market-analysis/trigger
+# 返回: {"status":"success","genre_count":4,"insights":"..."}
+
+# 3. 检查缓存状态
+curl http://localhost:8000/api/graph/market-analysis/status
+# 返回: {"has_cache":true,"analyzed_at":"2026-02-06T...","genre_count":4}
+
+# 4. 查询数据库确认
+SELECT * FROM market_reports;
+# 显示: 1 条记录，valid_until 为 7 天后
+```
+
+**架构设计**:
+
+```
+┌─────────────────────────────────────────────────────────────────┐
+│                    Market Analysis 架构                          │
+├─────────────────────────────────────────────────────────────────┤
+│                                                                  │
+│  1. 后台 Service（每7天自动执行）                                 │
+│     MarketAnalysisService                                        │
+│     ├── run_daily_analysis()  ← Celery Beat 定时触发            │
+│     ├── get_latest_analysis() ← Story Planner 读取缓存          │
+│     └── save_analysis()       ← 保存到数据库 (7天有效期)        │
+│                                                                  │
+│  2. 实时 Agent（前端用户触发）                                    │
+│     Market Analyst Agent                                         │
+│     ├── create_market_analyst_agent()                           │
+│     ├── 每次执行实时搜索（不使用缓存）                            │
+│     └── 根据用户具体需求分析                                      │
+│                                                                  │
+│  3. Story Planner（使用缓存）                                     │
+│     ├── get_market_analysis_service().get_latest_analysis()     │
+│     ├── 注入缓存到 Prompt                                         │
+│     └── 如果无缓存，返回提示信息                                  │
+│                                                                  │
+└─────────────────────────────────────────────────────────────────┘
+```
+
+**状态**: ✅ 已修复 (2026-02-06)
+- Celery 自动启动和定时任务执行正常
+- 市场分析缓存成功保存到数据库
+- Story Planner 正确读取缓存
+- 提供手动触发 API 用于即时生成缓存
+
+---
+
 ## 变更日志
+
+### v4.0.3 (2026-02-06)
+- ✅ **新增**: Celery 自动启动和管理系统
+  - main.py 自动启动 Celery Worker 和 Beat
+  - 进程绑定和优雅关闭处理
+- ✅ **新增**: Market Analysis 缓存系统
+  - 创建 market_reports 数据库表
+  - 7天有效期自动缓存机制
+  - 手动触发和状态查询 API
+- 🐛 **修复**: Celery 配置缺失 market_analysis_task
+- 🐛 **修复**: DatabaseService 方法缩进错误
+- 🐛 **修复**: 搜索工具导入错误 (`StructuredTool not callable`)
+- 🐛 **修复**: Prompt 名称错误 (`market_analyst_daily` → `market_analyst`)
 
 ### v4.0.2 (2026-02-06)
 - 🐛 **修复**: MESSAGE_COERCION_FAILURE 消息序列化错误
