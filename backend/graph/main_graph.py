@@ -314,7 +314,7 @@ def create_main_graph(checkpointer: BaseCheckpointSaver | None = None):
 
     # 入口：根据是否冷启动选择路径
     def route_from_start(state: AgentState):
-        """入口路由 - 检测是否需要冷启动"""
+        """入口路由 - 检测是否需要冷启动或SDUI Action"""
         # 如果 messages 为空或明确标记为冷启动，走冷启动节点
         messages = state.get("messages", [])
         is_cold_start = state.get("is_cold_start", False)
@@ -322,6 +322,48 @@ def create_main_graph(checkpointer: BaseCheckpointSaver | None = None):
         if is_cold_start or not messages:
             logger.info("Routing to cold_start node")
             return "cold_start"
+
+        # 检测是否是 SDUI Action（用户点击按钮）
+        if messages:
+            last_msg = messages[-1]
+            content = last_msg.content if hasattr(last_msg, "content") else str(last_msg)
+
+            # 检测是否是 action JSON 格式
+            if content.strip().startswith("{") and '"action"' in content:
+                try:
+                    import json
+
+                    data = json.loads(content)
+                    action = data.get("action", "")
+
+                    # SDUI Action 到 Agent 的映射
+                    sdui_action_map = {
+                        "start_creation": "story_planner",
+                        "adapt_script": "script_adapter",
+                        "create_storyboard": "storyboard_director",
+                        "inspect_assets": "asset_inspector",
+                        "random_plan": "story_planner",
+                        "select_genre": "market_analyst",
+                        "select_plan": "story_planner",
+                        "start_custom": "story_planner",
+                        "proceed_to_planning": "market_analyst",
+                        "reset_genre": "market_analyst",
+                    }
+
+                    if action in sdui_action_map:
+                        target_agent = sdui_action_map[action]
+                        # 在状态中设置 routed_agent，让 Master Router 直接路由
+                        state["routed_agent"] = target_agent
+                        state["ui_feedback"] = f"正在为您启动{target_agent.replace('_', ' ')}..."
+                        state["intent_analysis"] = f"SDUI action: {action}"
+                        logger.info(
+                            "SDUI action detected, routing directly",
+                            action=action,
+                            target_agent=target_agent,
+                        )
+                        return "master_router"
+                except Exception as e:
+                    logger.warning(f"Failed to parse SDUI action: {e}")
 
         # 否则走正常流程
         logger.info("Routing to master_router")

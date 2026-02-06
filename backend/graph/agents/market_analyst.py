@@ -60,7 +60,7 @@ async def create_market_analyst_agent(user_id: str, project_id: str = None):
     agent = create_react_agent(
         model=model,
         tools=[duckduckgo_search, metaso_search],
-        state_modifier=_load_market_analyst_prompt(),
+        prompt=_load_market_analyst_prompt(),
     )
 
     return agent

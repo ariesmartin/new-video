@@ -334,6 +334,29 @@ async def master_router_node(state: AgentState) -> Dict[str, Any]:
         logger.info("Resuming workflow", next_step=continuation.get("current_step_idx", 0) + 1)
         return continuation
 
+    # 检查是否已经有预设的 routed_agent（来自 SDUI Action）
+    pre_set_agent = state.get("routed_agent")
+    if pre_set_agent and pre_set_agent != "end":
+        logger.info(
+            "Using pre-set routed_agent from SDUI action, skipping LLM call",
+            routed_agent=pre_set_agent,
+        )
+        # 直接返回预设的路由决策，不调用 LLM，不添加消息到 messages
+        return {
+            "intent_analysis": state.get(
+                "intent_analysis", f"SDUI action routing to {pre_set_agent}"
+            ),
+            "workflow_plan": state.get("workflow_plan", []),
+            "current_step_idx": state.get("current_step_idx", 0),
+            "routed_agent": pre_set_agent,
+            "routed_function": state.get("routed_function"),
+            "routed_parameters": state.get("routed_parameters", {}),
+            "ui_feedback": state.get(
+                "ui_feedback", f"正在为您启动 {pre_set_agent.replace('_', ' ')}..."
+            ),
+            "last_successful_node": "master_router",
+        }
+
     # 获取模型
     router = get_model_router()
     model = await router.get_model(
@@ -347,7 +370,7 @@ async def master_router_node(state: AgentState) -> Dict[str, Any]:
     # 修复: 从 checkpoint 恢复的消息可能是字典格式，需要转换为 LangChain 消息对象
     raw_messages = state.get("messages", [])
     messages = normalize_messages(raw_messages)
-    
+
     # 获取最后一条用户消息
     last_user_message = ""
     for msg in reversed(messages):
@@ -399,8 +422,9 @@ async def master_router_node(state: AgentState) -> Dict[str, Any]:
     )
 
     # 返回状态更新
+    # 注意：不添加 response 到 messages，避免将 JSON 决策显示给用户
+    # ui_feedback 会在 API 端点被提取并显示
     return {
-        "messages": messages + [response],
         "intent_analysis": decision.get("intent_analysis"),
         "workflow_plan": decision.get("workflow_plan"),
         "current_step_idx": decision.get("current_step_idx", 0),

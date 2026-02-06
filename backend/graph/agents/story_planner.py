@@ -120,9 +120,34 @@ async def create_story_planner_agent(user_id: str, project_id: str = None):
             has_report=bool(market_report),
             user_id=user_id,
         )
+
+        # 如果没有缓存，创建一个提示信息返回给用户
+        if not market_report:
+            logger.warning("No market report cache found")
+            # 返回一个特殊的消息，让前端知道缺少缓存
+            from langchain_core.messages import AIMessage
+
+            return {
+                "messages": [
+                    AIMessage(
+                        content="⚠️ **系统提示**：市场分析报告尚未生成。请联系管理员先执行市场分析缓存任务，或稍后再试。"
+                    )
+                ],
+                "story_plans": "",
+                "last_successful_node": "story_planner_no_cache",
+            }
     except Exception as e:
-        logger.warning("Failed to load market report, using defaults", error=str(e))
-        market_report = None
+        logger.error("Failed to load market report", error=str(e))
+        # 发生错误时返回错误信息
+        from langchain_core.messages import AIMessage
+
+        return {
+            "messages": [
+                AIMessage(content=f"⚠️ **系统错误**：无法加载市场分析报告。错误信息：{str(e)}")
+            ],
+            "story_plans": "",
+            "last_successful_node": "story_planner_error",
+        }
 
     # 2. 获取配置好的模型
     router = get_model_router()
@@ -134,7 +159,7 @@ async def create_story_planner_agent(user_id: str, project_id: str = None):
     agent = create_react_agent(
         model=model,
         tools=[],  # Story Planner 是纯创作任务，不需要工具
-        state_modifier=_load_story_planner_prompt(market_report),
+        prompt=_load_story_planner_prompt(market_report),
     )
 
     return agent

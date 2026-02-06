@@ -60,7 +60,7 @@ async def create_storyboard_director_agent(user_id: str, project_id: str = None)
     agent = create_react_agent(
         model=model,
         tools=[],  # 分镜导演目前不需要外部工具
-        state_modifier=_load_storyboard_director_prompt(),
+        prompt=_load_storyboard_director_prompt(),
     )
 
     return agent

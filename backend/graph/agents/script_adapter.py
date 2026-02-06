@@ -58,7 +58,7 @@ async def create_script_adapter_agent(user_id: str, project_id: str = None):
     agent = create_react_agent(
         model=model,
         tools=[],  # 剧本改编不需要外部工具
-        state_modifier=_load_script_adapter_prompt(),
+        prompt=_load_script_adapter_prompt(),
     )
 
     return agent

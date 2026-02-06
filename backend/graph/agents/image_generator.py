@@ -60,7 +60,7 @@ async def create_image_generator_agent(user_id: str, project_id: str = None):
     agent = create_react_agent(
         model=model,
         tools=[],  # 图片生成 Agent 目前只生成提示词
-        state_modifier=_load_image_generator_prompt(),
+        prompt=_load_image_generator_prompt(),
     )
 
     return agent
