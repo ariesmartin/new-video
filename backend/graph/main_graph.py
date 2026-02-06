@@ -143,36 +143,92 @@ async def _story_planner_node(state: AgentState) -> Dict[str, Any]:
                 UIInteractionBlockType,
                 ActionButton,
             )
+            from backend.services.market_analysis import get_market_analysis_service
 
             logger.info("No genre selected, showing category selection UI")
 
+            # 获取市场分析报告，用于推荐热门赛道
+            recommended_categories = []
+            market_insights = ""
+            try:
+                market_service = get_market_analysis_service()
+                market_report = await market_service.get_latest_analysis()
+
+                if market_report:
+                    # 分析热门题材，映射到分类
+                    genres = market_report.get("genres", [])
+                    insights = market_report.get("insights", "")
+                    market_insights = insights[:100] + "..." if len(insights) > 100 else insights
+
+                    # 根据热门题材推荐分类
+                    for g in genres[:3]:  # 取前3个热门题材
+                        genre_name = g.get("name", "").lower()
+                        trend = g.get("trend", "")
+
+                        # 映射题材到分类
+                        if any(
+                            kw in genre_name
+                            for kw in ["现代", "都市", "职场", "豪门", "复仇", "甜宠"]
+                        ):
+                            if "modern" not in recommended_categories:
+                                recommended_categories.append("modern")
+                        elif any(
+                            kw in genre_name
+                            for kw in ["古装", "仙侠", "宫廷", "穿越", "玄幻", "江湖"]
+                        ):
+                            if "ancient" not in recommended_categories:
+                                recommended_categories.append("ancient")
+                        elif any(kw in genre_name for kw in ["民国", "军阀", "谍战", "宅门"]):
+                            if "republic" not in recommended_categories:
+                                recommended_categories.append("republic")
+                        elif any(
+                            kw in genre_name
+                            for kw in ["科幻", "未来", "末世", "赛博", "星际", "无限流"]
+                        ):
+                            if "future" not in recommended_categories:
+                                recommended_categories.append("future")
+
+                    logger.info(
+                        "Market analysis loaded for category recommendations",
+                        recommended=recommended_categories,
+                        hot_genres=[g.get("name") for g in genres[:3]],
+                    )
+            except Exception as e:
+                logger.warning("Failed to load market analysis for recommendations", error=str(e))
+
+            # 构建分类按钮，热门推荐使用 primary 样式
+            is_recommended_modern = "modern" in recommended_categories
+            is_recommended_ancient = "ancient" in recommended_categories
+            is_recommended_republic = "republic" in recommended_categories
+            is_recommended_future = "future" in recommended_categories
+
             category_buttons = [
                 ActionButton(
-                    label="🏙️ 现代都市",
+                    label=f"🏙️ 现代都市 {'🔥' if is_recommended_modern else ''}",
                     action="select_genre",
                     payload={"genre": "现代都市", "setting": "modern"},
-                    style="secondary",
+                    style="primary" if is_recommended_modern else "secondary",
                     icon="Building",
                 ),
                 ActionButton(
-                    label="👘 古装仙侠",
+                    label=f"👘 古装仙侠 {'🔥' if is_recommended_ancient else ''}",
                     action="select_genre",
                     payload={"genre": "古装仙侠", "setting": "ancient"},
-                    style="secondary",
+                    style="primary" if is_recommended_ancient else "secondary",
                     icon="Crown",
                 ),
                 ActionButton(
-                    label="🎩 民国传奇",
+                    label=f"🎩 民国传奇 {'🔥' if is_recommended_republic else ''}",
                     action="select_genre",
                     payload={"genre": "民国传奇", "setting": "republic"},
-                    style="secondary",
+                    style="primary" if is_recommended_republic else "secondary",
                     icon="History",
                 ),
                 ActionButton(
-                    label="🤖 未来科幻",
+                    label=f"🤖 未来科幻 {'🔥' if is_recommended_future else ''}",
                     action="select_genre",
                     payload={"genre": "未来科幻", "setting": "future"},
-                    style="secondary",
+                    style="primary" if is_recommended_future else "secondary",
                     icon="Rocket",
                 ),
                 ActionButton(
@@ -184,10 +240,17 @@ async def _story_planner_node(state: AgentState) -> Dict[str, Any]:
                 ),
             ]
 
+            # 构建描述文本，包含市场洞察
+            description = "请选择您想创作的故事背景："
+            if recommended_categories and market_insights:
+                description = (
+                    f"📊 **市场趋势**：{market_insights}\n\n🔥 标记为当前热门推荐，请选择故事背景："
+                )
+
             category_ui = UIInteractionBlock(
                 block_type=UIInteractionBlockType.ACTION_GROUP,
                 title="选择故事背景",
-                description="请选择您想创作的故事背景：",
+                description=description,
                 buttons=category_buttons,
                 dismissible=False,
             )
