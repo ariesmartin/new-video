@@ -11,8 +11,10 @@ import { useAppStore, useUIStore } from '@/hooks/useStore';
 import ReactMarkdown from 'react-markdown';
 import remarkGfm from 'remark-gfm';
 import { ActionBlockRenderer } from './ActionBlockRenderer';
+import { ScriptRenderer } from './ScriptRenderer';
 import { cleanJsonFromContent } from '@/lib/ai-chat-helper';
 import { useAIChatInit } from '@/hooks/useAIChatInit';
+import { useChatScroll } from '@/hooks/useChatScroll';
 
 const STORAGE_KEY = 'ai-assistant-height';
 const MIN_HEIGHT = 48;
@@ -35,16 +37,15 @@ export function AIAssistantBar() {
   const [streamingContent, setStreamingContent] = useState('');
   const [thinkingStatus, setThinkingStatus] = useState('AI 正在思考中...');
   const [showResetDialog, setShowResetDialog] = useState(false);
-  
+
   const resizeStartY = useRef(0);
   const resizeStartHeight = useRef(height);
-  const messagesEndRef = useRef<HTMLDivElement>(null);
   const abortControllerRef = useRef<(() => void) | null>(null);
   const streamPromiseRef = useRef<Promise<() => void> | null>(null);
 
   const { currentEpisode, currentProject } = useAppStore();
   const addToast = useUIStore((state) => state.addToast);
-  
+
   // 使用统一的 Hook 处理初始化 - 后端决定返回历史还是冷启动
   const projectId = currentProject?.id || chatService.getTempProjectId() || undefined;
   const {
@@ -57,6 +58,14 @@ export function AIAssistantBar() {
 
   // 合并 loading 状态（初始化或消息发送中）
   const isTyping = isInitLoading || !!abortControllerRef.current;
+
+  // 使用统一的自动滚动 hook
+  const messagesEndRef = useChatScroll({
+    messages,
+    isStreaming: !!streamingContent,
+    enabled: isExpanded
+  });
+
 
   // 自动发送 Startup Prompt
   useEffect(() => {
@@ -72,22 +81,17 @@ export function AIAssistantBar() {
     }
   }, [isInitialized, currentProject]);
 
-  // 使用 Callback Ref 来监听元素挂载
-  const scrollIntoViewRef = useCallback((node: HTMLDivElement | null) => {
-    messagesEndRef.current = node;
-    if (node) {
-      setTimeout(() => {
-        node.scrollIntoView({ behavior: 'smooth', block: 'end' });
-      }, 300);
-    }
-  }, []);
-
-  // 监听消息更新自动滚动
+  // 处理展开动画后的自动滚动
   useEffect(() => {
-    if (messagesEndRef.current && isExpanded) {
-      messagesEndRef.current.scrollIntoView({ behavior: 'smooth', block: 'end' });
+    if (isExpanded) {
+      // 这里的 400ms 略大于 Framer Motion 的默认动画时间 (0.3s)
+      // 确保在动画完成后再执行一次滚动，保证底部内容可见
+      const timer = setTimeout(() => {
+        messagesEndRef.current?.scrollIntoView({ behavior: 'smooth', block: 'end' });
+      }, 400);
+      return () => clearTimeout(timer);
     }
-  }, [messages, streamingContent, isExpanded]);
+  }, [isExpanded]);
 
   useEffect(() => {
     if (!isResizing && height !== DEFAULT_EXPANDED_HEIGHT) {
@@ -160,6 +164,8 @@ export function AIAssistantBar() {
       'adapt_script': '📜 剧本改编',
       'create_storyboard': '🎨 分镜制作',
       'inspect_assets': '👤 资产探查',
+      'set_episode_config': '✅ 确认剧集配置',
+      'custom_episode_config': '⚙️ 自定义剧集配置',
     };
 
     let displayLabel = actionLabels[action] || action;
@@ -167,6 +173,10 @@ export function AIAssistantBar() {
       displayLabel = `选择：${payload.genre}`;
     } else if (action === 'random_plan' && payload?.genre) {
       displayLabel = `🎲 生成 ${payload.genre} 方案`;
+    } else if (action === 'set_episode_config' && payload?.episode_count) {
+      displayLabel = `✅ 配置：${payload.episode_count}集，每集${payload.episode_duration}分钟`;
+    } else if (action === 'custom_episode_config') {
+      displayLabel = '⚙️ 自定义剧集配置';
     }
 
     const userMessage: Message = {
@@ -536,7 +546,12 @@ export function AIAssistantBar() {
                           <div className="flex-1 min-w-0 max-w-full lg:max-w-[calc(100%-340px)]">
                             <div className="bg-elevated border border-border rounded-2xl rounded-bl-md px-4 py-3 h-full">
                               <div className="prose prose-sm prose-invert max-w-none text-sm break-words [&>p]:mb-2 [&>p:last-child]:mb-0 [&>ul]:list-disc [&>ul]:pl-4 [&>ol]:list-decimal [&>ol]:pl-4 [&>pre]:overflow-x-auto">
-                                <ReactMarkdown remarkPlugins={[remarkGfm]}>
+                                <ReactMarkdown
+                                  remarkPlugins={[remarkGfm]}
+                                  components={{
+                                    p: ScriptRenderer
+                                  }}
+                                >
                                   {cleanJsonFromContent(message.content)}
                                 </ReactMarkdown>
                               </div>
@@ -571,7 +586,12 @@ export function AIAssistantBar() {
                           <p className="text-xs sm:text-sm whitespace-pre-wrap">{message.content}</p>
                         ) : (
                           <div className="prose prose-sm prose-invert max-w-none text-xs sm:text-sm overflow-hidden break-words [&>p]:mb-2 [&>p:last-child]:mb-0 [&>ul]:list-disc [&>ul]:pl-4 [&>ol]:list-decimal [&>ol]:pl-4 [&>code]:bg-background [&>code]:px-1 [&>code]:rounded [&>pre]:overflow-x-auto">
-                            <ReactMarkdown remarkPlugins={[remarkGfm]}>
+                            <ReactMarkdown
+                              remarkPlugins={[remarkGfm]}
+                              components={{
+                                p: ScriptRenderer
+                              }}
+                            >
                               {cleanJsonFromContent(message.content)}
                             </ReactMarkdown>
                           </div>
@@ -599,7 +619,12 @@ export function AIAssistantBar() {
                   <div className="flex justify-start">
                     <div className="bg-elevated border border-border rounded-2xl rounded-bl-md px-4 py-3 max-w-[85%] sm:max-w-[80%]">
                       <div className="prose prose-sm prose-invert max-w-none text-sm overflow-hidden break-words [&>p]:mb-2 [&>p:last-child]:mb-0 [&>ul]:list-disc [&>ul]:pl-4 [&>ol]:list-decimal [&>ol]:pl-4 [&>pre]:overflow-x-auto">
-                        <ReactMarkdown remarkPlugins={[remarkGfm]}>
+                        <ReactMarkdown
+                          remarkPlugins={[remarkGfm]}
+                          components={{
+                            p: ScriptRenderer
+                          }}
+                        >
                           {cleanJsonFromContent(streamingContent)}
                         </ReactMarkdown>
                       </div>
@@ -611,7 +636,7 @@ export function AIAssistantBar() {
                   </div>
                 )}
 
-                <div ref={scrollIntoViewRef} />
+                <div ref={messagesEndRef} />
               </div>
             </ScrollArea>
 

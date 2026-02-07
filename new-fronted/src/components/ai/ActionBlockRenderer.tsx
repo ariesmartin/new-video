@@ -6,10 +6,13 @@
 
 import { useState, useEffect } from 'react';
 import * as LucideIcons from 'lucide-react';
-import { X, Zap } from 'lucide-react';
-import type { UIInteractionBlock } from '@/types/sdui';
+import { X, Zap, Check, ArrowLeft } from 'lucide-react';
+import type { UIInteractionBlock, FormField } from '@/types/sdui';
 import { chatService } from '@/api/services/chat';
 import { useAppStore } from '@/hooks/useStore';
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 
 interface ActionBlockRendererProps {
     block: UIInteractionBlock;
@@ -19,7 +22,18 @@ interface ActionBlockRendererProps {
 export function ActionBlockRenderer({ block, onActionClick }: ActionBlockRendererProps) {
     const [isDismissed, setIsDismissed] = useState(false);
     const [isLoading, setIsLoading] = useState<string | null>(null);
+    const [formValues, setFormValues] = useState<Record<string, unknown>>({});
     const { currentProject, currentEpisode } = useAppStore();
+
+    useEffect(() => {
+        if (normalizedBlock?.form_fields) {
+            const defaults: Record<string, unknown> = {};
+            normalizedBlock.form_fields.forEach((field: FormField) => {
+                defaults[field.id] = field.default ?? '';
+            });
+            setFormValues(defaults);
+        }
+    }, [block]);
 
     // 规范化 block 数据（处理从后端恢复时的各种格式）
     const normalizedBlock = (() => {
@@ -36,8 +50,8 @@ export function ActionBlockRenderer({ block, onActionClick }: ActionBlockRendere
             }
         }
 
-        // 确保 buttons 是数组
-        let buttons = parsedBlock.buttons;
+        // 确保 buttons 是数组（form 类型可能没有 buttons）
+        let buttons = parsedBlock.buttons || [];
         if (typeof buttons === 'string') {
             try {
                 buttons = JSON.parse(buttons);
@@ -47,7 +61,9 @@ export function ActionBlockRenderer({ block, onActionClick }: ActionBlockRendere
             }
         }
 
-        if (!Array.isArray(buttons) || buttons.length === 0) {
+        // 对于 form 类型，允许没有 buttons；对于其他类型，需要 buttons
+        const blockType = parsedBlock.block_type;
+        if (blockType !== 'form' && (!Array.isArray(buttons) || buttons.length === 0)) {
             console.warn('[ActionBlockRenderer] No valid buttons found:', { block: parsedBlock, buttons });
             return null;
         }
@@ -127,15 +143,61 @@ export function ActionBlockRenderer({ block, onActionClick }: ActionBlockRendere
                 </div>
             )}
 
+            {/* 表单字段 */}
+            {normalizedBlock.block_type === 'form' && normalizedBlock.form_fields && (
+                <div className="space-y-3 mb-3">
+                    {normalizedBlock.form_fields.map((field: FormField) => (
+                        <div key={field.id} className="space-y-1">
+                            <Label className="text-xs text-text-secondary">
+                                {field.label}
+                            </Label>
+                            {field.type === 'select' && field.options ? (
+                                <Select
+                                    value={String(formValues[field.id] ?? '')}
+                                    onValueChange={(value) => setFormValues(prev => ({ ...prev, [field.id]: value }))}
+                                >
+                                    <SelectTrigger className="w-full h-8 text-xs">
+                                        <SelectValue placeholder={field.placeholder} />
+                                    </SelectTrigger>
+                                    <SelectContent>
+                                        {field.options.map((opt) => (
+                                            <SelectItem key={opt.value} value={String(opt.value)} className="text-xs">
+                                                {opt.label}
+                                            </SelectItem>
+                                        ))}
+                                    </SelectContent>
+                                </Select>
+                            ) : field.type === 'number' ? (
+                                <Input
+                                    type="number"
+                                    min={field.min}
+                                    max={field.max}
+                                    value={String(formValues[field.id] ?? '')}
+                                    onChange={(e) => setFormValues(prev => ({ ...prev, [field.id]: parseInt(e.target.value) || 0 }))}
+                                    placeholder={field.placeholder}
+                                    className="h-8 text-xs"
+                                />
+                            ) : (
+                                <Input
+                                    type="text"
+                                    value={String(formValues[field.id] ?? '')}
+                                    onChange={(e) => setFormValues(prev => ({ ...prev, [field.id]: e.target.value }))}
+                                    placeholder={field.placeholder}
+                                    className="h-8 text-xs"
+                                />
+                            )}
+                        </div>
+                    ))}
+                </div>
+            )}
+
             {/* 按钮组 */}
             <div className="flex flex-wrap gap-2">
-                {normalizedBlock.buttons.map((btn, idx) => {
-                    // 动态获取图标组件
+                {normalizedBlock.buttons?.map((btn, idx) => {
                     const IconComponent = btn.icon && (LucideIcons as any)[btn.icon]
                         ? (LucideIcons as any)[btn.icon]
                         : Zap;
 
-                    // 按钮样式
                     let btnClasses = "flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium rounded-md transition-all active:scale-95 disabled:opacity-50 disabled:active:scale-100";
 
                     switch (btn.style) {
@@ -156,11 +218,19 @@ export function ActionBlockRenderer({ block, onActionClick }: ActionBlockRendere
 
                     const isButtonLoading = isLoading === btn.action;
 
+                    const handleClick = () => {
+                        const payload = { ...btn.payload };
+                        if (normalizedBlock.block_type === 'form') {
+                            Object.assign(payload, formValues);
+                        }
+                        handleButtonClick(btn.action, payload);
+                    };
+
                     return (
                         <button
                             key={idx}
                             className={btnClasses}
-                            onClick={() => handleButtonClick(btn.action, btn.payload)}
+                            onClick={handleClick}
                             disabled={btn.disabled || isButtonLoading}
                         >
                             {isButtonLoading ? (

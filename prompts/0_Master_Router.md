@@ -29,6 +29,28 @@
 
 ## Intent Classification & Routing Logic (意图决策树)
 
+### SDUI Action 处理 (V5.0 新增)
+当 `detected_action` 字段存在时，**直接**根据 action 类型路由，无需自然语言理解：
+
+| detected_action | Target Agent | 说明 |
+|----------------|--------------|------|
+| `start_creation` | `Story_Planner` | 开始创作新短剧 |
+| `select_genre` | `Story_Planner` | 选择题材分类 |
+| `select_plan` | `Story_Planner` | 选择具体方案 |
+| `regenerate_plans` | `Story_Planner` | 重新生成方案（增加随机性） |
+| `random_plan` | `Story_Planner` | AI 随机生成方案 |
+| `adapt_script` | `Script_Adapter` | 改编剧本 |
+| `create_storyboard` | `Storyboard_Director` | 生成分镜 |
+
+| `reset_genre` | `Story_Planner` | 重新选择题材 |
+
+**SDUI Action 路由规则**：
+1. 如果 `detected_action` 存在，**直接使用**上表映射
+2. 将 `action_payload` 传递给目标 Agent  
+3. 自然语言指令（如"重新生成"、"融合A和B"）由 Master Router 正常意图识别处理
+
+---
+
 ### 1. Project Initialization (Level 1: 启动与配置)
 - **Trigger**: "我想做个复仇剧", "新建项目", "开始吧", "换个题材"
 - **Target Agent**: `Market_Analyst` (Level 1)

@@ -189,6 +189,20 @@ class UIInteractionBlockType(str, Enum):
     SELECTION = "selection"  # 选择器
     CONFIRMATION = "confirmation"  # 确认对话框
     INPUT = "input"  # 输入表单
+    FORM = "form"  # 表单类型
+
+
+class FormField(BaseModel):
+    """表单字段定义"""
+
+    id: str = Field(..., description="字段唯一标识")
+    label: str = Field(..., description="字段显示标签")
+    type: str = Field(..., description="字段类型: number, text, select, textarea")
+    placeholder: str | None = Field(None, description="占位提示文本")
+    default: Any | None = Field(None, description="默认值")
+    min: int | float | None = Field(None, description="最小值（数字类型）")
+    max: int | float | None = Field(None, description="最大值（数字类型）")
+    options: list[dict] | None = Field(None, description="选项列表（select类型）")
 
 
 class UIInteractionBlock(BaseModel):
@@ -208,6 +222,9 @@ class UIInteractionBlock(BaseModel):
     description: str | None = Field(None, description="描述文本")
     buttons: list[ActionButton] = Field(default_factory=list, description="操作按钮列表")
     data: dict[str, Any] = Field(default_factory=dict, description="附加数据")
+
+    # 表单字段（用于 input 类型）
+    form_fields: list[FormField] | None = Field(None, description="表单字段列表")
 
     # 显示控制
     dismissible: bool = Field(default=True, description="用户是否可以关闭")

@@ -807,6 +807,15 @@ async def chat_sse_endpoint(
 
             # 发送完成事件
             content_status = get_content_status(result)
+
+            # 获取 ui_interaction
+            ui_interaction_data = result.get("ui_interaction")
+            if ui_interaction_data and hasattr(ui_interaction_data, "dict"):
+                try:
+                    ui_interaction_data = ui_interaction_data.dict()
+                except Exception:
+                    ui_interaction_data = None
+
             yield f"data: {
                 json.dumps(
                     {
@@ -817,6 +826,7 @@ async def chat_sse_endpoint(
                             else [],
                             'thread_id': thread_id,
                             'content_status': content_status,
+                            'ui_interaction': ui_interaction_data,
                         },
                     }
                 )

@@ -316,6 +316,52 @@ def _check_workflow_continuation(state: AgentState) -> Dict[str, Any] | None:
     }
 
 
+def _get_friendly_action_text(action: str, payload: Dict[str, Any]) -> str:
+    """
+    将 SDUI action 转换为友好的显示文本
+
+    Args:
+        action: action 名称
+        payload: action 参数
+
+    Returns:
+        友好的显示文本
+    """
+    action_labels = {
+        "start_creation": "🎬 开始创作",
+        "select_genre": "选择赛道",
+        "start_custom": "✨ 自由创作",
+        "proceed_to_planning": "✨ AI 自动选题",
+        "reset_genre": "🔙 重选背景",
+        "random_plan": "🎲 随机生成方案",
+        "select_plan": "选择方案",
+        "adapt_script": "📜 剧本改编",
+        "create_storyboard": "🎨 分镜制作",
+        "inspect_assets": "👤 资产探查",
+        "set_episode_config": "✅ 确认剧集配置",
+        "custom_episode_config": "⚙️ 自定义剧集配置",
+    }
+
+    # 基础标签
+    base_label = action_labels.get(action, action)
+
+    # 根据 payload 添加详细信息
+    if action == "select_genre" and payload.get("genre"):
+        return f"选择：{payload['genre']}"
+    elif action == "random_plan" and payload.get("genre"):
+        return f"🎲 生成 {payload['genre']} 方案"
+    elif action == "reset_genre":
+        return "🔙 重新选择赛道"
+    elif action == "set_episode_config" and payload.get("episode_count"):
+        return (
+            f"✅ 配置：{payload['episode_count']}集，每集{payload.get('episode_duration', '-')}分钟"
+        )
+    elif action == "custom_episode_config":
+        return "⚙️ 自定义剧集配置"
+
+    return base_label
+
+
 async def master_router_node(state: AgentState) -> Dict[str, Any]:
     """
     Master Router 节点（增强版 V4.1）
@@ -334,18 +380,126 @@ async def master_router_node(state: AgentState) -> Dict[str, Any]:
         logger.info("Resuming workflow", next_step=continuation.get("current_step_idx", 0) + 1)
         return continuation
 
-    # 检查是否已经有预设的 routed_agent（来自 SDUI Action）
+    # V5.0: 从消息中检测 SDUI Action（替代条件边中的检测）
+    detected_action = None
+    action_payload = {}
+
+    messages = state.get("messages", [])
+    if messages:
+        last_msg = messages[-1]
+        content = last_msg.content if hasattr(last_msg, "content") else str(last_msg)
+
+        # 检测 action JSON 格式
+        if content.strip().startswith("{") and '"action"' in content:
+            try:
+                data = json.loads(content)
+                action = data.get("action", "")
+
+                # SDUI Action 列表
+                sdui_actions = [
+                    "start_creation",
+                    "adapt_script",
+                    "create_storyboard",
+                    "inspect_assets",
+                    "random_plan",
+                    "select_genre",
+                    "select_plan",
+                    "regenerate_plans",
+                    "start_custom",
+                    "proceed_to_planning",
+                    "reset_genre",
+                    "set_episode_config",
+                    "custom_episode_config",
+                ]
+
+                if action in sdui_actions:
+                    detected_action = action
+                    action_payload = data.get("payload", {})
+                    logger.info(
+                        "🎬 SDUI action detected from message",
+                        action=detected_action,
+                        payload=action_payload,
+                    )
+            except json.JSONDecodeError:
+                pass
+
+    # 处理 SDUI Action
+    if detected_action:
+        # SDUI Action 到 Agent 的映射表（与 Prompt 中的表格一致）
+        sdui_action_map = {
+            "start_creation": "story_planner",
+            "select_genre": "story_planner",
+            "select_plan": "story_planner",
+            "fuse_plans": "story_planner",
+            "regenerate_plans": "story_planner",
+            "custom_fusion": "story_planner",
+            "random_plan": "story_planner",
+            "reset_genre": "story_planner",
+            "set_episode_config": "story_planner",  # 剧集配置也路由到 Story Planner
+            "custom_episode_config": "story_planner",
+            "adapt_script": "script_adapter",
+            "create_storyboard": "storyboard_director",
+            "inspect_assets": "asset_inspector",
+        }
+
+        target_agent = sdui_action_map.get(detected_action)
+        if target_agent:
+            logger.info(
+                "SDUI action detected, routing directly",
+                action=detected_action,
+                target_agent=target_agent,
+            )
+
+            # 使用从消息解析的 payload，并添加 action 字段
+            routed_parameters = {
+                **action_payload,
+                "action": detected_action,
+            }
+
+            # 将用户消息从 JSON 格式转换为友好文本
+            friendly_message = _get_friendly_action_text(detected_action, action_payload)
+            if friendly_message and messages:
+                # 修改最后一条用户消息的内容
+                for i in range(len(messages) - 1, -1, -1):
+                    msg = messages[i]
+                    if isinstance(msg, HumanMessage) or (
+                        hasattr(msg, "type") and msg.type == "human"
+                    ):
+                        messages[i] = HumanMessage(
+                            content=friendly_message,
+                            additional_kwargs=getattr(msg, "additional_kwargs", {}),
+                        )
+                        break
+
+            logger.info(
+                "🎯 Master Router routing SDUI action",
+                action=detected_action,
+                target_agent=target_agent,
+                routed_params=routed_parameters,
+            )
+
+            return {
+                "intent_analysis": f"SDUI action: {detected_action}",
+                "workflow_plan": [],
+                "current_step_idx": 0,
+                "routed_agent": target_agent,
+                "routed_function": None,
+                "routed_parameters": routed_parameters,
+                "messages": messages,
+                "ui_feedback": f"正在执行操作: {detected_action}...",
+                "last_successful_node": "master_router",
+            }
+
+    # 检查是否已经有预设的 routed_agent（向后兼容）
     pre_set_agent = state.get("routed_agent")
     if pre_set_agent and pre_set_agent != "end":
         logger.info(
-            "Using pre-set routed_agent from SDUI action, skipping LLM call",
+            "Using pre-set routed_agent, skipping LLM call",
             routed_agent=pre_set_agent,
         )
         # 直接返回预设的路由决策，不调用 LLM，不添加消息到 messages
         return {
-            "intent_analysis": state.get(
-                "intent_analysis", f"SDUI action routing to {pre_set_agent}"
-            ),
+            "intent_analysis": state.get("intent_analysis", f"Direct routing to {pre_set_agent}"),
             "workflow_plan": state.get("workflow_plan", []),
             "current_step_idx": state.get("current_step_idx", 0),
             "routed_agent": pre_set_agent,

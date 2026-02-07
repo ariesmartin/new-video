@@ -15,16 +15,14 @@ import structlog
 logger = structlog.get_logger(__name__)
 
 
-def _load_story_planner_prompt(market_report: dict = None) -> str:
-    """
-    从文件加载 Story Planner 的 System Prompt
-
-    Args:
-        market_report: 缓存的市场分析报告（可选）
-
-    Returns:
-        完整的 System Prompt（含市场数据注入）
-    """
+def _load_story_planner_prompt(
+    market_report: dict = None,
+    episode_count: int = 80,
+    episode_duration: float = 1.5,
+    genre: str = "现代都市",
+    setting: str = "modern",
+) -> str:
+    """从文件加载 Story Planner 的 System Prompt"""
     prompt_path = Path(__file__).parent.parent.parent.parent / "prompts" / "2_Story_Planner.md"
 
     try:
@@ -49,7 +47,22 @@ def _load_story_planner_prompt(market_report: dict = None) -> str:
             # 使用默认市场数据
             prompt = prompt.replace("{market_report}", _get_default_market_report())
 
-        logger.debug("Loaded Story Planner prompt from file", path=str(prompt_path))
+        # 清空融合请求占位符（由 Master Router 处理意图）
+        prompt = prompt.replace("{fusion_request}", "")
+
+        # 注入剧集配置信息
+        prompt = prompt.replace("{episode_count}", str(episode_count))
+        prompt = prompt.replace("{episode_duration}", str(episode_duration))
+        prompt = prompt.replace("{genre}", genre)
+        prompt = prompt.replace("{setting}", setting)
+
+        logger.debug(
+            "Loaded Story Planner prompt from file",
+            path=str(prompt_path),
+            episode_count=episode_count,
+            episode_duration=episode_duration,
+            genre=genre,
+        )
         return prompt
 
     except Exception as e:
@@ -98,19 +111,15 @@ def _get_default_market_report() -> str:
 """
 
 
-async def create_story_planner_agent(user_id: str, project_id: str = None):
-    """
-    创建 Story Planner Agent
-
-    会自动获取最新的市场分析报告并注入到 Prompt 中。
-
-    Args:
-        user_id: 用户ID
-        project_id: 项目ID（可选）
-
-    Returns:
-        create_react_agent 创建的 Agent
-    """
+async def create_story_planner_agent(
+    user_id: str,
+    project_id: str = None,
+    episode_count: int = 80,
+    episode_duration: float = 1.5,
+    genre: str = "现代都市",
+    setting: str = "modern",
+):
+    """创建 Story Planner Agent"""
     # 1. 获取缓存的市场分析报告
     try:
         market_service = get_market_analysis_service()
@@ -155,11 +164,17 @@ async def create_story_planner_agent(user_id: str, project_id: str = None):
         user_id=user_id, task_type=TaskType.STORY_PLANNER, project_id=project_id
     )
 
-    # 3. 创建 Agent（注入市场报告到 Prompt）
+    # 3. 创建 Agent（注入市场报告和剧集配置到 Prompt）
     agent = create_react_agent(
         model=model,
         tools=[],  # Story Planner 是纯创作任务，不需要工具
-        prompt=_load_story_planner_prompt(market_report),
+        prompt=_load_story_planner_prompt(
+            market_report=market_report,
+            episode_count=episode_count,
+            episode_duration=episode_duration,
+            genre=genre,
+            setting=setting,
+        ),
     )
 
     return agent

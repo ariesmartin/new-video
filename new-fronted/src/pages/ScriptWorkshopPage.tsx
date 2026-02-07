@@ -526,8 +526,8 @@ export function ScriptWorkshopPage() {
 
         <ResizablePanel
           minWidth={280}
-          maxWidth={480}
-          defaultWidth={320}
+          maxWidth={800}
+          defaultWidth={400}
           side="right"
           storageKey="script-workshop-right"
           className="hidden xl:flex flex-col bg-surface border-l border-border"

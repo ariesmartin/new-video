@@ -1784,4 +1784,31 @@ frontend/
 - Product-Spec-V3.md - 产品需求文档
 - Implementation-Roadmap.md - 实现路线图
 
+### 3.6 智能剧本渲染 (Smart Script Highlighting)
+
+**设计目标**: 在前端自动识别并美化剧本格式文本，无需后端特殊标记，提供 IDE 级的阅读体验。
+
+**识别规则 (Regex Patterns)**:
+
+| 类型 | 规则特征 | 样式定义 (Tailwind) | 视觉效果 |
+|------|----------|---------------------|----------|
+| **场景标题** (Scene) | `^(INT\.|EXT\.|内景|外景|场景)\s+.*` | `text-amber-500 font-bold block mt-4 mb-2` | 🟡 琥珀色高亮，加粗，增加间距 |
+| **角色对白** (Dialogue) | `^([A-Z\u4e00-\u9fa5]+)(\s*\(.*\))?\s*[：:]\s*(.*)` | 名称:`text-sky-400 font-bold` 内容:`text-sky-100 font-serif` | 🔵 天蓝色系，衬线体，名称加粗 |
+| **动作/旁白** (Action) | 普通段落 | `text-gray-300` | ⚪ 浅灰色 |
+| **思考过程** (Thinking) | `<thinking>...</thinking>` | `text-xs text-gray-500 border-l-2 border-gray-700 pl-2 italic` | 🧠 暗灰，斜体，左侧边框 |
+
+**实现方案**:
+- 作为 `ReactMarkdown` 的自定义 `p` (paragraph) 组件插入
+- 实时解析文本行，应用样式
+- 保持对 Markdown 格式的兼容支持
+
+```tsx
+// 渲染示例
+<div className="script-line scene">INT. 废弃医院 - 夜</div>
+<div className="script-line action">闪电划破夜空...</div>
+<div className="script-line dialogue">
+  <span className="role">林恩</span>: <span className="content">终于结束了。</span>
+</div>
+```
+
 **最后更新**: 2026-02-02

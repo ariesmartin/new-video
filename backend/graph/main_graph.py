@@ -129,20 +129,68 @@ async def _story_planner_node(state: AgentState) -> Dict[str, Any]:
 
     logger.info("Executing Story Planner Agent", user_id=user_id)
 
+    # 导入需要的类（在函数级别导入以避免循环依赖）
+    from langchain_core.messages import AIMessage, SystemMessage
+    from backend.schemas.common import (
+        UIInteractionBlock,
+        UIInteractionBlockType,
+        ActionButton,
+    )
+
     try:
         # 检查用户是否已选择分类（genre/setting）
-        user_config = state.get("user_config", {})
+        user_config = state.get("user_config", {}).copy()
+
+        # 从 routed_parameters 获取用户选择（如果存在）
+        routed_params = state.get("routed_parameters", {})
+
+        # 如果 routed_params 中有 genre，更新 user_config
+        if routed_params.get("genre"):
+            user_config["genre"] = routed_params["genre"]
+            user_config["setting"] = routed_params.get("setting", "modern")
+            logger.info(
+                "✅ Updated genre/setting from routed_parameters",
+                genre=user_config["genre"],
+                setting=user_config["setting"],
+            )
+
+        # 如果 routed_params 中有 episode_count/episode_duration，也更新 user_config
+        if routed_params.get("episode_count"):
+            user_config["episode_count"] = int(routed_params["episode_count"])
+            user_config["episode_duration"] = float(routed_params.get("episode_duration", 1.5))
+            logger.info(
+                "✅ Updated episode config from routed_parameters",
+                episode_count=user_config["episode_count"],
+                episode_duration=user_config["episode_duration"],
+            )
+
         genre = user_config.get("genre")
         setting = user_config.get("setting")
 
+        # 检查是否是随机方案请求
+        if not genre and routed_params.get("action") == "random_plan":
+            # 随机选择一个分类
+            import random
+
+            random_categories = [
+                {"genre": "现代都市", "setting": "modern"},
+                {"genre": "古装仙侠", "setting": "ancient"},
+                {"genre": "民国传奇", "setting": "republic"},
+                {"genre": "未来科幻", "setting": "future"},
+            ]
+            random_choice = random.choice(random_categories)
+            user_config["genre"] = random_choice["genre"]
+            user_config["setting"] = random_choice["setting"]
+            genre = user_config["genre"]
+            setting = user_config["setting"]
+            logger.info(
+                "🎲 Random plan selected",
+                genre=genre,
+                setting=setting,
+            )
+
         # 如果没有选择分类，返回分类选择 UI
         if not genre:
-            from langchain_core.messages import AIMessage
-            from backend.schemas.common import (
-                UIInteractionBlock,
-                UIInteractionBlockType,
-                ActionButton,
-            )
             from backend.services.market_analysis import get_market_analysis_service
 
             logger.info("No genre selected, showing category selection UI")
@@ -263,20 +311,276 @@ async def _story_planner_node(state: AgentState) -> Dict[str, Any]:
                     )
                 ],
                 "ui_interaction": category_ui,
+                "user_config": user_config,
                 "last_successful_node": "story_planner_select_category",
             }
 
-        # 已选择分类，创建 Agent 生成故事方案
-        agent = await create_story_planner_agent(user_id, project_id)
+        # 已选择分类，获取剧集配置
+        episode_count = user_config.get("episode_count")
+        episode_duration = user_config.get("episode_duration")
+
+        # 检查是否是自定义配置请求（优先处理）
+        if routed_params.get("action") == "custom_episode_config":
+            # 显示自定义配置表单
+            logger.info("Showing custom episode config form", genre=genre)
+
+            custom_config_ui = UIInteractionBlock(
+                block_type=UIInteractionBlockType.FORM,
+                title="自定义剧集配置",
+                description=f"已选择题材：**{genre}**\n\n请设置剧集参数：",
+                form_fields=[
+                    {
+                        "id": "episode_count",
+                        "label": "总集数",
+                        "type": "number",
+                        "min": 20,
+                        "max": 120,
+                        "default": 80,
+                        "placeholder": "建议 40-100 集",
+                    },
+                    {
+                        "id": "episode_duration",
+                        "label": "每集时长（分钟）",
+                        "type": "select",
+                        "options": [
+                            {"value": 1, "label": "1 分钟"},
+                            {"value": 1.5, "label": "1.5 分钟"},
+                            {"value": 2, "label": "2 分钟"},
+                            {"value": 2.5, "label": "2.5 分钟"},
+                            {"value": 3, "label": "3 分钟"},
+                            {"value": 4, "label": "4 分钟"},
+                            {"value": 5, "label": "5 分钟"},
+                        ],
+                        "default": 1.5,
+                    },
+                ],
+                buttons=[
+                    ActionButton(
+                        label="✅ 确认配置",
+                        action="set_episode_config",
+                        payload={"genre": genre, "setting": setting},
+                        style="primary",
+                        icon="Check",
+                    ),
+                    ActionButton(
+                        label="🔙 返回预设",
+                        action="select_genre",
+                        payload={"genre": genre, "setting": setting},
+                        style="ghost",
+                        icon="ArrowLeft",
+                    ),
+                ],
+                dismissible=False,
+            )
+
+            return {
+                "messages": [
+                    AIMessage(
+                        content=f"⚙️ **自定义配置**\n\n已选择题材：**{genre}**\n\n请设置剧集参数：",
+                        additional_kwargs={"ui_interaction": custom_config_ui.dict()},
+                    )
+                ],
+                "ui_interaction": custom_config_ui,
+                "user_config": user_config,
+                "last_successful_node": "story_planner_custom_config",
+            }
+
+        # 检查是否已配置集数和时长
+        if not episode_count or not episode_duration:
+            # 未配置，显示配置 UI
+            logger.info("Genre selected but no episode config, showing config UI", genre=genre)
+
+            config_ui = UIInteractionBlock(
+                block_type=UIInteractionBlockType.ACTION_GROUP,
+                title="配置剧集信息",
+                description=f"已选择题材：**{genre}**\n\n请配置剧集的基本信息，这将影响方案的 pacing 和付费卡点设计：",
+                buttons=[
+                    ActionButton(
+                        label="📱 抖音/快手短剧（80-100集，每集1-2分钟）",
+                        action="set_episode_config",
+                        payload={
+                            "episode_count": 80,
+                            "episode_duration": 1.5,
+                            "genre": genre,
+                            "setting": setting,
+                        },
+                        style="primary",
+                        icon="Smartphone",
+                    ),
+                    ActionButton(
+                        label="📺 小程序短剧（60-80集，每集2-3分钟）",
+                        action="set_episode_config",
+                        payload={
+                            "episode_count": 60,
+                            "episode_duration": 2.5,
+                            "genre": genre,
+                            "setting": setting,
+                        },
+                        style="primary",
+                        icon="Tablet",
+                    ),
+                    ActionButton(
+                        label="🎬 精品短剧（40-60集，每集3-5分钟）",
+                        action="set_episode_config",
+                        payload={
+                            "episode_count": 40,
+                            "episode_duration": 4,
+                            "genre": genre,
+                            "setting": setting,
+                        },
+                        style="secondary",
+                        icon="Monitor",
+                    ),
+                    ActionButton(
+                        label="⚙️ 自定义配置",
+                        action="custom_episode_config",
+                        payload={"genre": genre, "setting": setting},
+                        style="ghost",
+                        icon="Settings",
+                    ),
+                ],
+                dismissible=False,
+            )
+
+            return {
+                "messages": [
+                    AIMessage(
+                        content=f"🎬 **开始创作**\n\n已选择题材：**{genre}**\n\n请配置剧集信息：",
+                        additional_kwargs={"ui_interaction": config_ui.dict()},
+                    )
+                ],
+                "ui_interaction": config_ui,
+                "user_config": user_config,
+                "last_successful_node": "story_planner_config_episode",
+            }
+
+        # 已选择分类且已配置集数/时长，创建 Agent 生成故事方案
+        logger.info(
+            "Generating story plans",
+            genre=genre,
+            episode_count=episode_count,
+            episode_duration=episode_duration,
+        )
+
+        # 将配置信息传递给 Prompt
+        config_context = f"""## 剧集配置信息
+- **总集数**: {episode_count} 集
+- **每集时长**: {episode_duration} 分钟
+- **题材**: {genre}
+- **背景设定**: {setting}
+
+基于以上配置生成方案，付费卡点必须根据总集数调整位置。
+"""
+
+        # 在 messages 中添加上下文
+        messages = state.get("messages", [])
+        messages.append(SystemMessage(content=config_context))
+        state["messages"] = messages
+
+        agent = await create_story_planner_agent(
+            user_id=user_id,
+            project_id=project_id,
+            episode_count=episode_count,
+            episode_duration=episode_duration,
+            genre=genre,
+            setting=setting,
+        )
 
         # 执行 Agent
         result = await agent.ainvoke({"messages": state.get("messages", [])})
 
         # 更新状态
         messages = result.get("messages", [])
+
+        # 从 Agent 输出中提取 JSON UI 数据并解析
+        ui_interaction = None
+        if messages:
+            import json
+            import re
+
+            last_message = messages[-1]
+            content = (
+                last_message.content if hasattr(last_message, "content") else str(last_message)
+            )
+
+            # 查找 ```json ... ``` 代码块
+            json_match = re.search(r"```json\s*\n?([\s\S]*?)\n?```", content)
+
+            if json_match:
+                try:
+                    json_str = json_match.group(1).strip()
+                    ui_data = json.loads(json_str)
+
+                    # 验证是否包含预期的 UI 字段
+                    if "options" in ui_data:
+                        buttons = []
+
+                        # 处理 options（主要方案按钮）
+                        for opt in ui_data.get("options", []):
+                            plan_id = opt.get("id", "")
+                            label = opt.get("label", f"选择方案{plan_id}")
+                            tagline = opt.get("tagline", "")
+
+                            buttons.append(
+                                ActionButton(
+                                    label=tagline if tagline else label,
+                                    action="select_plan",
+                                    payload={"plan_id": plan_id, "label": label},
+                                    style="primary",
+                                )
+                            )
+
+                        # 处理 secondary_actions（次要操作，如重新生成）
+                        for action in ui_data.get("secondary_actions", []):
+                            buttons.append(
+                                ActionButton(
+                                    label=action.get("label", ""),
+                                    action=action.get("action", ""),
+                                    payload={},
+                                    style=action.get("style", "secondary"),
+                                )
+                            )
+
+                        # 创建 UIInteractionBlock
+                        ui_interaction = UIInteractionBlock(
+                            block_type=UIInteractionBlockType.ACTION_GROUP,
+                            title="选择故事方案",
+                            description=ui_data.get("hint", "请选择一个方案继续创作："),
+                            buttons=buttons,
+                            dismissible=False,
+                        )
+
+                        # 清理消息内容：移除 JSON 代码块
+                        clean_content = content[: json_match.start()].rstrip()
+
+                        # 更新消息
+                        if isinstance(last_message, AIMessage):
+                            messages[-1] = AIMessage(
+                                content=clean_content,
+                                additional_kwargs={
+                                    **(
+                                        last_message.additional_kwargs
+                                        if hasattr(last_message, "additional_kwargs")
+                                        else {}
+                                    ),
+                                    "ui_interaction": ui_interaction,
+                                },
+                            )
+
+                        logger.info(
+                            "Parsed Agent UI JSON",
+                            options_count=len(ui_data.get("options", [])),
+                            secondary_actions_count=len(ui_data.get("secondary_actions", [])),
+                        )
+
+                except Exception as parse_error:
+                    logger.warning("Failed to parse Agent UI JSON", error=str(parse_error))
+
         return {
             "messages": messages,
             "story_plans": messages[-1].content if messages else "",
+            "ui_interaction": ui_interaction,
+            "user_config": user_config,
             "last_successful_node": "story_planner",
         }
     except Exception as e:

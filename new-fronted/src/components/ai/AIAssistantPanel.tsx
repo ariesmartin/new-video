@@ -1,5 +1,5 @@
-import { useState, useRef, useEffect, useCallback } from 'react';
-import { Bot, Send, Sparkles, RotateCcw, Loader2 } from 'lucide-react';
+import { useState, useRef, useCallback } from 'react';
+import { Bot, Send, Sparkles, RotateCcw, Loader2, Maximize2 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { ScrollArea } from '@/components/ui/scroll-area';
@@ -16,8 +16,11 @@ import { useAppStore, useUIStore } from '@/hooks/useStore';
 import ReactMarkdown from 'react-markdown';
 import remarkGfm from 'remark-gfm';
 import { ActionBlockRenderer } from './ActionBlockRenderer';
+import { ScriptRenderer } from './ScriptRenderer';
 import { cleanJsonFromContent } from '@/lib/ai-chat-helper';
 import { useAIChatInit } from '@/hooks/useAIChatInit';
+import { useChatScroll } from '@/hooks/useChatScroll';
+import { AIReaderDialog } from './AIReaderDialog';
 
 interface AIAssistantPanelProps {
   projectId?: string;
@@ -34,8 +37,8 @@ export function AIAssistantPanel({ projectId: externalProjectId, sceneContext }:
   const [streamingContent, setStreamingContent] = useState('');
   const [thinkingStatus, setThinkingStatus] = useState('AI 正在思考中...');
   const [showResetDialog, setShowResetDialog] = useState(false);
+  const [readerContent, setReaderContent] = useState<string | null>(null);
 
-  const scrollRef = useRef<HTMLDivElement>(null);
   const abortControllerRef = useRef<(() => void) | null>(null);
 
   const { currentEpisode, currentProject } = useAppStore();
@@ -60,12 +63,11 @@ export function AIAssistantPanel({ projectId: externalProjectId, sceneContext }:
   // 合并 loading 状态
   const isTyping = isInitLoading || !!abortControllerRef.current;
 
-  // 自动滚动到底部
-  useEffect(() => {
-    if (scrollRef.current) {
-      scrollRef.current.scrollTop = scrollRef.current.scrollHeight;
-    }
-  }, [messages, streamingContent]);
+  // 使用统一的自动滚动 hook
+  const messagesEndRef = useChatScroll({
+    messages,
+    isStreaming: !!streamingContent
+  });
 
   // 发送用户消息
   const handleSendMessage = useCallback(async (content?: string) => {
@@ -186,6 +188,8 @@ export function AIAssistantPanel({ projectId: externalProjectId, sceneContext }:
       'adapt_script': '📜 剧本改编',
       'create_storyboard': '🎨 分镜制作',
       'inspect_assets': '👤 资产探查',
+      'set_episode_config': '✅ 确认剧集配置',
+      'custom_episode_config': '⚙️ 自定义剧集配置',
     };
 
     let displayLabel = actionLabels[action] || action;
@@ -195,6 +199,10 @@ export function AIAssistantPanel({ projectId: externalProjectId, sceneContext }:
       displayLabel = `🎲 生成 ${payload.genre} 方案`;
     } else if (action === 'reset_genre') {
       displayLabel = '🔙 重新选择赛道';
+    } else if (action === 'set_episode_config' && payload?.episode_count) {
+      displayLabel = `✅ 配置：${payload.episode_count}集，每集${payload.episode_duration}分钟`;
+    } else if (action === 'custom_episode_config') {
+      displayLabel = '⚙️ 自定义剧集配置';
     }
 
     const userMessage: Message = {
@@ -292,7 +300,7 @@ export function AIAssistantPanel({ projectId: externalProjectId, sceneContext }:
 
     setStreamingContent('');
     setShowResetDialog(false);
-    
+
     try {
       await resetChat(effectiveProjectId);
       addToast({ type: 'success', message: '会话已重置' });
@@ -348,48 +356,89 @@ export function AIAssistantPanel({ projectId: externalProjectId, sceneContext }:
       )}
 
       {/* Messages */}
-      <ScrollArea className="flex-1 min-h-0 px-4" ref={scrollRef}>
+      <ScrollArea className="flex-1 min-h-0 px-4">
         <div className="py-4 space-y-4">
-          {messages.map((message) => (
-            <div
-              key={message.id}
-              className={`flex flex-col ${message.role === 'user' ? 'items-end' : 'items-start'}`}
-            >
+          {messages.map((message) => {
+            const isLongContent = message.role === 'assistant' && cleanJsonFromContent(message.content).length > 150;
+
+            return (
               <div
-                className={`max-w-[90%] rounded-2xl px-4 py-3 ${message.role === 'user'
-                  ? 'bg-primary text-primary-foreground rounded-br-md'
-                  : 'bg-elevated border border-border rounded-bl-md'
-                  }`}
+                key={message.id}
+                className={`flex flex-col ${message.role === 'user' ? 'items-end' : 'items-start'}`}
               >
-                {message.role === 'user' ? (
-                  <p className="text-sm whitespace-pre-wrap">{cleanJsonFromContent(message.content)}</p>
-                ) : (
-                  <div className="prose prose-sm prose-invert w-full text-sm break-words whitespace-pre-wrap overflow-hidden [&>p]:mb-2 [&>p:last-child]:mb-0 [&>ul]:list-disc [&>ul]:pl-4 [&>ol]:list-decimal [&>ol]:pl-4 [&>code]:bg-background [&>code]:px-1 [&>code]:rounded [&>pre]:overflow-x-auto [&>pre]:max-w-full [&_pre]:whitespace-pre-wrap [&_pre]:break-words [&_code]:break-all">
-                    <ReactMarkdown remarkPlugins={[remarkGfm]}>
-                      {cleanJsonFromContent(message.content)}
-                    </ReactMarkdown>
-                  </div>
-                )}
+                <div
+                  className={`max-w-[90%] rounded-2xl px-4 py-3 group relative ${message.role === 'user'
+                    ? 'bg-primary text-primary-foreground rounded-br-md'
+                    : 'bg-elevated border border-border rounded-bl-md'
+                    }`}
+                >
+                  {message.role === 'user' ? (
+                    <p className="text-sm whitespace-pre-wrap">{cleanJsonFromContent(message.content)}</p>
+                  ) : (
+                    <div className="prose prose-sm prose-invert w-full text-sm break-words whitespace-pre-wrap overflow-hidden [&>p]:mb-2 [&>p:last-child]:mb-0 [&>ul]:list-disc [&>ul]:pl-4 [&>ol]:list-decimal [&>ol]:pl-4 [&>code]:bg-background [&>code]:px-1 [&>code]:rounded [&>pre]:overflow-x-auto [&>pre]:max-w-full [&_pre]:whitespace-pre-wrap [&_pre]:break-words [&_code]:break-all">
+                      <ReactMarkdown
+                        remarkPlugins={[remarkGfm]}
+                        components={{
+                          p: ScriptRenderer
+                        }}
+                      >
+                        {cleanJsonFromContent(message.content)}
+                      </ReactMarkdown>
+                    </div>
+                  )}
 
-                {message.ui_interaction && (
-                  <div className="mt-4 pt-3 border-t border-border/50">
-                    <ActionBlockRenderer block={message.ui_interaction} onActionClick={handleActionClick} />
-                  </div>
-                )}
+                  {isLongContent && (
+                    <>
+                      <div className="absolute top-2 right-2 opacity-0 group-hover:opacity-100 transition-opacity z-10">
+                        <Button
+                          variant="ghost"
+                          size="icon"
+                          className="h-6 w-6 bg-surface/80 hover:bg-surface text-text-secondary shadow-sm backdrop-blur-sm"
+                          onClick={() => setReaderContent(cleanJsonFromContent(message.content))}
+                          title="全屏阅读"
+                        >
+                          <Maximize2 size={12} />
+                        </Button>
+                      </div>
+                      <div className="absolute bottom-2 right-2 opacity-0 group-hover:opacity-100 transition-opacity z-10">
+                        <Button
+                          variant="ghost"
+                          size="icon"
+                          className="h-6 w-6 bg-surface/80 hover:bg-surface text-text-secondary shadow-sm backdrop-blur-sm"
+                          onClick={() => setReaderContent(cleanJsonFromContent(message.content))}
+                          title="全屏阅读"
+                        >
+                          <Maximize2 size={12} />
+                        </Button>
+                      </div>
+                    </>
+                  )}
 
-                <p className={`text-xs mt-1.5 ${message.role === 'user' ? 'text-primary-foreground/60' : 'text-text-tertiary'}`}>
-                  {message.timestamp.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
-                </p>
+                  {message.ui_interaction && (
+                    <div className="mt-4 pt-3 border-t border-border/50">
+                      <ActionBlockRenderer block={message.ui_interaction} onActionClick={handleActionClick} />
+                    </div>
+                  )}
+
+                  <p className={`text-xs mt-1.5 ${message.role === 'user' ? 'text-primary-foreground/60' : 'text-text-tertiary'}`}>
+                    {message.timestamp.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+                  </p>
+                </div>
               </div>
-            </div>
-          ))}
+            );
+          })}
 
           {/* Streaming Content */}
           {streamingContent && (
             <div className="flex justify-start">
               <div className="bg-elevated border border-border rounded-2xl rounded-bl-md px-4 py-3 max-w-[90%]">
                 <div className="prose prose-sm prose-invert w-full text-sm break-words whitespace-pre-wrap overflow-hidden [&>p]:mb-2 [&>p:last-child]:mb-0 [&>ul]:list-disc [&>ul]:pl-4 [&>ol]:list-decimal [&>ol]:pl-4 [&>pre]:overflow-x-auto [&>pre]:max-w-full [&_pre]:whitespace-pre-wrap [&_pre]:break-words [&_code]:break-all">
-                  <ReactMarkdown remarkPlugins={[remarkGfm]}>
+                  <ReactMarkdown
+                    remarkPlugins={[remarkGfm]}
+                    components={{
+                      p: ScriptRenderer
+                    }}
+                  >
                     {cleanJsonFromContent(streamingContent)}
                   </ReactMarkdown>
                 </div>
@@ -409,6 +458,8 @@ export function AIAssistantPanel({ projectId: externalProjectId, sceneContext }:
               </div>
             </div>
           )}
+
+          <div ref={messagesEndRef} />
         </div>
       </ScrollArea>
 
@@ -462,6 +513,15 @@ export function AIAssistantPanel({ projectId: externalProjectId, sceneContext }:
         onConfirm={confirmResetSession}
         variant="destructive"
       />
+
+      {/* AI Reader Dialog */}
+      {readerContent && (
+        <AIReaderDialog
+          open={!!readerContent}
+          onOpenChange={(open) => !open && setReaderContent(null)}
+          content={readerContent}
+        />
+      )}
     </div>
   );
 }
