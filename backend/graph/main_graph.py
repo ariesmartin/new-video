@@ -10,13 +10,13 @@ LangGraph 主图定义，实现 Master Router 单一入口架构。
 - Module A 使用子图封装 Writer-Editor-Refiner 闭环
 """
 
-from typing import Any, Dict
+from typing import Any, Dict, Optional
 import structlog
 from langgraph.graph import StateGraph, START, END
 from langgraph.checkpoint.base import BaseCheckpointSaver
 
 from backend.schemas.agent_state import AgentState
-from backend.graph.agents import (
+from backend.agents import (
     master_router_node,
     create_market_analyst_agent,
     create_story_planner_agent,
@@ -33,6 +33,71 @@ logger = structlog.get_logger(__name__)
 
 # 全局编译后的图实例
 _compiled_graph = None
+
+
+# ===== 辅助函数 =====
+
+
+def _get_background_info(background: str) -> dict:
+    """
+    获取背景设定的描述和推荐题材组合。
+
+    注意：这只是参考信息，AI完全可以自由选择其他组合。
+    """
+    background_info = {
+        "现代都市": {
+            "description": "现代城市背景，包含职场、豪门、校园等元素",
+            "recommended_combinations": [
+                ["revenge", "romance"],  # 复仇+甜宠
+                ["family_urban", "suspense"],  # 家庭+悬疑
+                ["revenge", "family_urban"],  # 复仇+家庭
+            ],
+        },
+        "古装仙侠": {
+            "description": "古代或仙侠世界，包含宫廷、江湖、修仙等元素",
+            "recommended_combinations": [
+                ["transmigration", "romance"],  # 穿越+甜宠
+                ["revenge", "suspense"],  # 复仇+悬疑
+                ["transmigration", "revenge"],  # 穿越+复仇
+            ],
+        },
+        "民国传奇": {
+            "description": "民国时期，包含军阀、谍战、宅门等元素",
+            "recommended_combinations": [
+                ["suspense", "romance"],  # 悬疑+甜宠
+                ["family_urban", "revenge"],  # 家庭+复仇
+                ["suspense", "family_urban"],  # 悬疑+家庭
+            ],
+        },
+        "未来科幻": {
+            "description": "未来或科幻世界，包含高科技、星际、末世等元素",
+            "recommended_combinations": [
+                ["suspense", "revenge"],  # 悬疑+复仇
+                ["transmigration", "suspense"],  # 穿越+悬疑
+                ["revenge", "romance"],  # 复仇+甜宠
+            ],
+        },
+    }
+    return background_info.get(
+        background,
+        {
+            "description": f"背景设定：{background}",
+            "recommended_combinations": [
+                ["revenge", "romance"],
+                ["suspense", "transmigration"],
+                ["family_urban", "romance"],
+            ],
+        },
+    )
+
+
+def _genre_to_slug(genre: str) -> Optional[str]:
+    """
+    【已弃用】不再强制映射题材到slug。
+    请使用 _get_background_info() 获取背景信息。
+    返回 None 表示AI可以自由选择任何题材组合。
+    """
+    return None  # AI 完全自由选择
 
 
 # ===== Agent 包装节点 =====
@@ -143,6 +208,69 @@ async def _story_planner_node(state: AgentState) -> Dict[str, Any]:
 
         # 从 routed_parameters 获取用户选择（如果存在）
         routed_params = state.get("routed_parameters", {})
+
+        # ✅ 处理 select_plan action - 用户已选择方案，直接保存并确认
+        if routed_params.get("action") == "select_plan":
+            plan_id = routed_params.get("plan_id", "")
+            plan_label = routed_params.get("label", f"方案{plan_id}")
+
+            logger.info(
+                "✅ User selected plan",
+                plan_id=plan_id,
+                plan_label=plan_label,
+            )
+
+            # 从 plan_label 中提取剧名（格式："锁定《剧名》进行细化"）
+            import re
+
+            title_match = re.search(r"《([^》]+)》", plan_label)
+            plan_title = title_match.group(1) if title_match else plan_label
+
+            # 构建 selected_plan 数据
+            selected_plan = {
+                "id": plan_id,
+                "title": plan_title,
+                "label": plan_label,
+            }
+
+            # 返回确认消息
+            confirmation_ui = UIInteractionBlock(
+                block_type=UIInteractionBlockType.ACTION_GROUP,
+                title="选题已确认",
+                description=f"✅ 已选择 **{plan_title}**\n\n接下来可以进行：",
+                buttons=[
+                    ActionButton(
+                        label="📝 开始大纲拆解",
+                        action="start_skeleton_building",
+                        payload={"plan_id": plan_id, "plan_title": plan_title},
+                        style="primary",
+                        icon="FileText",
+                    ),
+                    ActionButton(
+                        label="🔀 重新选择方案",
+                        action="regenerate_plans",
+                        payload={
+                            "genre": user_config.get("genre"),
+                            "setting": user_config.get("setting"),
+                        },
+                        style="secondary",
+                        icon="RefreshCw",
+                    ),
+                ],
+                dismissible=False,
+            )
+
+            return {
+                "messages": [
+                    AIMessage(
+                        content=f"✅ **选题已确认：{plan_title}**\n\n已成功选择方案 **{plan_label}**。接下来可以开始大纲拆解和剧本创作。",
+                        additional_kwargs={"ui_interaction": confirmation_ui.dict()},
+                    )
+                ],
+                "selected_plan": selected_plan,
+                "user_config": user_config,
+                "last_successful_node": "story_planner_plan_selected",
+            }
 
         # 如果 routed_params 中有 genre，更新 user_config
         if routed_params.get("genre"):
@@ -462,6 +590,9 @@ async def _story_planner_node(state: AgentState) -> Dict[str, Any]:
             episode_duration=episode_duration,
         )
 
+        # 检测是否是重新生成请求（用于调整发散性）
+        is_regenerate = routed_params.get("action") == "regenerate_plans"
+
         # 将配置信息传递给 Prompt
         config_context = f"""## 剧集配置信息
 - **总集数**: {episode_count} 集
@@ -471,6 +602,24 @@ async def _story_planner_node(state: AgentState) -> Dict[str, Any]:
 
 基于以上配置生成方案，付费卡点必须根据总集数调整位置。
 """
+
+        # ✅ 如果是重新生成，添加发散性提示
+        if is_regenerate:
+            config_context += """
+
+## 🌡️ 发散性创作模式（重新生成）
+**本次为重新生成请求，请使用更高的发散性和创意：**
+- 大胆尝试不常见的题材组合
+- 跳出常规思维，创造意想不到的剧情转折
+- 每个方案都要与前次有明显差异
+- 可以使用更激进、更有张力的设定
+- 避免保守，勇于创新！
+"""
+            logger.info(
+                "Applied high divergence mode for regenerate_plans",
+                genre=genre,
+                user_id=user_id,
+            )
 
         # 在 messages 中添加上下文
         messages = state.get("messages", [])
@@ -521,22 +670,106 @@ async def _story_planner_node(state: AgentState) -> Dict[str, Any]:
                             label = opt.get("label", f"选择方案{plan_id}")
                             tagline = opt.get("tagline", "")
 
+                            # ✅ 按钮直接显示方案题目（如"锁定《万劫不复》进行细化"）
+                            # payload 中包含 label 和 tagline，供后续使用
                             buttons.append(
                                 ActionButton(
-                                    label=tagline if tagline else label,
+                                    label=label,
                                     action="select_plan",
-                                    payload={"plan_id": plan_id, "label": label},
+                                    payload={
+                                        "plan_id": plan_id,
+                                        "label": label,
+                                        "tagline": tagline,
+                                    },
                                     style="primary",
                                 )
                             )
 
                         # 处理 secondary_actions（次要操作，如重新生成）
                         for action in ui_data.get("secondary_actions", []):
+                            action_type = action.get("action", "")
+                            # 为 regenerate_plans 操作包含当前配置，确保重新生成时不会丢失 genre
+                            if action_type == "regenerate_plans":
+                                import random
+                                import time
+
+                                # ✅ 定义所有可能的跨题材组合（黄金组合 + 创新组合）
+                                fusion_combinations = [
+                                    # 黄金组合（市场验证）
+                                    ["revenge", "romance"],  # 复仇甜宠
+                                    ["suspense", "romance"],  # 悬疑甜宠
+                                    ["transmigration", "suspense"],  # 穿越探案
+                                    ["family_urban", "romance"],  # 治愈甜宠
+                                    ["revenge", "suspense"],  # 复仇悬疑
+                                    # 创新组合（新颖搭配）
+                                    ["transmigration", "revenge"],  # 穿越复仇
+                                    ["revenge", "family_urban"],  # 复仇家庭
+                                    ["suspense", "family_urban"],  # 悬疑家庭
+                                    ["transmigration", "romance"],  # 穿越甜宠
+                                    ["revenge", "transmigration"],  # 复仇穿越
+                                ]
+
+                                # 根据背景设定过滤不适用的组合
+                                background = genre if genre else "现代都市"
+                                filtered_combinations = fusion_combinations.copy()
+
+                                # 根据背景排除违和的组合
+                                if "现代" in background or "都市" in background:
+                                    # 现代背景不适合穿越题材
+                                    filtered_combinations = [
+                                        c
+                                        for c in filtered_combinations
+                                        if "transmigration" not in c
+                                    ]
+                                elif "科幻" in background or "未来" in background:
+                                    # 科幻背景不适合家庭伦理
+                                    filtered_combinations = [
+                                        c for c in filtered_combinations if "family_urban" not in c
+                                    ]
+
+                                # 随机选择 3 个不同的组合方案
+                                if len(filtered_combinations) >= 3:
+                                    selected_combinations = random.sample(
+                                        filtered_combinations, k=3
+                                    )
+                                else:
+                                    selected_combinations = filtered_combinations
+
+                                # 构建组合提示
+                                combo_hints = []
+                                theme_names = {
+                                    "revenge": "复仇逆袭",
+                                    "romance": "甜宠恋爱",
+                                    "suspense": "悬疑推理",
+                                    "transmigration": "穿越重生",
+                                    "family_urban": "家庭伦理",
+                                }
+                                for i, combo in enumerate(selected_combinations, 1):
+                                    combo_name = "+".join([theme_names.get(t, t) for t in combo])
+                                    combo_hints.append(f"方案{i}：{combo_name}")
+
+                                payload = {
+                                    "genre": genre,
+                                    "setting": setting,
+                                    "episode_count": episode_count,
+                                    "episode_duration": episode_duration,
+                                    # ✅ 添加随机化参数，确保每次重新生成都有不同的结果
+                                    "variation_seed": random.randint(1, 10000),
+                                    "timestamp": int(time.time()),
+                                    "is_regenerate": True,
+                                    # ✅ 强制跨主题组合 - 提供3种不同的组合方案
+                                    "fusion_combinations": selected_combinations,
+                                    "cross_theme_hint": f"本次重新生成必须使用跨题材融合。推荐的组合方案：{' | '.join(combo_hints)}",
+                                    "regenerate_instruction": "重要：这次生成的3个方案必须分别使用上面列出的3种不同题材组合，不允许单一题材方案。",
+                                }
+                            else:
+                                payload = {}
+
                             buttons.append(
                                 ActionButton(
                                     label=action.get("label", ""),
-                                    action=action.get("action", ""),
-                                    payload={},
+                                    action=action_type,
+                                    payload=payload,
                                     style=action.get("style", "secondary"),
                                 )
                             )
@@ -552,6 +785,14 @@ async def _story_planner_node(state: AgentState) -> Dict[str, Any]:
 
                         # 清理消息内容：移除 JSON 代码块
                         clean_content = content[: json_match.start()].rstrip()
+
+                        # 如果清理后的内容为空（AI可能格式不对），保留原始内容
+                        if not clean_content:
+                            # 移除 JSON 代码块但保留其他内容
+                            clean_content = content.replace(json_match.group(0), "").strip()
+                            logger.warning(
+                                "Agent output format issue: content before JSON is empty, using cleaned full content"
+                            )
 
                         # 更新消息
                         if isinstance(last_message, AIMessage):
@@ -575,6 +816,12 @@ async def _story_planner_node(state: AgentState) -> Dict[str, Any]:
 
                 except Exception as parse_error:
                     logger.warning("Failed to parse Agent UI JSON", error=str(parse_error))
+
+        # 确保 user_config 包含 episode_count 和 episode_duration，以便正确保存到 checkpoint
+        user_config["episode_count"] = episode_count
+        user_config["episode_duration"] = episode_duration
+        user_config["genre"] = genre
+        user_config["setting"] = setting
 
         return {
             "messages": messages,
