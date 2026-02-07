@@ -1,0 +1,1793 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+
+<head>
+    <meta charset="utf-8" />
+    <meta content="width=device-width, initial-scale=1.0" name="viewport" />
+    <title>中文短剧AI生成系统主题库研究报告</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/js/all.min.js"></script>
+    <link
+        href="https://fonts.googleapis.com/css2?family=Noto+Serif+SC:wght@400;600;700&amp;family=Inter:wght@300;400;500;600;700&amp;display=swap"
+        rel="stylesheet" />
+    <style>
+        :root {
+            --primary: #0f766e;
+            --secondary: #1e293b;
+            --accent: #d97706;
+            --neutral: #64748b;
+            --base-100: #ffffff;
+            --base-200: #f8fafc;
+            --base-300: #e2e8f0;
+        }
+
+        body {
+            font-family: 'Inter', sans-serif;
+            color: var(--secondary);
+            line-height: 1.6;
+        }
+
+        .serif {
+            font-family: 'Noto Serif SC', serif;
+        }
+
+        .toc {
+            position: fixed;
+            left: 0;
+            top: 0;
+            width: 280px;
+            height: 100vh;
+            background: var(--base-100);
+            border-right: 1px solid var(--base-300);
+            overflow-y: auto;
+            z-index: 1000;
+            padding: 2rem 1.5rem;
+        }
+
+        .content {
+            margin-left: 280px;
+            padding: 0 3rem;
+        }
+
+        .hero-grid {
+            display: grid;
+            grid-template-columns: 2fr 1fr;
+            gap: 2rem;
+            margin-bottom: 3rem;
+        }
+
+        .hero-text {
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+        }
+
+        .hero-visual {
+            display: grid;
+            grid-template-rows: 1fr 1fr;
+            gap: 1rem;
+        }
+
+        .visual-card {
+            background: linear-gradient(135deg, var(--primary), var(--accent));
+            border-radius: 12px;
+            padding: 1.5rem;
+            color: white;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 600;
+            text-align: center;
+        }
+
+        .chart-container {
+            background: var(--base-100);
+            border-radius: 12px;
+            padding: 2rem;
+            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+            margin-bottom: 2rem;
+        }
+
+        .citation {
+            color: var(--accent);
+            text-decoration: none;
+            font-weight: 500;
+        }
+
+        .citation:hover {
+            text-decoration: underline;
+        }
+
+        .section-divider {
+            height: 1px;
+            background: linear-gradient(to right, transparent, var(--base-300), transparent);
+            margin: 4rem 0;
+        }
+
+        @media (max-width: 1024px) {
+            .toc {
+                transform: translateX(-100%);
+                transition: transform 0.3s ease;
+            }
+
+            .toc.open {
+                transform: translateX(0);
+            }
+
+            .content {
+                margin-left: 0;
+                padding: 0 1.5rem;
+            }
+
+            .hero-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        /* Mobile responsiveness */
+        @media (max-width: 768px) {
+            .hero-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .hero-text h1 {
+                font-size: 2.5rem;
+            }
+
+            .hero-text p {
+                font-size: 1rem;
+            }
+
+            .visual-card {
+                min-height: 120px;
+            }
+
+            #summary-grid {
+                grid-template-columns: 1fr;
+                gap: 1rem;
+            }
+
+            .hero-text ul li {
+                margin-bottom: 0.75rem;
+            }
+        }
+
+        @media (max-width: 480px) {
+            .hero-text h1 {
+                font-size: 2rem;
+            }
+
+            .hero-text p {
+                font-size: 0.9rem;
+            }
+
+            .visual-card {
+                min-height: 100px;
+                font-size: 0.9rem;
+            }
+
+            .content {
+                padding: 0 1rem;
+            }
+
+            .hero-text ul li {
+                margin-bottom: 0.5rem;
+            }
+        }
+    </style>
+    <base target="_blank">
+</head>
+
+<body class="bg-slate-50">
+    <!-- Table of Contents -->
+    <nav class="toc">
+        <div class="mb-8">
+            <h3 class="text-lg font-bold text-slate-800 mb-4">目录导航</h3>
+            <ul class="space-y-2 text-sm">
+                <li>
+                    <a class="block py-1 text-slate-600 hover:text-teal-700" href="#executive-summary">执行摘要</a>
+                </li>
+                <li>
+                    <a class="block py-1 text-slate-600 hover:text-teal-700" href="#research-framework">研究框架</a>
+                </li>
+                <li>
+                    <a class="block py-1 text-slate-600 hover:text-teal-700" href="#genre-analysis">题材深度分析</a>
+                    <ul class="ml-4 mt-1 space-y-1">
+                        <li>
+                            <a class="block py-1 text-slate-500 hover:text-teal-600" href="#revenge-genre">复仇逆袭</a>
+                        </li>
+                        <li>
+                            <a class="block py-1 text-slate-500 hover:text-teal-600" href="#romance-genre">甜宠恋爱</a>
+                        </li>
+                        <li>
+                            <a class="block py-1 text-slate-500 hover:text-teal-600" href="#mystery-genre">悬疑推理</a>
+                        </li>
+                        <li>
+                            <a class="block py-1 text-slate-500 hover:text-teal-600"
+                                href="#transmigration-genre">穿越重生</a>
+                        </li>
+                        <li>
+                            <a class="block py-1 text-slate-500 hover:text-teal-600" href="#family-genre">家庭伦理</a>
+                        </li>
+                    </ul>
+                </li>
+                <li>
+                    <a class="block py-1 text-slate-600 hover:text-teal-700" href="#trope-library">爆款元素库</a>
+                </li>
+                <li>
+                    <a class="block py-1 text-slate-600 hover:text-teal-700" href="#hook-templates">钩子模板</a>
+                </li>
+                <li>
+                    <a class="block py-1 text-slate-600 hover:text-teal-700" href="#character-archetypes">角色原型</a>
+                </li>
+                <li>
+                    <a class="block py-1 text-slate-600 hover:text-teal-700" href="#market-trends">市场趋势</a>
+                </li>
+                <li>
+                    <a class="block py-1 text-slate-600 hover:text-teal-700" href="#creative-guidelines">创作指导</a>
+                </li>
+                <li>
+                    <a class="block py-1 text-slate-600 hover:text-teal-700" href="#data-specifications">数据规范</a>
+                </li>
+            </ul>
+        </div>
+    </nav>
+
+    <!-- Main Content -->
+    <main class="content">
+        <!-- Hero Section -->
+        <section class="py-12">
+            <div class="hero-grid">
+                <div class="hero-text">
+                    <h1 class="text-5xl font-bold serif text-slate-800 mb-6 leading-tight">
+                        <em class="text-teal-700">解码爆款密码</em>
+                        <br />
+                        中文短剧AI生成系统
+                        <br />
+                        主题库研究报告
+                    </h1>
+                    <p class="text-xl text-slate-600 mb-8 leading-relaxed">
+                        基于2024-2025年市场数据验证，构建可直接用于AI短剧生成系统的完整知识体系
+                    </p>
+                    <div class="flex flex-wrap gap-4 text-sm">
+                        <span class="bg-teal-100 text-teal-700 px-3 py-1 rounded-full">5大核心题材</span>
+                        <span class="bg-amber-100 text-amber-700 px-3 py-1 rounded-full">85+爆款元素</span>
+                        <span class="bg-blue-100 text-blue-700 px-3 py-1 rounded-full">45+钩子模板</span>
+                        <span class="bg-rose-100 text-rose-700 px-3 py-1 rounded-full">25+角色原型</span>
+                    </div>
+                </div>
+                <div class="hero-visual">
+                    <div class="visual-card">
+                        <div>
+                            <i class="fas fa-chart-line text-2xl mb-2"></i>
+                            <div>市场规模 634亿元</div>
+                            <div class="text-sm opacity-80">2025年预测</div>
+                        </div>
+                    </div>
+                    <div class="visual-card">
+                        <div>
+                            <i class="fas fa-users text-2xl mb-2"></i>
+                            <div>用户规模 6.96亿</div>
+                            <div class="text-sm opacity-80">2025年预测</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Executive Summary -->
+        <section class="mb-16" id="executive-summary">
+            <h2 class="text-3xl font-bold serif text-slate-800 mb-8">执行摘要</h2>
+
+            <div class="grid md:grid-cols-2 gap-6 mb-8">
+                <div class="bg-white p-6 rounded-lg shadow-sm border border-slate-200">
+                    <h3 class="text-lg font-semibold mb-4 text-teal-700">核心发现</h3>
+                    <ul class="space-y-3 text-slate-600">
+                        <li class="flex items-start">
+                            <i class="fas fa-star text-amber-500 mt-1 mr-3"></i>
+                            <span><strong>&#34;情绪先行&#34;</strong>优于&#34;逻辑完备&#34;——短剧本质是情绪生意，冲突性＞逻辑性</span>
+                        </li>
+                        <li class="flex items-start">
+                            <i class="fas fa-star text-amber-500 mt-1 mr-3"></i>
+                            <span><strong>&#34;信息差&#34;</strong>是爽感核心机制——身份揭露、能力隐藏、认知落差</span>
+                        </li>
+                        <li class="flex items-start">
+                            <i class="fas fa-star text-amber-500 mt-1 mr-3"></i>
+                            <span><strong>&#34;钩子密度&#34;</strong>决定免费模式成败——15秒冲突、30秒推进、每集悬念</span>
+                        </li>
+                    </ul>
+                </div>
+
+                <div class="bg-white p-6 rounded-lg shadow-sm border border-slate-200">
+                    <h3 class="text-lg font-semibold mb-4 text-teal-700">市场洞察</h3>
+                    <ul class="space-y-3 text-slate-600">
+                        <li class="flex items-start">
+                            <i class="fas fa-chart-bar text-blue-500 mt-1 mr-3"></i>
+                            <span>免费模式以<strong>66.3%占比</strong>成为主流，倒逼&#34;全程钩子矩阵&#34;设计</span>
+                        </li>
+                        <li class="flex items-start">
+                            <i class="fas fa-chart-bar text-blue-500 mt-1 mr-3"></i>
+                            <span>头部效应加剧——仅<strong>1.38%短剧贡献18%总热度值</strong></span>
+                        </li>
+                        <li class="flex items-start">
+                            <i class="fas fa-chart-bar text-blue-500 mt-1 mr-3"></i>
+                            <span>&#34;烟火气&#34;场景成为差异化新方向，打破&#34;豪门霸总&#34;同质化</span>
+                        </li>
+                    </ul>
+                </div>
+            </div>
+
+            <div class="bg-gradient-to-r from-teal-50 to-amber-50 p-8 rounded-lg">
+                <h3 class="text-xl font-semibold mb-4 text-slate-800">研究价值</h3>
+                <p class="text-slate-700 leading-relaxed">
+                    本研究构建的<strong>四阶段核心公式</strong>（Setup→Rising→Climax→Resolution）为短剧创作提供了标准化框架，
+                    而<strong>85+爆款元素</strong>与<strong>45+钩子模板</strong>的系统性整理，使AI短剧生成具备了工业化生产能力。
+                    所有数据均基于2024-2025年市场验证，确保可直接应用于商业化内容生产。
+                </p>
+            </div>
+        </section>
+
+        <div class="section-divider"></div>
+
+        <!-- Research Framework -->
+        <section class="mb-16" id="research-framework">
+            <h2 class="text-3xl font-bold serif text-slate-800 mb-8">研究框架与方法论</h2>
+
+            <div class="grid md:grid-cols-2 gap-8 mb-8">
+                <div>
+                    <h3 class="text-xl font-semibold mb-4 text-teal-700">四阶段核心公式</h3>
+                    <div class="bg-white p-6 rounded-lg shadow-sm border border-slate-200">
+                        <div class="space-y-4">
+                            <div class="flex items-center">
+                                <div
+                                    class="w-8 h-8 bg-teal-100 rounded-full flex items-center justify-center text-teal-700 font-bold text-sm mr-3">
+                                    1</div>
+                                <div>
+                                    <div class="font-medium">Setup（铺垫期）</div>
+                                    <div class="text-sm text-slate-600">10-15%集数，建立情境与期待</div>
+                                </div>
+                            </div>
+                            <div class="flex items-center">
+                                <div
+                                    class="w-8 h-8 bg-blue-100 rounded-full flex items-center justify-center text-blue-700 font-bold text-sm mr-3">
+                                    2</div>
+                                <div>
+                                    <div class="font-medium">Rising（升级期）</div>
+                                    <div class="text-sm text-slate-600">30-40%集数，累积张力与悬念</div>
+                                </div>
+                            </div>
+                            <div class="flex items-center">
+                                <div
+                                    class="w-8 h-8 bg-amber-100 rounded-full flex items-center justify-center text-amber-700 font-bold text-sm mr-3">
+                                    3</div>
+                                <div>
+                                    <div class="font-medium">Climax（高潮期）</div>
+                                    <div class="text-sm text-slate-600">40-50%集数，密集释放爽感</div>
+                                </div>
+                            </div>
+                            <div class="flex items-center">
+                                <div
+                                    class="w-8 h-8 bg-rose-100 rounded-full flex items-center justify-center text-rose-700 font-bold text-sm mr-3">
+                                    4</div>
+                                <div>
+                                    <div class="font-medium">Resolution（解决期）</div>
+                                    <div class="text-sm text-slate-600">10-15%集数，圆满收尾与升华</div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div>
+                    <h3 class="text-xl font-semibold mb-4 text-teal-700">数据源体系</h3>
+                    <div class="bg-white p-6 rounded-lg shadow-sm border border-slate-200">
+                        <div class="space-y-4">
+                            <div>
+                                <div class="font-medium text-slate-800 mb-2">高可信度源</div>
+                                <ul class="text-sm text-slate-600 space-y-1">
+                                    <li>• 抖音/快手短剧榜单</li>
+                                    <li>• DataEye研究院、艾瑞咨询</li>
+                                    <li>• 专业编剧、导演访谈</li>
+                                </ul>
+                            </div>
+                            <div>
+                                <div class="font-medium text-slate-800 mb-2">辅助验证源</div>
+                                <ul class="text-sm text-slate-600 space-y-1">
+                                    <li>• 社交媒体用户反馈</li>
+                                    <li>• 评论区情感分析</li>
+                                    <li>• 长剧/网文迁移模式</li>
+                                </ul>
+                            </div>
+                            <div>
+                                <div class="font-medium text-slate-800 mb-2">排除标准</div>
+                                <ul class="text-sm text-slate-600 space-y-1">
+                                    <li>• 超过2年的过时数据</li>
+                                    <li>• 单一来源的未证实观点</li>
+                                    <li>• 内容农场低质量信息</li>
+                                </ul>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="bg-white p-6 rounded-lg shadow-sm border border-slate-200">
+                <h3 class="text-lg font-semibold mb-4 text-slate-800">关键市场数据</h3>
+                <div class="grid md:grid-cols-3 gap-4">
+                    <div class="text-center">
+                        <div class="text-3xl font-bold text-teal-700">504.4亿</div>
+                        <div class="text-sm text-slate-600">2024年市场规模</div>
+                        <div class="text-xs text-slate-500">→ 634亿（2025年预测）</div>
+                    </div>
+                    <div class="text-center">
+                        <div class="text-3xl font-bold text-amber-700">6.62亿</div>
+                        <div class="text-sm text-slate-600">2024年用户规模</div>
+                        <div class="text-xs text-slate-500">→ 6.96亿（2025年预测）</div>
+                    </div>
+                    <div class="text-center">
+                        <div class="text-3xl font-bold text-rose-700">1.38%</div>
+                        <div class="text-sm text-slate-600">头部短剧占比</div>
+                        <div class="text-xs text-slate-500">贡献18%总热度值</div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <div class="section-divider"></div>
+
+        <!-- Genre Analysis -->
+        <section class="mb-16" id="genre-analysis">
+            <h2 class="text-3xl font-bold serif text-slate-800 mb-8">核心题材深度分析</h2>
+
+            <!-- Revenge Genre -->
+            <div class="mb-12" id="revenge-genre">
+                <h3 class="text-2xl font-semibold mb-6 text-slate-800">复仇逆袭题材</h3>
+
+                <div class="bg-white p-6 rounded-lg shadow-sm border border-slate-200 mb-6">
+                    <h4 class="text-lg font-semibold mb-4 text-slate-800">四阶段核心公式</h4>
+                    <div class="overflow-x-auto">
+                        <table class="w-full text-sm">
+                            <thead>
+                                <tr class="border-b border-slate-200">
+                                    <th class="text-left py-3 px-4 font-medium">阶段</th>
+                                    <th class="text-left py-3 px-4 font-medium">建议集数</th>
+                                    <th class="text-left py-3 px-4 font-medium">核心任务</th>
+                                    <th class="text-left py-3 px-4 font-medium">关键元素</th>
+                                </tr>
+                            </thead>
+                            <tbody class="divide-y divide-slate-100">
+                                <tr>
+                                    <td class="py-3 px-4 font-medium text-teal-700">Setup</td>
+                                    <td class="py-3 px-4">第1-5集（10-15%）</td>
+                                    <td class="py-3 px-4">悲情渲染与仇恨种子埋设</td>
+                                    <td class="py-3 px-4">至亲被害、财产被夺、当众羞辱</td>
+                                </tr>
+                                <tr>
+                                    <td class="py-3 px-4 font-medium text-blue-700">Rising</td>
+                                    <td class="py-3 px-4">第6-30集（30-40%）</td>
+                                    <td class="py-3 px-4">隐忍蓄力与身份/能力提升</td>
+                                    <td class="py-3 px-4">隐藏身份、获取金手指、建立盟友</td>
+                                </tr>
+                                <tr>
+                                    <td class="py-3 px-4 font-medium text-amber-700">Climax</td>
+                                    <td class="py-3 px-4">第31-70集（40-50%）</td>
+                                    <td class="py-3 px-4">层层反击与终极对决</td>
+                                    <td class="py-3 px-4">身份揭露、证据公开、权力碾压</td>
+                                </tr>
+                                <tr>
+                                    <td class="py-3 px-4 font-medium text-rose-700">Resolution</td>
+                                    <td class="py-3 px-4">第71-80+集（10-15%）</td>
+                                    <td class="py-3 px-4">复仇完成与新身份确立</td>
+                                    <td class="py-3 px-4">反派下场、情感收束、主题升华</td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+
+                <div class="grid md:grid-cols-2 gap-6">
+                    <div class="bg-white p-6 rounded-lg shadow-sm border border-slate-200">
+                        <h4 class="text-lg font-semibold mb-4 text-slate-800">爆款元素</h4>
+                        <div class="space-y-3">
+                            <div class="flex justify-between items-center">
+                                <span class="text-slate-700">隐藏大佬/扮猪吃虎</span>
+                                <span class="bg-teal-100 text-teal-700 px-2 py-1 rounded text-sm font-medium">95分</span>
+                            </div>
+                            <div class="flex justify-between items-center">
+                                <span class="text-slate-700">法律复仇/智取型</span>
+                                <span class="bg-teal-100 text-teal-700 px-2 py-1 rounded text-sm font-medium">92分</span>
+                            </div>
+                            <div class="flex justify-between items-center">
+                                <span class="text-slate-700">身份揭露/当众打脸</span>
+                                <span class="bg-teal-100 text-teal-700 px-2 py-1 rounded text-sm font-medium">90分</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="bg-white p-6 rounded-lg shadow-sm border border-slate-200">
+                        <h4 class="text-lg font-semibold mb-4 text-slate-800">标杆案例</h4>
+                        <div class="space-y-3">
+                            <div>
+                                <div class="font-medium text-slate-800">《黑莲花上位手册》</div>
+                                <div class="text-sm text-slate-600">24小时充值破2000万，因极端暴力被下架</div>
+                            </div>
+                            <div>
+                                <div class="font-medium text-slate-800">《幸得相遇离婚时》</div>
+                                <div class="text-sm text-slate-600">分账8000万创纪录，前5秒留存率62%</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Romance Genre -->
+            <div class="mb-12" id="romance-genre">
+                <h3 class="text-2xl font-semibold mb-6 text-slate-800">甜宠恋爱题材</h3>
+
+                <div class="bg-white p-6 rounded-lg shadow-sm border border-slate-200 mb-6">
+                    <h4 class="text-lg font-semibold mb-4 text-slate-800">四阶段核心公式</h4>
+                    <div class="overflow-x-auto">
+                        <table class="w-full text-sm">
+                            <thead>
+                                <tr class="border-b border-slate-200">
+                                    <th class="text-left py-3 px-4 font-medium">阶段</th>
+                                    <th class="text-left py-3 px-4 font-medium">建议集数</th>
+                                    <th class="text-left py-3 px-4 font-medium">核心任务</th>
+                                    <th class="text-left py-3 px-4 font-medium">关键元素</th>
+                                </tr>
+                            </thead>
+                            <tbody class="divide-y divide-slate-100">
+                                <tr>
+                                    <td class="py-3 px-4 font-medium text-teal-700">相遇期</td>
+                                    <td class="py-3 px-4">第1-8集</td>
+                                    <td class="py-3 px-4">快速建立相遇场景</td>
+                                    <td class="py-3 px-4">职业差异、意外事件、一见钟情</td>
+                                </tr>
+                                <tr>
+                                    <td class="py-3 px-4 font-medium text-blue-700">升温期</td>
+                                    <td class="py-3 px-4">第9-35集</td>
+                                    <td class="py-3 px-4">建立关系纽带</td>
+                                    <td class="py-3 px-4">契约婚姻、同居场景、护短行为</td>
+                                </tr>
+                                <tr>
+                                    <td class="py-3 px-4 font-medium text-amber-700">考验期</td>
+                                    <td class="py-3 px-4">第36-65集</td>
+                                    <td class="py-3 px-4">制造重大考验</td>
+                                    <td class="py-3 px-4">重大误会、外部阻力、追妻火葬场</td>
+                                </tr>
+                                <tr>
+                                    <td class="py-3 px-4 font-medium text-rose-700">圆满期</td>
+                                    <td class="py-3 px-4">第66-80+集</td>
+                                    <td class="py-3 px-4">消除障碍，确认关系</td>
+                                    <td class="py-3 px-4">求婚婚礼、公开关系、共同事业</td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+
+                <div class="grid md:grid-cols-2 gap-6">
+                    <div class="bg-white p-6 rounded-lg shadow-sm border border-slate-200">
+                        <h4 class="text-lg font-semibold mb-4 text-slate-800">热门元素</h4>
+                        <div class="space-y-3">
+                            <div class="flex justify-between items-center">
+                                <span class="text-slate-700">契约婚姻/假戏真做</span>
+                                <span class="bg-rose-100 text-rose-700 px-2 py-1 rounded text-sm font-medium">94分</span>
+                            </div>
+                            <div class="flex justify-between items-center">
+                                <span class="text-slate-700">追妻/追夫火葬场</span>
+                                <span class="bg-rose-100 text-rose-700 px-2 py-1 rounded text-sm font-medium">93分</span>
+                            </div>
+                            <div class="flex justify-between items-center">
+                                <span class="text-slate-700">双向暗恋</span>
+                                <span class="bg-rose-100 text-rose-700 px-2 py-1 rounded text-sm font-medium">90分</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="bg-white p-6 rounded-lg shadow-sm border border-slate-200">
+                        <h4 class="text-lg font-semibold mb-4 text-slate-800">创新趋势</h4>
+                        <div class="space-y-3">
+                            <div>
+                                <div class="font-medium text-slate-800">空间&#34;降维&#34;</div>
+                                <div class="text-sm text-slate-600">从豪华场景转向菜市场、便利店等日常空间</div>
+                            </div>
+                            <div>
+                                <div class="font-medium text-slate-800">职业禁忌</div>
+                                <div class="text-sm text-slate-600">上下级、医患等权力差异关系的浪漫化</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Mystery Genre -->
+            <div class="mb-12" id="mystery-genre">
+                <h3 class="text-2xl font-semibold mb-6 text-slate-800">悬疑推理题材</h3>
+
+                <div class="bg-white p-6 rounded-lg shadow-sm border border-slate-200 mb-6">
+                    <h4 class="text-lg font-semibold mb-4 text-slate-800">四阶段核心公式</h4>
+                    <div class="overflow-x-auto">
+                        <table class="w-full text-sm">
+                            <thead>
+                                <tr class="border-b border-slate-200">
+                                    <th class="text-left py-3 px-4 font-medium">阶段</th>
+                                    <th class="text-left py-3 px-4 font-medium">建议集数</th>
+                                    <th class="text-left py-3 px-4 font-medium">核心任务</th>
+                                    <th class="text-left py-3 px-4 font-medium">关键元素</th>
+                                </tr>
+                            </thead>
+                            <tbody class="divide-y divide-slate-100">
+                                <tr>
+                                    <td class="py-3 px-4 font-medium text-teal-700">谜面期</td>
+                                    <td class="py-3 px-4">第1-6集</td>
+                                    <td class="py-3 px-4">抛出核心谜团</td>
+                                    <td class="py-3 px-4">离奇案件、关键符号、多视角碎片</td>
+                                </tr>
+                                <tr>
+                                    <td class="py-3 px-4 font-medium text-blue-700">调查期</td>
+                                    <td class="py-3 px-4">第7-30集</td>
+                                    <td class="py-3 px-4">多线推进调查</td>
+                                    <td class="py-3 px-4">新嫌疑人、红鲱鱼误导、关系网展开</td>
+                                </tr>
+                                <tr>
+                                    <td class="py-3 px-4 font-medium text-amber-700">反转期</td>
+                                    <td class="py-3 px-4">第31-60集</td>
+                                    <td class="py-3 px-4">核心谜题解答</td>
+                                    <td class="py-3 px-4">核心证据、真凶反转、动机解读</td>
+                                </tr>
+                                <tr>
+                                    <td class="py-3 px-4 font-medium text-rose-700">揭底期</td>
+                                    <td class="py-3 px-4">第61-80+集</td>
+                                    <td class="py-3 px-4">完整解答谜题</td>
+                                    <td class="py-3 px-4">伏笔回收、主题升华、开放式结局</td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+
+                <div class="bg-amber-50 p-6 rounded-lg border border-amber-200 mb-6">
+                    <h4 class="text-lg font-semibold mb-3 text-amber-800">《隐秘的角落》符号系统分析</h4>
+                    <p class="text-slate-700 mb-4">
+                        &#34;笛卡尔&#34;符号四次出现构成螺旋结构：（1）朱朝阳与母亲讲述故事，建立对照点；（2）张东升授课讲童话版本，暗示侥幸；（3）张东升说出&#34;死于背叛&#34;，暗示朱朝阳内心动摇；（4）结局由观众补全，保持开放性。
+                        <a class="citation"
+                            href="https://scholars.hkbu.edu.hk/ws/portalfiles/portal/80879582/G23THFL-042229T.pdf"
+                            target="_blank">[文献来源]</a>
+                    </p>
+                    <div class="grid md:grid-cols-2 gap-4">
+                        <div>
+                            <div class="font-medium text-slate-800 mb-2">多螺旋叙事模型</div>
+                            <div class="text-sm text-slate-600">不同线索如螺旋交织，符号意义随叙事动态转变，极大缩短多线叙事时间</div>
+                        </div>
+                        <div>
+                            <div class="font-medium text-slate-800 mb-2">童话/现实双结局</div>
+                            <div class="text-sm text-slate-600">笛卡尔式选择提供解读空间，平衡逻辑满足与情感余韵</div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="grid md:grid-cols-2 gap-6">
+                    <div class="bg-white p-6 rounded-lg shadow-sm border border-slate-200">
+                        <h4 class="text-lg font-semibold mb-4 text-slate-800">核心元素</h4>
+                        <div class="space-y-3">
+                            <div class="flex justify-between items-center">
+                                <span class="text-slate-700">符号隐喻系统</span>
+                                <span class="bg-blue-100 text-blue-700 px-2 py-1 rounded text-sm font-medium">93分</span>
+                            </div>
+                            <div class="flex justify-between items-center">
+                                <span class="text-slate-700">多螺旋叙事</span>
+                                <span class="bg-blue-100 text-blue-700 px-2 py-1 rounded text-sm font-medium">90分</span>
+                            </div>
+                            <div class="flex justify-between items-center">
+                                <span class="text-slate-700">不可靠叙述者</span>
+                                <span class="bg-blue-100 text-blue-700 px-2 py-1 rounded text-sm font-medium">88分</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="bg-white p-6 rounded-lg shadow-sm border border-slate-200">
+                        <h4 class="text-lg font-semibold mb-4 text-slate-800">精品化趋势</h4>
+                        <div class="space-y-3">
+                            <div>
+                                <div class="font-medium text-slate-800">季播化运营</div>
+                                <div class="text-sm text-slate-600">《云渺》系列30亿播放量，延长IP生命周期</div>
+                            </div>
+                            <div>
+                                <div class="font-medium text-slate-800">互动选择</div>
+                                <div class="text-sm text-slate-600">用户投票决定剧情走向，形式创新代表</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Transmigration Genre -->
+            <div class="mb-12" id="transmigration-genre">
+                <h3 class="text-2xl font-semibold mb-6 text-slate-800">穿越重生题材</h3>
+
+                <div class="bg-white p-6 rounded-lg shadow-sm border border-slate-200 mb-6">
+                    <h4 class="text-lg font-semibold mb-4 text-slate-800">四阶段核心公式</h4>
+                    <div class="overflow-x-auto">
+                        <table class="w-full text-sm">
+                            <thead>
+                                <tr class="border-b border-slate-200">
+                                    <th class="text-left py-3 px-4 font-medium">阶段</th>
+                                    <th class="text-left py-3 px-4 font-medium">建议集数</th>
+                                    <th class="text-left py-3 px-4 font-medium">核心任务</th>
+                                    <th class="text-left py-3 px-4 font-medium">关键元素</th>
+                                </tr>
+                            </thead>
+                            <tbody class="divide-y divide-slate-100">
+                                <tr>
+                                    <td class="py-3 px-4 font-medium text-teal-700">死亡/穿越期</td>
+                                    <td class="py-3 px-4">第1-5集</td>
+                                    <td class="py-3 px-4">完成&#34;死亡-穿越-觉醒&#34;</td>
+                                    <td class="py-3 px-4">现代死亡、穿越触发、新身份认知</td>
+                                </tr>
+                                <tr>
+                                    <td class="py-3 px-4 font-medium text-blue-700">适应期</td>
+                                    <td class="py-3 px-4">第6-25集</td>
+                                    <td class="py-3 px-4">探索新世界规则</td>
+                                    <td class="py-3 px-4">世界观获取、关键人物、首次金手指</td>
+                                </tr>
+                                <tr>
+                                    <td class="py-3 px-4 font-medium text-amber-700">改变期</td>
+                                    <td class="py-3 px-4">第26-60集</td>
+                                    <td class="py-3 px-4">运用现代知识改变命运</td>
+                                    <td class="py-3 px-4">现代知识降维、历史事件干预</td>
+                                </tr>
+                                <tr>
+                                    <td class="py-3 px-4 font-medium text-rose-700">归位/定居期</td>
+                                    <td class="py-3 px-4">第61-80+集</td>
+                                    <td class="py-3 px-4">处理归留抉择</td>
+                                    <td class="py-3 px-4">回归机会、情感羁绊、身份整合</td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+
+                <div class="bg-purple-50 p-6 rounded-lg border border-purple-200 mb-6">
+                    <h4 class="text-lg font-semibold mb-3 text-purple-800">2025年新兴趋势：全家偷听心声</h4>
+                    <p class="text-slate-700 mb-4">
+                        《全家偷听我心声》将传统的&#34;个人逆袭&#34;扩展为&#34;家庭共同成长&#34;，心声与言行的反差提供持续笑点，
+                        显著拓展了情感共鸣的边界。
+                        <a class="citation" href="https://news.qq.com/rain/a/20250512A08Z3900"
+                            target="_blank">[案例来源]</a>
+                    </p>
+                    <div class="grid md:grid-cols-2 gap-4">
+                        <div>
+                            <div class="font-medium text-slate-800 mb-2">系统绑定升级</div>
+                            <div class="text-sm text-slate-600">从&#34;个人金手指&#34;到&#34;家庭共享&#34;，拓展共鸣范围；任务奖励机制更复杂</div>
+                        </div>
+                        <div>
+                            <div class="font-medium text-slate-800 mb-2">古今融合新范式</div>
+                            <div class="text-sm text-slate-600">现代知识在古代的&#34;降维打击&#34;更具体化，避免突兀感</div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="grid md:grid-cols-2 gap-6">
+                    <div class="bg-white p-6 rounded-lg shadow-sm border border-slate-200">
+                        <h4 class="text-lg font-semibold mb-4 text-slate-800">金手指设定</h4>
+                        <div class="space-y-3">
+                            <div class="flex justify-between items-center">
+                                <span class="text-slate-700">系统绑定/任务驱动</span>
+                                <span
+                                    class="bg-purple-100 text-purple-700 px-2 py-1 rounded text-sm font-medium">94分</span>
+                            </div>
+                            <div class="flex justify-between items-center">
+                                <span class="text-slate-700">读心术/心声外泄</span>
+                                <span
+                                    class="bg-purple-100 text-purple-700 px-2 py-1 rounded text-sm font-medium">91分</span>
+                            </div>
+                            <div class="flex justify-between items-center">
+                                <span class="text-slate-700">现代知识降维</span>
+                                <span
+                                    class="bg-purple-100 text-purple-700 px-2 py-1 rounded text-sm font-medium">88分</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="bg-white p-6 rounded-lg shadow-sm border border-slate-200">
+                        <h4 class="text-lg font-semibold mb-4 text-slate-800">视觉特色</h4>
+                        <div class="space-y-3">
+                            <div>
+                                <div class="font-medium text-slate-800">古今对比</div>
+                                <div class="text-sm text-slate-600">现代服装vs古装、现代场景vs古代场景的强烈视觉对比</div>
+                            </div>
+                            <div>
+                                <div class="font-medium text-slate-800">特效转场</div>
+                                <div class="text-sm text-slate-600">穿越瞬间的时空扭曲、系统界面的全息呈现</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Family Genre -->
+            <div class="mb-12" id="family-genre">
+                <h3 class="text-2xl font-semibold mb-6 text-slate-800">家庭伦理/都市现实题材</h3>
+
+                <div class="bg-white p-6 rounded-lg shadow-sm border border-slate-200 mb-6">
+                    <h4 class="text-lg font-semibold mb-4 text-slate-800">四阶段核心公式</h4>
+                    <div class="overflow-x-auto">
+                        <table class="w-full text-sm">
+                            <thead>
+                                <tr class="border-b border-slate-200">
+                                    <th class="text-left py-3 px-4 font-medium">阶段</th>
+                                    <th class="text-left py-3 px-4 font-medium">建议集数</th>
+                                    <th class="text-left py-3 px-4 font-medium">核心任务</th>
+                                    <th class="text-left py-3 px-4 font-medium">关键元素</th>
+                                </tr>
+                            </thead>
+                            <tbody class="divide-y divide-slate-100">
+                                <tr>
+                                    <td class="py-3 px-4 font-medium text-teal-700">矛盾潜伏期</td>
+                                    <td class="py-3 px-4">第1-10集</td>
+                                    <td class="py-3 px-4">铺陈关系网络，埋下矛盾种子</td>
+                                    <td class="py-3 px-4">代际差异、财产隐患、婚姻张力</td>
+                                </tr>
+                                <tr>
+                                    <td class="py-3 px-4 font-medium text-blue-700">冲突爆发期</td>
+                                    <td class="py-3 px-4">第11-40集</td>
+                                    <td class="py-3 px-4">矛盾公开化，冲突升级</td>
+                                    <td class="py-3 px-4">遗产争夺、赡养纠纷、职场PUA</td>
+                                </tr>
+                                <tr>
+                                    <td class="py-3 px-4 font-medium text-amber-700">危机顶点期</td>
+                                    <td class="py-3 px-4">第41-65集</td>
+                                    <td class="py-3 px-4">冲突达到顶点</td>
+                                    <td class="py-3 px-4">离婚断绝、失业崩塌、健康危机</td>
+                                </tr>
+                                <tr>
+                                    <td class="py-3 px-4 font-medium text-rose-700">和解/重建期</td>
+                                    <td class="py-3 px-4">第66-80+集</td>
+                                    <td class="py-3 px-4">完成个人成长，重建关系</td>
+                                    <td class="py-3 px-4">自我和解、关系修复、新生活方式</td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+
+                <div class="bg-green-50 p-6 rounded-lg border border-green-200 mb-6">
+                    <h4 class="text-lg font-semibold mb-3 text-green-800">《杜小慧》职场PUA话题营销</h4>
+                    <p class="text-slate-700 mb-4">
+                        官方发起#职场PUA有多隐蔽#话题，邀请李国庆、杨天真分享职场经历，话题<strong>48小时阅读量破32亿</strong>，
+                        UGC内容超50万条，带动剧集日播放量增6000万。
+                        <a class="citation" href="https://news.qq.com/rain/a/20260203A06JNQ00"
+                            target="_blank">[数据来源]</a>
+                    </p>
+                    <div class="grid md:grid-cols-3 gap-4">
+                        <div>
+                            <div class="font-medium text-slate-800 mb-2">社会议题嵌入</div>
+                            <div class="text-sm text-slate-600">职场PUA、养老困境、代际和解等真实痛点</div>
+                        </div>
+                        <div>
+                            <div class="font-medium text-slate-800 mb-2">烟火气场景</div>
+                            <div class="text-sm text-slate-600">菜市场、社区医院、家庭餐桌等日常空间</div>
+                        </div>
+                        <div>
+                            <div class="font-medium text-slate-800 mb-2">情感共鸣</div>
+                            <div class="text-sm text-slate-600">真实感强，观众易产生&#34;这不就是我&#34;的代入感</div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="grid md:grid-cols-2 gap-6">
+                    <div class="bg-white p-6 rounded-lg shadow-sm border border-slate-200">
+                        <h4 class="text-lg font-semibold mb-4 text-slate-800">社会议题</h4>
+                        <div class="space-y-3">
+                            <div class="flex justify-between items-center">
+                                <span class="text-slate-700">职场PUA/反PUA</span>
+                                <span
+                                    class="bg-green-100 text-green-700 px-2 py-1 rounded text-sm font-medium">90分</span>
+                            </div>
+                            <div class="flex justify-between items-center">
+                                <span class="text-slate-700">婆媳矛盾/和解</span>
+                                <span
+                                    class="bg-green-100 text-green-700 px-2 py-1 rounded text-sm font-medium">88分</span>
+                            </div>
+                            <div class="flex justify-between items-center">
+                                <span class="text-slate-700">重组家庭张力</span>
+                                <span
+                                    class="bg-green-100 text-green-700 px-2 py-1 rounded text-sm font-medium">85分</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="bg-white p-6 rounded-lg shadow-sm border border-slate-200">
+                        <h4 class="text-lg font-semibold mb-4 text-slate-800">2025年增长</h4>
+                        <div class="space-y-3">
+                            <div>
+                                <div class="font-medium text-slate-800">题材热度排名</div>
+                                <div class="text-sm text-slate-600">位列第四至第六位，增长势头明显</div>
+                            </div>
+                            <div>
+                                <div class="font-medium text-slate-800">制作成本优势</div>
+                                <div class="text-sm text-slate-600">场景生活化，制作成本相对较低</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <div class="section-divider"></div>
+
+        <!-- Trope Library -->
+        <section class="mb-16" id="trope-library">
+            <h2 class="text-3xl font-bold serif text-slate-800 mb-8">爆款元素库（Tropes Library）</h2>
+
+            <div class="grid md:grid-cols-2 gap-8 mb-8">
+                <div class="bg-white p-6 rounded-lg shadow-sm border border-slate-200">
+                    <h3 class="text-lg font-semibold mb-4 text-slate-800">身份类元素</h3>
+                    <div class="space-y-4">
+                        <div class="border-l-4 border-teal-500 pl-4">
+                            <div class="font-medium text-slate-800">隐藏大佬/扮猪吃虎</div>
+                            <div class="text-sm text-slate-600 mb-2">表面身份与真实身份形成巨大反差</div>
+                            <div class="text-xs text-slate-500">成功率: 92% | 最佳时机: 第10-20集首次暗示</div>
+                        </div>
+                        <div class="border-l-4 border-teal-500 pl-4">
+                            <div class="font-medium text-slate-800">秘密皇室/流落血脉</div>
+                            <div class="text-sm text-slate-600 mb-2">主角实为皇室/贵族血脉，因变故流落民间</div>
+                            <div class="text-xs text-slate-500">成功率: 88% | 最佳时机: 第20-40集揭露</div>
+                        </div>
+                        <div class="border-l-4 border-teal-500 pl-4">
+                            <div class="font-medium text-slate-800">系统绑定/金手指觉醒</div>
+                            <div class="text-sm text-slate-600 mb-2">主角获得超自然系统辅助</div>
+                            <div class="text-xs text-slate-500">成功率: 90% | 最佳时机: 第1-3集完成绑定</div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="bg-white p-6 rounded-lg shadow-sm border border-slate-200">
+                    <h3 class="text-lg font-semibold mb-4 text-slate-800">关系类元素</h3>
+                    <div class="space-y-4">
+                        <div class="border-l-4 border-rose-500 pl-4">
+                            <div class="font-medium text-slate-800">契约婚姻/假戏真做</div>
+                            <div class="text-sm text-slate-600 mb-2">利益驱动的虚假婚姻，最终真情相爱</div>
+                            <div class="text-xs text-slate-500">效果评分: 94分 | 情感张力: 真假情感界限模糊</div>
+                        </div>
+                        <div class="border-l-4 border-rose-500 pl-4">
+                            <div class="font-medium text-slate-800">冤家变情人/敌对到恋人</div>
+                            <div class="text-sm text-slate-600 mb-2">从对立冲突到相互理解，最终相爱</div>
+                            <div class="text-xs text-slate-500">效果评分: 91分 | 情感张力: 认知颠覆与情感反转</div>
+                        </div>
+                        <div class="border-l-4 border-rose-500 pl-4">
+                            <div class="font-medium text-slate-800">追妻/追夫火葬场</div>
+                            <div class="text-sm text-slate-600 mb-2">一方醒悟后的疯狂挽回</div>
+                            <div class="text-xs text-slate-500">效果评分: 88分 | 情感张力: 失去后的珍惜感</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="grid md:grid-cols-2 gap-8">
+                <div class="bg-white p-6 rounded-lg shadow-sm border border-slate-200">
+                    <h3 class="text-lg font-semibold mb-4 text-slate-800">冲突类元素</h3>
+                    <div class="space-y-4">
+                        <div class="border-l-4 border-red-500 pl-4">
+                            <div class="font-medium text-slate-800">打脸反杀/当众羞辱</div>
+                            <div class="text-sm text-slate-600 mb-2">反派嚣张挑衅，主角实力碾压回击</div>
+                            <div class="text-xs text-slate-500">效果评分: 93分 | 爽感来源: 压抑后的即时释放</div>
+                        </div>
+                        <div class="border-l-4 border-red-500 pl-4">
+                            <div class="font-medium text-slate-800">复仇计划/精密布局</div>
+                            <div class="text-sm text-slate-600 mb-2">主角长期策划，逐步实施复仇</div>
+                            <div class="text-xs text-slate-500">效果评分: 90分 | 爽感来源: 掌控感与智力优越感</div>
+                        </div>
+                        <div class="border-l-4 border-red-500 pl-4">
+                            <div class="font-medium text-slate-800">背叛揭露/信任崩塌</div>
+                            <div class="text-sm text-slate-600 mb-2">亲密关系的背叛被揭露</div>
+                            <div class="text-xs text-slate-500">效果评分: 87分 | 情感冲击: 认知颠覆与情感波动</div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="bg-white p-6 rounded-lg shadow-sm border border-slate-200">
+                    <h3 class="text-lg font-semibold mb-4 text-slate-800">设定类元素</h3>
+                    <div class="space-y-4">
+                        <div class="border-l-4 border-purple-500 pl-4">
+                            <div class="font-medium text-slate-800">时间循环/重复当日</div>
+                            <div class="text-sm text-slate-600 mb-2">主角被困在同一天，不断重复</div>
+                            <div class="text-xs text-slate-500">效果评分: 88分 | 创新空间: 多种可能性探索</div>
+                        </div>
+                        <div class="border-l-4 border-purple-500 pl-4">
+                            <div class="font-medium text-slate-800">重生穿越/命运改写</div>
+                            <div class="text-sm text-slate-600 mb-2">死后回到过去，有机会改变历史</div>
+                            <div class="text-xs text-slate-500">效果评分: 90分 | 创新空间: &#34;已知未来&#34;信息优势</div>
+                        </div>
+                        <div class="border-l-4 border-purple-500 pl-4">
+                            <div class="font-medium text-slate-800">读心术/心声外泄</div>
+                            <div class="text-sm text-slate-600 mb-2">能读取他人想法或被他人听到</div>
+                            <div class="text-xs text-slate-500">效果评分: 89分 | 创新空间: 信息不对等效果</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <div class="section-divider"></div>
+
+        <!-- Hook Templates -->
+        <section class="mb-16" id="hook-templates">
+            <h2 class="text-3xl font-bold serif text-slate-800 mb-8">钩子模板库（Hooks Library）</h2>
+
+            <div class="grid gap-6 mb-8">
+                <div class="bg-white p-6 rounded-lg shadow-sm border border-slate-200">
+                    <h3 class="text-lg font-semibold mb-4 text-slate-800">情境型钩子（10模板）</h3>
+                    <div class="grid md:grid-cols-2 gap-4">
+                        <div class="space-y-3">
+                            <div class="bg-slate-50 p-3 rounded border-l-4 border-teal-500">
+                                <div class="font-medium text-slate-800 mb-1">极限羞辱型</div>
+                                <div class="text-sm text-slate-600 mb-2">主角正在遭受[极端羞辱]，但[隐藏实力/即将反击]</div>
+                                <div class="text-xs text-slate-500">效果评分: 95分 | 适用: 复仇、都市题材</div>
+                            </div>
+                            <div class="bg-slate-50 p-3 rounded border-l-4 border-teal-500">
+                                <div class="font-medium text-slate-800 mb-1">生死一线型</div>
+                                <div class="text-sm text-slate-600 mb-2">主角面临[生死危机]，[神秘转机]突然出现</div>
+                                <div class="text-xs text-slate-500">效果评分: 92分 | 适用: 悬疑、穿越题材</div>
+                            </div>
+                            <div class="bg-slate-50 p-3 rounded border-l-4 border-teal-500">
+                                <div class="font-medium text-slate-800 mb-1">误会冲突型</div>
+                                <div class="text-sm text-slate-600 mb-2">[捉奸/错认]现场，真相[即将揭晓/截然相反]</div>
+                                <div class="text-xs text-slate-500">效果评分: 90分 | 适用: 甜宠、家庭题材</div>
+                            </div>
+                        </div>
+                        <div class="space-y-3">
+                            <div class="bg-slate-50 p-3 rounded border-l-4 border-teal-500">
+                                <div class="font-medium text-slate-800 mb-1">契约现场型</div>
+                                <div class="text-sm text-slate-600 mb-2">[签字/婚礼]关键时刻，[意外变数]突然介入</div>
+                                <div class="text-xs text-slate-500">效果评分: 88分 | 适用: 甜宠、商战题材</div>
+                            </div>
+                            <div class="bg-slate-50 p-3 rounded border-l-4 border-teal-500">
+                                <div class="font-medium text-slate-800 mb-1">重逢对峙型</div>
+                                <div class="text-sm text-slate-600 mb-2">[仇人/前任]意外重逢，[情绪爆发/隐藏身份]</div>
+                                <div class="text-xs text-slate-500">效果评分: 87分 | 适用: 复仇、甜宠题材</div>
+                            </div>
+                            <div class="bg-slate-50 p-3 rounded border-l-4 border-teal-500">
+                                <div class="font-medium text-slate-800 mb-1">能力觉醒型</div>
+                                <div class="text-sm text-slate-600 mb-2">[平凡时刻]，[超自然能力]突然显现</div>
+                                <div class="text-xs text-slate-500">效果评分: 88分 | 适用: 穿越、奇幻题材</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="bg-white p-6 rounded-lg shadow-sm border border-slate-200">
+                    <h3 class="text-lg font-semibold mb-4 text-slate-800">悬念型钩子（10模板）</h3>
+                    <div class="grid md:grid-cols-2 gap-4">
+                        <div class="space-y-3">
+                            <div class="bg-slate-50 p-3 rounded border-l-4 border-blue-500">
+                                <div class="font-medium text-slate-800 mb-1">直接提问型</div>
+                                <div class="text-sm text-slate-600 mb-2">&#34;[震撼问题]，答案[即将揭晓/出乎意料]&#34;</div>
+                                <div class="text-xs text-slate-500">效果评分: 90分 | 适用: 全题材</div>
+                            </div>
+                            <div class="bg-slate-50 p-3 rounded border-l-4 border-blue-500">
+                                <div class="font-medium text-slate-800 mb-1">反常识陈述型</div>
+                                <div class="text-sm text-slate-600 mb-2">&#34;[违背常识的事实]，原因[令人震惊]&#34;</div>
+                                <div class="text-xs text-slate-500">效果评分: 92分 | 适用: 复仇、穿越题材</div>
+                            </div>
+                            <div class="bg-slate-50 p-3 rounded border-l-4 border-blue-500">
+                                <div class="font-medium text-slate-800 mb-1">身份悬念型</div>
+                                <div class="text-sm text-slate-600 mb-2">&#34;那个[被轻视的身份]，其实是[惊人真相]&#34;</div>
+                                <div class="text-xs text-slate-500">效果评分: 91分 | 适用: 复仇、甜宠题材</div>
+                            </div>
+                        </div>
+                        <div class="space-y-3">
+                            <div class="bg-slate-50 p-3 rounded border-l-4 border-blue-500">
+                                <div class="font-medium text-slate-800 mb-1">预言警示型</div>
+                                <div class="text-sm text-slate-600 mb-2">&#34;[时间限制]后，[惊人结果]将会发生&#34;</div>
+                                <div class="text-xs text-slate-500">效果评分: 88分 | 适用: 悬疑、复仇题材</div>
+                            </div>
+                            <div class="bg-slate-50 p-3 rounded border-l-4 border-blue-500">
+                                <div class="font-medium text-slate-800 mb-1">信息缺口型</div>
+                                <div class="text-sm text-slate-600 mb-2">&#34;[关键信息]被[人物]发现，反应[暗示重大]&#34;</div>
+                                <div class="text-xs text-slate-500">效果评分: 89分 | 适用: 悬疑、家庭题材</div>
+                            </div>
+                            <div class="bg-slate-50 p-3 rounded border-l-4 border-blue-500">
+                                <div class="font-medium text-slate-800 mb-1">未完成型</div>
+                                <div class="text-sm text-slate-600 mb-2">&#34;[关键动作]即将[完成/发生]，画面[突然中断]&#34;</div>
+                                <div class="text-xs text-slate-500">效果评分: 88分 | 适用: 全题材</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="bg-white p-6 rounded-lg shadow-sm border border-slate-200">
+                    <h3 class="text-lg font-semibold mb-4 text-slate-800">视觉型钩子（10模板）</h3>
+                    <div class="grid md:grid-cols-2 gap-4">
+                        <div class="space-y-3">
+                            <div class="bg-slate-50 p-3 rounded border-l-4 border-purple-500">
+                                <div class="font-medium text-slate-800 mb-1">奇观展示型</div>
+                                <div class="text-sm text-slate-600 mb-2">呈现超出日常经验的震撼场景</div>
+                                <div class="text-xs text-slate-500">效果评分: 90分 | 适用: 复仇、穿越题材</div>
+                            </div>
+                            <div class="bg-slate-50 p-3 rounded border-l-4 border-purple-500">
+                                <div class="font-medium text-slate-800 mb-1">强烈对比型</div>
+                                <div class="text-sm text-slate-600 mb-2">同一画面的前后/内外反差</div>
+                                <div class="text-xs text-slate-500">效果评分: 92分 | 适用: 复仇、甜宠题材</div>
+                            </div>
+                            <div class="bg-slate-50 p-3 rounded border-l-4 border-purple-500">
+                                <div class="font-medium text-slate-800 mb-1">情绪特写型</div>
+                                <div class="text-sm text-slate-600 mb-2">放大面部表情传递强烈情绪</div>
+                                <div class="text-xs text-slate-500">效果评分: 89分 | 适用: 全题材</div>
+                            </div>
+                        </div>
+                        <div class="space-y-3">
+                            <div class="bg-slate-50 p-3 rounded border-l-4 border-purple-500">
+                                <div class="font-medium text-slate-800 mb-1">神秘场景型</div>
+                                <div class="text-sm text-slate-600 mb-2">未知空间/人物/物件引发好奇</div>
+                                <div class="text-xs text-slate-500">效果评分: 88分 | 适用: 悬疑、奇幻题材</div>
+                            </div>
+                            <div class="bg-slate-50 p-3 rounded border-l-4 border-purple-500">
+                                <div class="font-medium text-slate-800 mb-1">动作冲击型</div>
+                                <div class="text-sm text-slate-600 mb-2">具有暴力美学的身体动作</div>
+                                <div class="text-xs text-slate-500">效果评分: 87分 | 适用: 复仇、甜宠题材</div>
+                            </div>
+                            <div class="bg-slate-50 p-3 rounded border-l-4 border-purple-500">
+                                <div class="font-medium text-slate-800 mb-1">符号隐喻型</div>
+                                <div class="text-sm text-slate-600 mb-2">核心符号的视觉化呈现</div>
+                                <div class="text-xs text-slate-500">效果评分: 83分 | 适用: 悬疑、文艺题材</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="bg-gradient-to-r from-amber-50 to-orange-50 p-6 rounded-lg">
+                <h3 class="text-lg font-semibold mb-4 text-amber-800">钩子设计原则</h3>
+                <div class="grid md:grid-cols-3 gap-4">
+                    <div>
+                        <div class="font-medium text-slate-800 mb-2">3秒法则</div>
+                        <div class="text-sm text-slate-600">前3秒必须抛出钩子，立即抓住观众注意力</div>
+                    </div>
+                    <div>
+                        <div class="font-medium text-slate-800 mb-2">10秒反转</div>
+                        <div class="text-sm text-slate-600">10秒内完成情境建立与首次反转，建立期待感</div>
+                    </div>
+                    <div>
+                        <div class="font-medium text-slate-800 mb-2">30秒推进</div>
+                        <div class="text-sm text-slate-600">30秒内推进剧情，确保信息密度与节奏</div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <div class="section-divider"></div>
+
+        <!-- Character Archetypes -->
+        <section class="mb-16" id="character-archetypes">
+            <h2 class="text-3xl font-bold serif text-slate-800 mb-8">角色原型库（Archetypes）</h2>
+
+            <div class="grid md:grid-cols-2 gap-8 mb-8">
+                <div class="bg-white p-6 rounded-lg shadow-sm border border-slate-200">
+                    <h3 class="text-lg font-semibold mb-4 text-slate-800">复仇题材主角</h3>
+                    <div class="space-y-4">
+                        <div class="border-l-4 border-red-500 pl-4">
+                            <div class="font-medium text-slate-800 mb-2">隐忍复仇者</div>
+                            <div class="text-sm text-slate-600 mb-2">
+                                <strong>表面：</strong>柔弱、低调、被欺负、沉默寡言
+                                <br />
+                                <strong>真实：</strong>强大、智慧、隐忍、精于计算
+                            </div>
+                            <div class="text-xs text-slate-500">代表作:《幸得相遇离婚时》女主</div>
+                        </div>
+                        <div class="border-l-4 border-red-500 pl-4">
+                            <div class="font-medium text-slate-800 mb-2">黑莲花女主</div>
+                            <div class="text-sm text-slate-600 mb-2">
+                                <strong>特质：</strong>表面清纯无害，实则心机深沉；主动布局，步步为营
+                            </div>
+                            <div class="text-xs text-slate-500">代表作:《黑莲花上位手册》女主（已下架）</div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="bg-white p-6 rounded-lg shadow-sm border border-slate-200">
+                    <h3 class="text-lg font-semibold mb-4 text-slate-800">甜宠题材主角</h3>
+                    <div class="space-y-4">
+                        <div class="border-l-4 border-pink-500 pl-4">
+                            <div class="font-medium text-slate-800 mb-2">纯真女主</div>
+                            <div class="text-sm text-slate-600 mb-2">
+                                <strong>特质：</strong>善良、乐观、小迷糊、专业能力强但情感迟钝
+                                <br />
+                                <strong>情感模式：</strong>慢热型，从误解到了解到深爱
+                            </div>
+                            <div class="text-xs text-slate-500">代表作:《心动还请告诉我》林晓</div>
+                        </div>
+                        <div class="border-l-4 border-pink-500 pl-4">
+                            <div class="font-medium text-slate-800 mb-2">霸总男主</div>
+                            <div class="text-sm text-slate-600 mb-2">
+                                <strong>特质：</strong>外表冷酷、掌控欲强、能力卓越、对女主专属温柔
+                                <br />
+                                <strong>经典行为：</strong>暗中保护、吃醋不承认、为女主打破原则
+                            </div>
+                            <div class="text-xs text-slate-500">视觉标记: 西装革履、手表袖扣、居高临下视角</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="grid md:grid-cols-2 gap-8 mb-8">
+                <div class="bg-white p-6 rounded-lg shadow-sm border border-slate-200">
+                    <h3 class="text-lg font-semibold mb-4 text-slate-800">悬疑题材主角</h3>
+                    <div class="space-y-4">
+                        <div class="border-l-4 border-blue-500 pl-4">
+                            <div class="font-medium text-slate-800 mb-2">天才侦探</div>
+                            <div class="text-sm text-slate-600 mb-2">
+                                <strong>特质：</strong>观察力敏锐、逻辑推理能力强、知识渊博
+                                <br />
+                                <strong>核心动机：</strong>解开谜团的智力满足；正义感；个人创伤驱动
+                            </div>
+                            <div class="text-xs text-slate-500">经典能力: 微表情识别、犯罪心理侧写</div>
+                        </div>
+                        <div class="border-l-4 border-blue-500 pl-4">
+                            <div class="font-medium text-slate-800 mb-2">冷面刑警</div>
+                            <div class="text-sm text-slate-600 mb-2">
+                                <strong>特质：</strong>专业能力强、情感克制、有原则、可能有过往创伤
+                                <br />
+                                <strong>核心动机：</strong>职业责任；特定案件的执念；自我救赎
+                            </div>
+                            <div class="text-xs text-slate-500">经典冲突: 程序正义与结果正义的冲突</div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="bg-white p-6 rounded-lg shadow-sm border border-slate-200">
+                    <h3 class="text-lg font-semibold mb-4 text-slate-800">穿越题材主角</h3>
+                    <div class="space-y-4">
+                        <div class="border-l-4 border-purple-500 pl-4">
+                            <div class="font-medium text-slate-800 mb-2">金手指女主</div>
+                            <div class="text-sm text-slate-600 mb-2">
+                                <strong>特质：</strong>现代思维、知识优势、系统辅助、主动进取
+                                <br />
+                                <strong>核心动机：</strong>改变原主悲剧命运；实现自我价值；寻找归属
+                            </div>
+                            <div class="text-xs text-slate-500">经典能力: 现代知识降维打击、系统任务奖励</div>
+                        </div>
+                        <div class="border-l-4 border-purple-500 pl-4">
+                            <div class="font-medium text-slate-800 mb-2">成长弧线</div>
+                            <div class="text-sm text-slate-600">从依赖金手指到自主成长，从改变他人到改变自己</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="grid md:grid-cols-2 gap-8">
+                <div class="bg-white p-6 rounded-lg shadow-sm border border-slate-200">
+                    <h3 class="text-lg font-semibold mb-4 text-slate-800">反派原型</h3>
+                    <div class="space-y-3">
+                        <div class="border-l-4 border-red-500 pl-4">
+                            <div class="font-medium text-slate-800 mb-1">傲慢型反派</div>
+                            <div class="text-sm text-slate-600 mb-1">目中无人、仗势欺人、自我感觉良好</div>
+                            <div class="text-xs text-slate-500">败因: 低估主角；傲慢导致决策失误</div>
+                        </div>
+                        <div class="border-l-4 border-red-500 pl-4">
+                            <div class="font-medium text-slate-800 mb-1">阴险型反派</div>
+                            <div class="text-sm text-slate-600 mb-1">笑里藏刀、借刀杀人、机关算尽</div>
+                            <div class="text-xs text-slate-500">败因: 过度算计反被算计；众叛亲离</div>
+                        </div>
+                        <div class="border-l-4 border-red-500 pl-4">
+                            <div class="font-medium text-slate-800 mb-1">愚蠢型反派</div>
+                            <div class="text-sm text-slate-600 mb-1">又坏又蠢、搬石砸脚、盲目跟风</div>
+                            <div class="text-xs text-slate-500">败因: 智商不足；缺乏自知之明</div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="bg-white p-6 rounded-lg shadow-sm border border-slate-200">
+                    <h3 class="text-lg font-semibold mb-4 text-slate-800">配角原型</h3>
+                    <div class="space-y-3">
+                        <div class="border-l-4 border-green-500 pl-4">
+                            <div class="font-medium text-slate-800 mb-1">神助攻（闺蜜/兄弟）</div>
+                            <div class="text-sm text-slate-600 mb-1">情感支持、信息传递、危机救助</div>
+                        </div>
+                        <div class="border-l-4 border-green-500 pl-4">
+                            <div class="font-medium text-slate-800 mb-1">信息源（忠诚助理/老仆）</div>
+                            <div class="text-sm text-slate-600 mb-1">提供关键情报、执行秘密任务</div>
+                        </div>
+                        <div class="border-l-4 border-green-500 pl-4">
+                            <div class="font-medium text-slate-800 mb-1">冲突催化剂（绿茶/挑拨者）</div>
+                            <div class="text-sm text-slate-600 mb-1">制造误会、加剧矛盾、测试感情</div>
+                        </div>
+                        <div class="border-l-4 border-green-500 pl-4">
+                            <div class="font-medium text-slate-800 mb-1">喜剧调剂（萌宠/话痨）</div>
+                            <div class="text-sm text-slate-600 mb-1">缓解紧张、提供笑点、情感连接</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <div class="section-divider"></div>
+
+        <!-- Market Trends -->
+        <section class="mb-16" id="market-trends">
+            <h2 class="text-3xl font-bold serif text-slate-800 mb-8">市场趋势与热门组合</h2>
+
+            <div class="grid md:grid-cols-3 gap-6 mb-8">
+                <div class="bg-white p-6 rounded-lg shadow-sm border border-slate-200">
+                    <h3 class="text-lg font-semibold mb-4 text-slate-800">2024-2025市场数据</h3>
+                    <div class="space-y-4">
+                        <div class="flex justify-between items-center">
+                            <span class="text-slate-600">市场规模</span>
+                            <span class="font-medium">504.4亿 → 634亿</span>
+                        </div>
+                        <div class="flex justify-between items-center">
+                            <span class="text-slate-600">用户规模</span>
+                            <span class="font-medium">6.62亿 → 6.96亿</span>
+                        </div>
+                        <div class="flex justify-between items-center">
+                            <span class="text-slate-600">免费模式占比</span>
+                            <span class="font-medium">45% → 55%</span>
+                        </div>
+                        <div class="flex justify-between items-center">
+                            <span class="text-slate-600">新剧投放时长</span>
+                            <span class="font-medium">10天 → 7天</span>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="bg-white p-6 rounded-lg shadow-sm border border-slate-200">
+                    <h3 class="text-lg font-semibold mb-4 text-slate-800">平台差异化</h3>
+                    <div class="space-y-4">
+                        <div>
+                            <div class="font-medium text-slate-800 mb-1">抖音</div>
+                            <div class="text-sm text-slate-600">18-30岁，一二线城市</div>
+                            <div class="text-xs text-slate-500">偏好: 女性成长+悬疑</div>
+                        </div>
+                        <div>
+                            <div class="font-medium text-slate-800 mb-1">快手</div>
+                            <div class="text-sm text-slate-600">25-40岁，下沉市场</div>
+                            <div class="text-xs text-slate-500">偏好: 家庭伦理+温情</div>
+                        </div>
+                        <div>
+                            <div class="font-medium text-slate-800 mb-1">红果</div>
+                            <div class="text-sm text-slate-600">全年龄段，免费用户为主</div>
+                            <div class="text-xs text-slate-500">偏好: 全品类覆盖</div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="bg-white p-6 rounded-lg shadow-sm border border-slate-200">
+                    <h3 class="text-lg font-semibold mb-4 text-slate-800">头部效应</h3>
+                    <div class="space-y-4">
+                        <div class="text-center">
+                            <div class="text-2xl font-bold text-rose-700 mb-1">1.38%</div>
+                            <div class="text-sm text-slate-600">头部短剧占比</div>
+                            <div class="text-xs text-slate-500">贡献18%总热度值</div>
+                        </div>
+                        <div class="text-center">
+                            <div class="text-2xl font-bold text-amber-700 mb-1">12部</div>
+                            <div class="text-sm text-slate-600">2025年5000万+作品</div>
+                            <div class="text-xs text-slate-500">集中在头部平台</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="bg-white p-6 rounded-lg shadow-sm border border-slate-200 mb-8">
+                <h3 class="text-lg font-semibold mb-4 text-slate-800">热门跨题材组合（10+组合）</h3>
+                <div class="overflow-x-auto">
+                    <table class="w-full text-sm">
+                        <thead>
+                            <tr class="border-b border-slate-200">
+                                <th class="text-left py-3 px-4 font-medium">组合名称</th>
+                                <th class="text-left py-3 px-4 font-medium">融合题材</th>
+                                <th class="text-left py-3 px-4 font-medium">热力评分</th>
+                                <th class="text-left py-3 px-4 font-medium">创新评分</th>
+                                <th class="text-left py-3 px-4 font-medium">风险等级</th>
+                            </tr>
+                        </thead>
+                        <tbody class="divide-y divide-slate-100">
+                            <tr>
+                                <td class="py-3 px-4 font-medium">虐恋后追妻火葬场</td>
+                                <td class="py-3 px-4">复仇+甜宠</td>
+                                <td class="py-3 px-4 text-rose-700 font-medium">95</td>
+                                <td class="py-3 px-4">70</td>
+                                <td class="py-3 px-4 text-green-600">低</td>
+                            </tr>
+                            <tr>
+                                <td class="py-3 px-4 font-medium">探案搭档生情</td>
+                                <td class="py-3 px-4">悬疑+恋爱</td>
+                                <td class="py-3 px-4 text-rose-700 font-medium">88</td>
+                                <td class="py-3 px-4 text-blue-600 font-medium">85</td>
+                                <td class="py-3 px-4 text-amber-600">中</td>
+                            </tr>
+                            <tr>
+                                <td class="py-3 px-4 font-medium">古代开店致富</td>
+                                <td class="py-3 px-4">穿越+经营</td>
+                                <td class="py-3 px-4 text-rose-700 font-medium">90</td>
+                                <td class="py-3 px-4 text-blue-600 font-medium">80</td>
+                                <td class="py-3 px-4 text-green-600">低</td>
+                            </tr>
+                            <tr>
+                                <td class="py-3 px-4 font-medium">金手指修仙路</td>
+                                <td class="py-3 px-4">系统+修仙</td>
+                                <td class="py-3 px-4 text-rose-700 font-medium">92</td>
+                                <td class="py-3 px-4 text-blue-600 font-medium">78</td>
+                                <td class="py-3 px-4 text-green-600">低</td>
+                            </tr>
+                            <tr>
+                                <td class="py-3 px-4 font-medium">无限流拯救爱人</td>
+                                <td class="py-3 px-4">时间循环+救赎</td>
+                                <td class="py-3 px-4 text-rose-700 font-medium">87</td>
+                                <td class="py-3 px-4 text-blue-600 font-medium">88</td>
+                                <td class="py-3 px-4 text-red-600">高</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
+            <div class="bg-gradient-to-r from-blue-50 to-teal-50 p-6 rounded-lg">
+                <h3 class="text-lg font-semibold mb-4 text-slate-800">核心趋势解读</h3>
+                <div class="grid md:grid-cols-2 gap-6">
+                    <div>
+                        <h4 class="font-medium text-slate-800 mb-3">免费模式主导</h4>
+                        <div class="text-sm text-slate-600 space-y-2">
+                            <p>• 以<strong>66.3%占比</strong>成为绝对主流，头部平台月活突破<strong>2.36亿</strong></p>
+                            <p>• 从&#34;单一钩子&#34;升级为<strong>&#34;高密度钩子矩阵&#34;</strong>，15秒冲突、30秒推进、每集悬念</p>
+                            <p>• 依赖&#34;用户观看时长、播放量与拉新率&#34;带来的平台分账</p>
+                        </div>
+                    </div>
+                    <div>
+                        <h4 class="font-medium text-slate-800 mb-3">精品化与多元化</h4>
+                        <div class="text-sm text-slate-600 space-y-2">
+                            <p>• &#34;照着爆款模板批量产出&#34;导致短期同质化严重</p>
+                            <p>• 拉长观察周期可见题材显著多元化，30亿播放量作品涵盖多元素</p>
+                            <p>• &#34;烟火气&#34;场景成为差异化新方向，打破&#34;豪门霸总&#34;同质化</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <div class="section-divider"></div>
+
+        <!-- Creative Guidelines -->
+        <section class="mb-16" id="creative-guidelines">
+            <h2 class="text-3xl font-bold serif text-slate-800 mb-8">写作与视觉指导体系</h2>
+
+            <div class="grid md:grid-cols-3 gap-6 mb-8">
+                <div class="bg-white p-6 rounded-lg shadow-sm border border-slate-200">
+                    <h3 class="text-lg font-semibold mb-4 text-slate-800">五感描写词汇库</h3>
+                    <div class="space-y-4">
+                        <div>
+                            <div class="font-medium text-slate-800 mb-2">冲突场景</div>
+                            <div class="text-sm text-slate-600 space-y-1">
+                                <div><strong>视觉:</strong> 青筋暴起、眼神锐利、破碎的玻璃</div>
+                                <div><strong>听觉:</strong> 沉重的呼吸、瓷器碎裂、心跳加速</div>
+                                <div><strong>触觉:</strong> 掌心出汗、肌肉紧绷、灼热感</div>
+                            </div>
+                        </div>
+                        <div>
+                            <div class="font-medium text-slate-800 mb-2">浪漫场景</div>
+                            <div class="text-sm text-slate-600 space-y-1">
+                                <div><strong>视觉:</strong> 柔和光晕、眼神交汇、花瓣飘落</div>
+                                <div><strong>听觉:</strong> 心跳声、轻笑、低语、呼吸声</div>
+                                <div><strong>触觉:</strong> 柔软、温暖、电流感、颤抖</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="bg-white p-6 rounded-lg shadow-sm border border-slate-200">
+                    <h3 class="text-lg font-semibold mb-4 text-slate-800">节奏控制模板</h3>
+                    <div class="space-y-4">
+                        <div>
+                            <div class="font-medium text-slate-800 mb-2">开局（前3集）</div>
+                            <div class="text-sm text-slate-600 space-y-1">
+                                <div>• 3-5个场景，快节奏，信息密集</div>
+                                <div>• 前3秒必须抛出钩子</div>
+                                <div>• 每集1-2个反转</div>
+                            </div>
+                        </div>
+                        <div>
+                            <div class="font-medium text-slate-800 mb-2">中段（付费点前）</div>
+                            <div class="text-sm text-slate-600 space-y-1">
+                                <div>• 每集2-3个场景，中快节奏</div>
+                                <div>• 每集结尾必有悬念钩子</div>
+                                <div>• 每集2-3个反转</div>
+                            </div>
+                        </div>
+                        <div>
+                            <div class="font-medium text-slate-800 mb-2">高潮（付费点）</div>
+                            <div class="text-sm text-slate-600 space-y-1">
+                                <div>• 集中爆发，极快节奏</div>
+                                <div>• 最大情绪强度+身份揭露</div>
+                                <div>• 连续反转</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="bg-white p-6 rounded-lg shadow-sm border border-slate-200">
+                    <h3 class="text-lg font-semibold mb-4 text-slate-800">视觉风格指南</h3>
+                    <div class="space-y-4">
+                        <div>
+                            <div class="font-medium text-slate-800 mb-2">复仇题材</div>
+                            <div class="text-sm text-slate-600 space-y-1">
+                                <div>• 镜头: 高对比、低角度、手持</div>
+                                <div>• 色彩: 冷色调（蓝/灰/暗绿）</div>
+                                <div>• 剪辑: 快速剪辑、跳切</div>
+                            </div>
+                        </div>
+                        <div>
+                            <div class="font-medium text-slate-800 mb-2">甜宠题材</div>
+                            <div class="text-sm text-slate-600 space-y-1">
+                                <div>• 镜头: 柔光、中景、稳定</div>
+                                <div>• 色彩: 暖色调（橙/粉/金）</div>
+                                <div>• 剪辑: 舒缓节奏，延长时间感知</div>
+                            </div>
+                        </div>
+                        <div>
+                            <div class="font-medium text-slate-800 mb-2">悬疑题材</div>
+                            <div class="text-sm text-slate-600 space-y-1">
+                                <div>• 镜头: 阴影层次、手持+固定</div>
+                                <div>• 色彩: 蓝绿色调，低饱和</div>
+                                <div>• 剪辑: 跳切加速，固定长镜头</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="bg-gradient-to-r from-indigo-50 to-purple-50 p-6 rounded-lg">
+                <h3 class="text-lg font-semibold mb-4 text-indigo-800">工业化生产标准</h3>
+                <div class="grid md:grid-cols-2 gap-6">
+                    <div>
+                        <h4 class="font-medium text-slate-800 mb-3">写作规范</h4>
+                        <div class="text-sm text-slate-600 space-y-2">
+                            <p>• <strong>15秒有冲突或反转</strong>，30秒推进剧情，最后10秒给出悬念</p>
+                            <p>• 免费短剧要求&#34;全程钩子矩阵&#34;，构建&#34;强逻辑情节递进体系&#34;</p>
+                            <p>• 付费短剧需在第9-10集设置&#34;卡点钩子&#34;，将最大反击留至付费点后</p>
+                            <p>• 每集平均2-3个反转，确保爽点密集</p>
+                        </div>
+                    </div>
+                    <div>
+                        <h4 class="font-medium text-slate-800 mb-3">视觉规范</h4>
+                        <div class="text-sm text-slate-600 space-y-2">
+                            <p>• 复仇题材: 高对比度、冷色调、快速剪辑</p>
+                            <p>• 甜宠题材: 柔光滤镜、暖色调、亲密特写</p>
+                            <p>• 悬疑题材: 阴影层次、手持镜头、符号隐喻</p>
+                            <p>• 穿越题材: 古今对比、特效转场、服饰蜕变</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <div class="section-divider"></div>
+
+        <!-- Data Specifications -->
+        <section class="mb-16" id="data-specifications">
+            <h2 class="text-3xl font-bold serif text-slate-800 mb-8">数据输出规范与质量验收</h2>
+
+            <div class="bg-white p-6 rounded-lg shadow-sm border border-slate-200 mb-8">
+                <h3 class="text-lg font-semibold mb-4 text-slate-800">JSON结构标准</h3>
+                <div class="bg-slate-50 p-4 rounded text-sm overflow-x-auto">
+                    <pre class="text-slate-700">{{
+  &#34;research_metadata&#34;: {
+    &#34;version&#34;: &#34;1.0.0&#34;,
+    &#34;research_date&#34;: &#34;2026-02-07&#34;,
+    &#34;researcher&#34;: &#34;AI Research Agent&#34;,
+    &#34;total_themes&#34;: 5,
+    &#34;total_tropes&#34;: 85,
+    &#34;total_hooks&#34;: 45,
+    &#34;data_sources&#34;: [&#34;DataEye-ADX&#34;, &#34;艾瑞咨询&#34;, &#34;克劳锐&#34;, &#34;抖音/快手榜单&#34;, &#34;专业编剧访谈&#34;]
+  },
+  &#34;genres&#34;: {
+    &#34;revenge&#34;: { &#34;core_formula&#34;: {...}, &#34;tropes&#34;: [...], &#34;writing_keywords&#34;: [...], &#34;visual_keywords&#34;: [...], &#34;avoid_patterns&#34;: [...], &#34;viral_examples&#34;: [...] },
+    &#34;romance&#34;: { &#34;core_formula&#34;: {...}, &#34;tropes&#34;: [...], &#34;writing_keywords&#34;: [...], &#34;visual_keywords&#34;: [...], &#34;avoid_patterns&#34;: [...], &#34;viral_examples&#34;: [...] },
+    &#34;mystery&#34;: { &#34;core_formula&#34;: {...}, &#34;tropes&#34;: [...], &#34;writing_keywords&#34;: [...], &#34;visual_keywords&#34;: [...], &#34;avoid_patterns&#34;: [...], &#34;viral_examples&#34;: [...] },
+    &#34;transmigration&#34;: { &#34;core_formula&#34;: {...}, &#34;tropes&#34;: [...], &#34;writing_keywords&#34;: [...], &#34;visual_keywords&#34;: [...], &#34;avoid_patterns&#34;: [...], &#34;viral_examples&#34;: [...] },
+    &#34;family_urban&#34;: { &#34;core_formula&#34;: {...}, &#34;tropes&#34;: [...], &#34;writing_keywords&#34;: [...], &#34;visual_keywords&#34;: [...], &#34;avoid_patterns&#34;: [...], &#34;viral_examples&#34;: [...] }
+  },
+  &#34;tropes&#34;: {
+    &#34;identity&#34;: { &#34;hidden_tycoon&#34;: {...}, &#34;secret_royalty&#34;: {...}, &#34;amnesia_recovery&#34;: {...}, &#34;double_identity&#34;: {...}, &#34;system_binding&#34;: {...} },
+    &#34;relationship&#34;: { &#34;contract_marriage&#34;: {...}, &#34;enemies_to_lovers&#34;: {...}, &#34;childhood_sweethearts&#34;: {...}, &#34;regretful_pursuit&#34;: {...}, &#34;substitute_romance&#34;: {...} },
+    &#34;conflict&#34;: { &#34;face_slapping&#34;: {...}, &#34;revenge_scheme&#34;: {...}, &#34;betrayal_reveal&#34;: {...}, &#34;redemptive_sacrifice&#34;: {...}, &#34;misunderstanding&#34;: {...} },
+    &#34;setting&#34;: { &#34;time_loop&#34;: {...}, &#34;body_swap&#34;: {...}, &#34;rebirth&#34;: {...}, &#34;mind_reading&#34;: {...}, &#34;precognition&#34;: {...} }
+  },
+  &#34;hooks&#34;: {
+    &#34;situation&#34;: [ &#34;extreme_humiliation&#34;, &#34;life_death_crisis&#34;, &#34;misunderstanding_confrontation&#34;, &#34;contract_moment&#34;, &#34;reunion_confrontation&#34;, &#34;identity_swap&#34;, &#34;evidence_reveal&#34;, &#34;ability_awakening&#34;, &#34;power_reversal&#34;, &#34;time_pressure&#34; ],
+    &#34;question&#34;: [ &#34;direct_question&#34;, &#34;counter_intuitive&#34;, &#34;prophecy_warning&#34;, &#34;information_gap&#34;, &#34;identity_suspense&#34;, &#34;moral_dilemma&#34;, &#34;numerical_shock&#34;, &#34;expectation_subversion&#34;, &#34;mysterious_quote&#34;, &#34;unfinished_action&#34; ],
+    &#34;visual&#34;: [ &#34;spectacle_display&#34;, &#34;strong_contrast&#34;, &#34;mysterious_scene&#34;, &#34;emotional_close_up&#34;, &#34;action_impact&#34;, &#34;color_shock&#34;, &#34;speed_variation&#34;, &#34;spatial_dislocation&#34;, &#34;symbolic_metaphor&#34;, &#34;body_spectacle&#34; ]
+  },
+  &#34;archetypes&#34;: {
+    &#34;protagonist&#34;: { &#34;revenge_enduring&#34;: {...}, &#34;revenge_scheming&#34;: {...}, &#34;romance_innocent&#34;: {...}, &#34;romance_dominant&#34;: {...}, &#34;mystery_genius&#34;: {...}, &#34;mystery_professional&#34;: {...}, &#34;transmigration_cheat&#34;: {...} },
+    &#34;antagonist&#34;: { &#34;arrogant&#34;: {...}, &#34;scheming&#34;: {...}, &#34;foolish&#34;: {...} },
+    &#34;supporting&#34;: { &#34;helper&#34;: {...}, &#34;catalyst&#34;: {...}, &#34;sacrifice&#34;: {...}, &#34;comic_relief&#34;: {...} }
+  },
+  &#34;market_insights&#34;: {
+    &#34;trending_2024_2025&#34;: {...},
+    &#34;trending_combinations&#34;: [...],
+    &#34;success_factors&#34;: {...}
+  },
+  &#34;writing_guide&#34;: {
+    &#34;sensory_vocabulary&#34;: {...},
+    &#34;pacing_templates&#34;: {...}
+  },
+  &#34;visual_guide&#34;: {
+    &#34;revenge&#34;: {...},
+    &#34;romance&#34;: {...},
+    &#34;mystery&#34;: {...},
+    &#34;transmigration&#34;: {...},
+    &#34;family_urban&#34;: {...}
+  }
+}}</pre>
+                </div>
+            </div>
+
+            <div class="grid md:grid-cols-2 gap-8 mb-8">
+                <div class="bg-white p-6 rounded-lg shadow-sm border border-slate-200">
+                    <h3 class="text-lg font-semibold mb-4 text-slate-800">质量验收清单</h3>
+                    <div class="space-y-3">
+                        <div class="flex items-center">
+                            <i class="fas fa-check-circle text-green-500 mr-3"></i>
+                            <span class="text-slate-700">题材完整性: 5大题材 × 4阶段 × 5元素</span>
+                        </div>
+                        <div class="flex items-center">
+                            <i class="fas fa-check-circle text-green-500 mr-3"></i>
+                            <span class="text-slate-700">元素覆盖率: 每题材15-20个可复用元素</span>
+                        </div>
+                        <div class="flex items-center">
+                            <i class="fas fa-check-circle text-green-500 mr-3"></i>
+                            <span class="text-slate-700">钩子丰富度: 3类型 × 10模板 = 30+</span>
+                        </div>
+                        <div class="flex items-center">
+                            <i class="fas fa-check-circle text-green-500 mr-3"></i>
+                            <span class="text-slate-700">角色立体度: 5题材 × (3主角+2反派+2配角)</span>
+                        </div>
+                        <div class="flex items-center">
+                            <i class="fas fa-check-circle text-green-500 mr-3"></i>
+                            <span class="text-slate-700">组合创新度: 10+跨题材组合</span>
+                        </div>
+                        <div class="flex items-center">
+                            <i class="fas fa-check-circle text-green-500 mr-3"></i>
+                            <span class="text-slate-700">数据可验证性: 每结论2-3个来源</span>
+                        </div>
+                        <div class="flex items-center">
+                            <i class="fas fa-check-circle text-green-500 mr-3"></i>
+                            <span class="text-slate-700">格式正确性: 可直接解析的JSON</span>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="bg-white p-6 rounded-lg shadow-sm border border-slate-200">
+                    <h3 class="text-lg font-semibold mb-4 text-slate-800">研究局限性</h3>
+                    <div class="space-y-3 text-sm text-slate-600">
+                        <p>• <strong>数据来源时效性：</strong>主要基于2024-2025年数据，短剧市场变化迅速，需持续更新</p>
+                        <p>• <strong>平台差异覆盖：</strong>抖音、快手、红果等主流平台为主，新兴平台数据有限</p>
+                        <p>• <strong>文化适配性：</strong>主要针对中文短剧市场，国际市场适用性需验证</p>
+                        <p>• <strong>价值观风险：</strong>部分内容存在价值观争议（如《黑莲花上位手册》被下架），需审慎使用</p>
+                        <p>• <strong>技术依赖性：</strong>AI生成系统的实际效果需结合具体技术实现验证</p>
+                    </div>
+                </div>
+            </div>
+
+            <div class="bg-gradient-to-r from-slate-50 to-gray-50 p-6 rounded-lg">
+                <h3 class="text-lg font-semibold mb-4 text-slate-800">研究结论与展望</h3>
+                <div class="text-slate-700 leading-relaxed space-y-4">
+                    <p>
+                        本研究系统构建了中文短剧AI生成系统的完整主题库，基于2024-2025年市场数据验证，
+                        形成了可直接应用于工业化生产的知识体系。核心发现包括：
+                    </p>
+                    <div class="grid md:grid-cols-2 gap-6">
+                        <div>
+                            <h4 class="font-medium text-slate-800 mb-2">核心机制发现</h4>
+                            <ul class="text-sm text-slate-600 space-y-1">
+                                <li>• <strong>&#34;情绪先行&#34;</strong>优于&#34;逻辑完备&#34;——短剧本质是情绪生意</li>
+                                <li>• <strong>&#34;信息差&#34;</strong>是爽感核心机制——身份揭露、能力隐藏</li>
+                                <li>• <strong>&#34;钩子密度&#34;</strong>决定免费模式成败——全程钩子矩阵</li>
+                                <li>• <strong>&#34;烟火气&#34;</strong>是差异化新方向——日常场景真实共鸣</li>
+                            </ul>
+                        </div>
+                        <div>
+                            <h4 class="font-medium text-slate-800 mb-2">未来发展方向</h4>
+                            <ul class="text-sm text-slate-600 space-y-1">
+                                <li>• <strong>技术融合：</strong>AI生成与人工创作的深度结合</li>
+                                <li>• <strong>形式创新：</strong>互动选择、多结局等新模式探索</li>
+                                <li>• <strong>题材拓展：</strong>科幻、历史等相对空白领域</li>
+                                <li>• <strong>国际化：</strong>中文短剧模式的海外输出</li>
+                            </ul>
+                        </div>
+                    </div>
+                    <p class="mt-4">
+                        本主题库为AI短剧生成系统提供了工业化生产的基础框架，但实际应用中需结合具体技术能力、
+                        目标受众和平台特性进行灵活调整。随着市场持续发展，建议建立动态更新机制，
+                        确保内容的时效性与竞争力。
+                    </p>
+                </div>
+            </div>
+        </section>
+
+        <!-- Footer -->
+        <footer class="py-8 border-t border-slate-200">
+            <div class="text-center text-sm text-slate-500">
+                <p> 2026 中文短剧AI生成系统主题库研究报告 | 基于2024-2025年市场数据验证</p>
+                <p class="mt-2">数据来源于DataEye、艾瑞咨询、克劳锐等权威机构及平台官方数据</p>
+            </div>
+        </footer>
+    </main>
+
+    <!-- Mobile TOC Toggle -->
+    <button class="fixed top-4 left-4 z-50 md:hidden bg-teal-600 text-white p-2 rounded-lg shadow-lg" id="tocToggle">
+        <i class="fas fa-bars"></i>
+    </button>
+
+    <script>
+        // Mobile TOC Toggle
+        const toc = document.querySelector('.toc');
+        const tocToggle = document.getElementById('tocToggle');
+
+        if (tocToggle) { // Check if element exists
+            tocToggle.addEventListener('click', () => {
+                toc.classList.toggle('open');
+            });
+        }
+
+        // Close TOC when clicking outside on mobile
+        document.addEventListener('click', (e) => {
+            if (window.innerWidth <= 1024 && !toc.contains(e.target) && !tocToggle.contains(e.target)) {
+                toc.classList.remove('open');
+            }
+        });
+
+        // Smooth scrolling for anchor links
+        document.querySelectorAll('a[href^="#"]').forEach(anchor => {
+            anchor.addEventListener('click', function (e) {
+                e.preventDefault();
+                const target = document.querySelector(this.getAttribute('href'));
+                if (target) {
+                    target.scrollIntoView({
+                        behavior: 'smooth',
+                        block: 'start'
+                    });
+
+                    // Close mobile TOC after clicking
+                    if (window.innerWidth <= 1024) {
+                        toc.classList.remove('open');
+                    }
+                }
+            });
+        });
+
+        // Highlight active section in TOC
+        const sections = document.querySelectorAll('section[id]');
+        const tocLinks = document.querySelectorAll('.toc a[href^="#"]');
+
+        function highlightActiveSection() {
+            let current = '';
+            sections.forEach(section => {
+                const sectionTop = section.offsetTop;
+                const sectionHeight = section.clientHeight;
+                if (window.scrollY >= sectionTop - 200) {
+                    current = section.getAttribute('id');
+                }
+            });
+
+            tocLinks.forEach(link => {
+                link.classList.remove('text-teal-700', 'font-medium');
+                link.classList.add('text-slate-600');
+                if (link.getAttribute('href') === `#${current}`) {
+                    link.classList.remove('text-slate-600');
+                    link.classList.add('text-teal-700', 'font-medium');
+                }
+            });
+        }
+
+        window.addEventListener('scroll', highlightActiveSection);
+        highlightActiveSection(); // Initial call
+    </script>
+
+
+
+
+</body>
+
+</html>

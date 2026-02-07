@@ -1,0 +1,74 @@
+{
+  "hook_templates": [
+    {
+      "type": "situation",
+      "name": "极限羞辱",
+      "template": "主角正在遭受[羞辱类型]，倒计时[3,2,1]即将[反击方式]",
+      "variables": {
+        "羞辱类型": [
+          "被当众退婚",
+          "被经理泼咖啡",
+          "被亲戚嘲讽",
+          "被同学霸凌"
+        ],
+        "反击方式": [
+          "暴露真实身份",
+          "展示隐藏实力",
+          "神秘人物出场"
+        ]
+      },
+      "effectiveness_score": 95,
+      "psychology": "利用观众对不公的愤怒和对反转的期待",
+      "applicable_genres": [
+        "revenge"
+      ],
+      "duration": "前30秒",
+      "examples": [
+        {
+          "scenario": "被当众退婚",
+          "hook_text": "林家当众退婚，羞辱叶辰不配。叶辰冷笑：'三年之期未到，你们林家高攀不起。'",
+          "effectiveness": "极高"
+        }
+      ]
+    },
+    {
+      "type": "question",
+      "name": "悬念提问",
+      "template": "[反常识陈述/直接提问]，引发观众好奇",
+      "variables": {
+        "提问方式": [
+          "她竟然是我未来的婆婆？",
+          "这个乞丐竟然是 billionaire？"
+        ]
+      },
+      "effectiveness_score": 88,
+      "psychology": "信息差引发好奇心",
+      "applicable_genres": [
+        "sweet_romance",
+        "revenge"
+      ],
+      "duration": "前3秒",
+      "examples": []
+    },
+    {
+      "type": "visual",
+      "name": "视觉奇观",
+      "template": "展示[违背常理的画面/极端对比]，立即抓住眼球",
+      "variables": {
+        "奇观类型": [
+          "古代皇帝拿出iPhone",
+          "丧尸排队买咖啡",
+          "少女跪在棺材前眼神沧桑"
+        ]
+      },
+      "effectiveness_score": 90,
+      "psychology": "违和感和陌生化制造猎奇",
+      "applicable_genres": [
+        "transmigration",
+        "mystery"
+      ],
+      "duration": "前3秒",
+      "examples": []
+    }
+  ]
+}

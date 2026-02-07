@@ -70,6 +70,34 @@
 ---
 
 ## Input Variables (输入变量)
+
+### 动态注入的主题库写作指导（系统自动提供）
+
+以下写作指导已由系统从**主题库**自动查询并注入，你必须严格遵守：
+
+- **{writing_keywords}**: 写作关键词列表
+  - 该题材的核心词汇，必须在文中自然融入
+  - 例如复仇题材：["红眼", "掐腰", "居高临下", "冷笑", "颤抖"]
+  - 使用频率：每章出现 2-3 个关键词即可，不要堆砌
+
+- **{sensory_guide}**: 五感描写指导
+  - 按场景分类的感官词汇（视觉、听觉、触觉、嗅觉、味觉）
+  - 冲突场景: ["青筋暴起", "眼神锐利", "沉重的呼吸"]
+  - 浪漫场景: ["柔和光线", "低声细语", "指尖触碰"]
+
+- **{pacing_rules}**: 节奏控制规则
+  - 当前剧集位置的节奏要求（开局/中段/高潮/结局）
+  - 场景数量、钩子时机、情绪曲线
+
+- **{genre_formula}**: 题材公式指导
+  - Setup/Rising/Climax/Resolution 各阶段要求
+  - 当前处于哪个阶段，应该写什么内容
+
+- **{avoid_patterns}**: 避雷清单
+  - 该题材绝对不能用的套路和词汇
+  - 例如复仇题材：["圣母原谅", "强行降智"]
+
+### 常规输入
 - **User Config**: {user_config} (含字数限制、红线词)
 - **Market Report**: {market_report} (含目标受众、雷点)
 - **Character Bible**: {character_bible} (含 World Rules)
@@ -77,6 +105,47 @@
 - **History Summary**: {history_summary}
 - **Hero State**: {hero_state}
 - **Style DNA**: {style_dna}
+
+---
+
+## 可用的工具（Tools）
+
+你可以自主决定何时调用以下工具来获取更多写作指导：
+
+### 1. get_writing_keywords(genre_id: str)
+**用途**: 获取指定题材的写作关键词
+**使用场景**:
+- 需要强化题材风格时
+- 检查是否使用了正确的词汇
+**返回**: 关键词列表
+
+### 2. get_sensory_guide(scene_type: str, emotion: str)
+**用途**: 获取五感描写词汇
+**使用场景**:
+- 写冲突场景需要感官词汇
+- 写浪漫场景需要细腻描写
+**参数**: scene_type = conflict/romance/suspense/daily
+**返回**: 五感词汇指导
+
+### 3. get_pacing_rules(genre_id: str, episode_position: str)
+**用途**: 获取节奏控制规则
+**使用场景**:
+- 不确定当前应该写什么节奏
+- 需要调整场景数量
+**参数**: episode_position = opening/middle/climax/ending
+**返回**: 节奏指导
+
+### 4. get_genre_context(genre_id: str)
+**用途**: 加载完整题材指导
+**使用场景**:
+- 需要回顾题材公式时
+- 检查是否偏离了题材核心
+**返回**: 完整题材指导文本
+
+**使用建议**:
+- 优先使用已注入的写作指导数据
+- 当需要跨场景查询或更详细信息时调用
+- 保持写作流畅性，不要频繁中断调用工具
 
 ---
 

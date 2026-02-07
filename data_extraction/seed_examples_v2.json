@@ -1,0 +1,379 @@
+{
+  "theme_examples": [
+    {
+      "genre_slug": "revenge",
+      "example_type": "drama",
+      "title": "好一个乖乖女",
+      "description": "双强人设，女主从乖乖女到觉醒复仇的转变精准戳中当代女性的情绪痛点，每集都有爽点，台词传播度高",
+      "achievements": {
+        "description": "双强人设，女主从乖乖女到觉醒复仇的转变精准戳中当代女性的情绪痛点，每集都有爽点，台词传播度高",
+        "awards": []
+      },
+      "key_success_factors": [
+        "双强人设，女主从乖乖女到觉醒复仇的转变精准戳中当代女性的情绪痛点，每集都有爽点，台词传播度高"
+      ],
+      "is_verified": true,
+      "verification_source": "Deep Research Report"
+    },
+    {
+      "genre_slug": "revenge",
+      "example_type": "drama",
+      "title": "乔迁新禧",
+      "description": "结合拆迁现实题材，重生逆袭的设定让观众获得强烈的情绪代偿，剧情贴近生活，爽感密集",
+      "achievements": {
+        "description": "结合拆迁现实题材，重生逆袭的设定让观众获得强烈的情绪代偿，剧情贴近生活，爽感密集",
+        "awards": []
+      },
+      "key_success_factors": [
+        "结合拆迁现实题材，重生逆袭的设定让观众获得强烈的情绪代偿，剧情贴近生活，爽感密集"
+      ],
+      "is_verified": true,
+      "verification_source": "Deep Research Report"
+    },
+    {
+      "genre_slug": "revenge",
+      "example_type": "drama",
+      "title": "精神病院归来:闺蜜同盟",
+      "description": "双女主复仇，不搞雌竞，联手反杀的设定打破传统复仇剧的套路，女性互助的情节引发共鸣",
+      "achievements": {
+        "description": "双女主复仇，不搞雌竞，联手反杀的设定打破传统复仇剧的套路，女性互助的情节引发共鸣",
+        "awards": []
+      },
+      "key_success_factors": [
+        "双女主复仇，不搞雌竞，联手反杀的设定打破传统复仇剧的套路，女性互助的情节引发共鸣"
+      ],
+      "is_verified": true,
+      "verification_source": "Deep Research Report"
+    },
+    {
+      "genre_slug": "revenge",
+      "example_type": "drama",
+      "title": "烬梦欢",
+      "description": "重生弥补遗憾的设定，女主从恶女转变为善良聪慧的形象，既有复仇线又有成长线，情感饱满",
+      "achievements": {
+        "description": "重生弥补遗憾的设定，女主从恶女转变为善良聪慧的形象，既有复仇线又有成长线，情感饱满",
+        "awards": []
+      },
+      "key_success_factors": [
+        "重生弥补遗憾的设定，女主从恶女转变为善良聪慧的形象，既有复仇线又有成长线，情感饱满"
+      ],
+      "is_verified": true,
+      "verification_source": "Deep Research Report"
+    },
+    {
+      "genre_slug": "revenge",
+      "example_type": "drama",
+      "title": "穿书富家妯娌",
+      "description": "闺蜜双穿的设定新颖，不斗宅斗斗事业，用现代思维整顿豪门，沙雕又好嗑，符合年轻观众的喜好",
+      "achievements": {
+        "description": "闺蜜双穿的设定新颖，不斗宅斗斗事业，用现代思维整顿豪门，沙雕又好嗑，符合年轻观众的喜好",
+        "awards": []
+      },
+      "key_success_factors": [
+        "闺蜜双穿的设定新颖，不斗宅斗斗事业，用现代思维整顿豪门，沙雕又好嗑，符合年轻观众的喜好"
+      ],
+      "is_verified": true,
+      "verification_source": "Deep Research Report"
+    },
+    {
+      "genre_slug": "sweet_romance",
+      "example_type": "drama",
+      "title": "盛夏芬德拉",
+      "description": "尊重式爱情的设定，男主克制守护，女主主动成长，打破传统霸总套路，电影级质感提升观感",
+      "achievements": {
+        "description": "尊重式爱情的设定，男主克制守护，女主主动成长，打破传统霸总套路，电影级质感提升观感",
+        "awards": []
+      },
+      "key_success_factors": [
+        "尊重式爱情的设定，男主克制守护，女主主动成长，打破传统霸总套路，电影级质感提升观感"
+      ],
+      "is_verified": true,
+      "verification_source": "Deep Research Report"
+    },
+    {
+      "genre_slug": "sweet_romance",
+      "example_type": "drama",
+      "title": "闪婚后，裴先生又又撒娇了",
+      "description": "反差萌人设，男主高冷外表下的撒娇精形象戳中观众喜好，互动甜度爆表",
+      "achievements": {
+        "description": "反差萌人设，男主高冷外表下的撒娇精形象戳中观众喜好，互动甜度爆表",
+        "awards": []
+      },
+      "key_success_factors": [
+        "反差萌人设，男主高冷外表下的撒娇精形象戳中观众喜好，互动甜度爆表"
+      ],
+      "is_verified": true,
+      "verification_source": "Deep Research Report"
+    },
+    {
+      "genre_slug": "sweet_romance",
+      "example_type": "drama",
+      "title": "夏天，海浪与你",
+      "description": "治愈系甜宠，海边小镇的浪漫场景，日常陪伴的细腻情节，引发观众对理想爱情的向往",
+      "achievements": {
+        "description": "治愈系甜宠，海边小镇的浪漫场景，日常陪伴的细腻情节，引发观众对理想爱情的向往",
+        "awards": []
+      },
+      "key_success_factors": [
+        "治愈系甜宠，海边小镇的浪漫场景，日常陪伴的细腻情节，引发观众对理想爱情的向往"
+      ],
+      "is_verified": true,
+      "verification_source": "Deep Research Report"
+    },
+    {
+      "genre_slug": "sweet_romance",
+      "example_type": "drama",
+      "title": "深情诱引",
+      "description": "冲突叠加模式，协议婚姻的设定，强冲突的剧情节奏，有反差的立体人设，情感共鸣强",
+      "achievements": {
+        "description": "冲突叠加模式，协议婚姻的设定，强冲突的剧情节奏，有反差的立体人设，情感共鸣强",
+        "awards": []
+      },
+      "key_success_factors": [
+        "冲突叠加模式，协议婚姻的设定，强冲突的剧情节奏，有反差的立体人设，情感共鸣强"
+      ],
+      "is_verified": true,
+      "verification_source": "Deep Research Report"
+    },
+    {
+      "genre_slug": "sweet_romance",
+      "example_type": "drama",
+      "title": "咬清梨",
+      "description": "经典甜宠框架的结构化创新，分集节奏极致压缩，咬梨互动成为情感锚点，强化观众记忆点",
+      "achievements": {
+        "description": "经典甜宠框架的结构化创新，分集节奏极致压缩，咬梨互动成为情感锚点，强化观众记忆点",
+        "awards": []
+      },
+      "key_success_factors": [
+        "经典甜宠框架的结构化创新，分集节奏极致压缩，咬梨互动成为情感锚点，强化观众记忆点"
+      ],
+      "is_verified": true,
+      "verification_source": "Deep Research Report"
+    },
+    {
+      "genre_slug": "mystery",
+      "example_type": "drama",
+      "title": "沙尘暴",
+      "description": "群像气质突出，聚焦人性复杂，通过西北县城的犯罪故事探讨社会问题，豆瓣评分8.1，引发深度讨论",
+      "achievements": {
+        "description": "群像气质突出，聚焦人性复杂，通过西北县城的犯罪故事探讨社会问题，豆瓣评分8.1，引发深度讨论",
+        "awards": []
+      },
+      "key_success_factors": [
+        "群像气质突出，聚焦人性复杂，通过西北县城的犯罪故事探讨社会问题，豆瓣评分8.1，引发深度讨论"
+      ],
+      "is_verified": true,
+      "verification_source": "Deep Research Report"
+    },
+    {
+      "genre_slug": "mystery",
+      "example_type": "drama",
+      "title": "天书黎明",
+      "description": "医术+悬疑的独特视角，东汉背景下中医智慧与江湖阴谋交织，叙事革新，节奏紧凑",
+      "achievements": {
+        "description": "医术+悬疑的独特视角，东汉背景下中医智慧与江湖阴谋交织，叙事革新，节奏紧凑",
+        "awards": []
+      },
+      "key_success_factors": [
+        "医术+悬疑的独特视角，东汉背景下中医智慧与江湖阴谋交织，叙事革新，节奏紧凑"
+      ],
+      "is_verified": true,
+      "verification_source": "Deep Research Report"
+    },
+    {
+      "genre_slug": "mystery",
+      "example_type": "drama",
+      "title": "彼岸灯塔",
+      "description": "双女主设定打破悬疑剧性别模式，女性角色成为破局者，人设颠覆，剧情反转不断",
+      "achievements": {
+        "description": "双女主设定打破悬疑剧性别模式，女性角色成为破局者，人设颠覆，剧情反转不断",
+        "awards": []
+      },
+      "key_success_factors": [
+        "双女主设定打破悬疑剧性别模式，女性角色成为破局者，人设颠覆，剧情反转不断"
+      ],
+      "is_verified": true,
+      "verification_source": "Deep Research Report"
+    },
+    {
+      "genre_slug": "mystery",
+      "example_type": "drama",
+      "title": "人之初",
+      "description": "以基因证据为切入点，探讨血缘与人性的哲学命题，引发观众对人性善恶本质的深度讨论",
+      "achievements": {
+        "description": "以基因证据为切入点，探讨血缘与人性的哲学命题，引发观众对人性善恶本质的深度讨论",
+        "awards": []
+      },
+      "key_success_factors": [
+        "以基因证据为切入点，探讨血缘与人性的哲学命题，引发观众对人性善恶本质的深度讨论"
+      ],
+      "is_verified": true,
+      "verification_source": "Deep Research Report"
+    },
+    {
+      "genre_slug": "mystery",
+      "example_type": "drama",
+      "title": "黄雀",
+      "description": "案件主线+角色前史的双线结构，串联起铁路反扒警察与盗窃团伙的博弈，展现90年代广州的社会图景，有深度有温度",
+      "achievements": {
+        "description": "案件主线+角色前史的双线结构，串联起铁路反扒警察与盗窃团伙的博弈，展现90年代广州的社会图景，有深度有温度",
+        "awards": []
+      },
+      "key_success_factors": [
+        "案件主线+角色前史的双线结构，串联起铁路反扒警察与盗窃团伙的博弈，展现90年代广州的社会图景，有深度有温度"
+      ],
+      "is_verified": true,
+      "verification_source": "Deep Research Report"
+    },
+    {
+      "genre_slug": "transmigration",
+      "example_type": "drama",
+      "title": "我真没想重生啊",
+      "description": "社会精英重生为高三毕业生，重拾青春弥补遗憾，创业与情感双线并行，IP号召力强劲，引发观众的青春共鸣",
+      "achievements": {
+        "description": "社会精英重生为高三毕业生，重拾青春弥补遗憾，创业与情感双线并行，IP号召力强劲，引发观众的青春共鸣",
+        "awards": []
+      },
+      "key_success_factors": [
+        "社会精英重生为高三毕业生，重拾青春弥补遗憾，创业与情感双线并行，IP号召力强劲，引发观众的青春共鸣"
+      ],
+      "is_verified": true,
+      "verification_source": "Deep Research Report"
+    },
+    {
+      "genre_slug": "transmigration",
+      "example_type": "drama",
+      "title": "重生90:富豪榜我排第一，牛排第二",
+      "description": "女主用现代畜牧科学体系逆袭，结合奶业题材，设定新颖，打破传统穿越剧套路，有现实意义",
+      "achievements": {
+        "description": "女主用现代畜牧科学体系逆袭，结合奶业题材，设定新颖，打破传统穿越剧套路，有现实意义",
+        "awards": []
+      },
+      "key_success_factors": [
+        "女主用现代畜牧科学体系逆袭，结合奶业题材，设定新颖，打破传统穿越剧套路，有现实意义"
+      ],
+      "is_verified": true,
+      "verification_source": "Deep Research Report"
+    },
+    {
+      "genre_slug": "transmigration",
+      "example_type": "drama",
+      "title": "十八岁太奶奶驾到",
+      "description": "科学院院士灵魂重生到18岁重孙女身上，高概念+双降维的人设逻辑，反差萌强烈，剧情紧凑",
+      "achievements": {
+        "description": "科学院院士灵魂重生到18岁重孙女身上，高概念+双降维的人设逻辑，反差萌强烈，剧情紧凑",
+        "awards": []
+      },
+      "key_success_factors": [
+        "科学院院士灵魂重生到18岁重孙女身上，高概念+双降维的人设逻辑，反差萌强烈，剧情紧凑"
+      ],
+      "is_verified": true,
+      "verification_source": "Deep Research Report"
+    },
+    {
+      "genre_slug": "transmigration",
+      "example_type": "drama",
+      "title": "乡下真千金竟是老祖宗",
+      "description": "乡村少女是家族活祖宗的设定新颖，用现代思维整顿封建家规，抖音直播曝光家族丑闻，符合年轻观众喜好",
+      "achievements": {
+        "description": "乡村少女是家族活祖宗的设定新颖，用现代思维整顿封建家规，抖音直播曝光家族丑闻，符合年轻观众喜好",
+        "awards": []
+      },
+      "key_success_factors": [
+        "乡村少女是家族活祖宗的设定新颖，用现代思维整顿封建家规，抖音直播曝光家族丑闻，符合年轻观众喜好"
+      ],
+      "is_verified": true,
+      "verification_source": "Deep Research Report"
+    },
+    {
+      "genre_slug": "transmigration",
+      "example_type": "drama",
+      "title": "小小厨娘不好惹",
+      "description": "现代烹饪技能穿越古代，美食+甜宠的设定，剧情轻松有趣，爽感密集，引发观众的美食向往",
+      "achievements": {
+        "description": "现代烹饪技能穿越古代，美食+甜宠的设定，剧情轻松有趣，爽感密集，引发观众的美食向往",
+        "awards": []
+      },
+      "key_success_factors": [
+        "现代烹饪技能穿越古代，美食+甜宠的设定，剧情轻松有趣，爽感密集，引发观众的美食向往"
+      ],
+      "is_verified": true,
+      "verification_source": "Deep Research Report"
+    },
+    {
+      "genre_slug": "family",
+      "example_type": "drama",
+      "title": "幸得相遇离婚时",
+      "description": "开篇5秒呈现核心冲突，女主离婚后职场逆袭与情感救赎双线并行，红果平台最高热度值达9298万，30天总播放量达28亿",
+      "achievements": {
+        "description": "开篇5秒呈现核心冲突，女主离婚后职场逆袭与情感救赎双线并行，红果平台最高热度值达9298万，30天总播放量达28亿",
+        "awards": []
+      },
+      "key_success_factors": [
+        "开篇5秒呈现核心冲突，女主离婚后职场逆袭与情感救赎双线并行，红果平台最高热度值达9298万，30天总播放量达28亿"
+      ],
+      "is_verified": true,
+      "verification_source": "Deep Research Report"
+    },
+    {
+      "genre_slug": "family",
+      "example_type": "drama",
+      "title": "家里家外",
+      "description": "重组家庭的日常叙事，生活流改写微短剧创作法则，真实的烟火人生引发观众共鸣，上线12小时全网话题量破亿",
+      "achievements": {
+        "description": "重组家庭的日常叙事，生活流改写微短剧创作法则，真实的烟火人生引发观众共鸣，上线12小时全网话题量破亿",
+        "awards": []
+      },
+      "key_success_factors": [
+        "重组家庭的日常叙事，生活流改写微短剧创作法则，真实的烟火人生引发观众共鸣，上线12小时全网话题量破亿"
+      ],
+      "is_verified": true,
+      "verification_source": "Deep Research Report"
+    },
+    {
+      "genre_slug": "family",
+      "example_type": "drama",
+      "title": "朝阳似我",
+      "description": "以咨询行业为切口，职场新人与顶头上司互相欣赏到暗生情愫，治愈彼此共同成长，职场情节真实，引发都市青年共鸣",
+      "achievements": {
+        "description": "以咨询行业为切口，职场新人与顶头上司互相欣赏到暗生情愫，治愈彼此共同成长，职场情节真实，引发都市青年共鸣",
+        "awards": []
+      },
+      "key_success_factors": [
+        "以咨询行业为切口，职场新人与顶头上司互相欣赏到暗生情愫，治愈彼此共同成长，职场情节真实，引发都市青年共鸣"
+      ],
+      "is_verified": true,
+      "verification_source": "Deep Research Report"
+    },
+    {
+      "genre_slug": "family",
+      "example_type": "drama",
+      "title": "盛夏芬德拉",
+      "description": "尊重式爱情的设定，电影级质感，打破传统霸总套路，传递对女性自我成长的尊重，20亿播放量证明温情题材的市场价值",
+      "achievements": {
+        "description": "尊重式爱情的设定，电影级质感，打破传统霸总套路，传递对女性自我成长的尊重，20亿播放量证明温情题材的市场价值",
+        "awards": []
+      },
+      "key_success_factors": [
+        "尊重式爱情的设定，电影级质感，打破传统霸总套路，传递对女性自我成长的尊重，20亿播放量证明温情题材的市场价值"
+      ],
+      "is_verified": true,
+      "verification_source": "Deep Research Report"
+    },
+    {
+      "genre_slug": "family",
+      "example_type": "drama",
+      "title": "职场新人日志",
+      "description": "聚焦职场新人的成长，现实题材占比突破40%，贴近都市青年的职场困境，引发强烈共鸣",
+      "achievements": {
+        "description": "聚焦职场新人的成长，现实题材占比突破40%，贴近都市青年的职场困境，引发强烈共鸣",
+        "awards": []
+      },
+      "key_success_factors": [
+        "聚焦职场新人的成长，现实题材占比突破40%，贴近都市青年的职场困境，引发强烈共鸣"
+      ],
+      "is_verified": true,
+      "verification_source": "Deep Research Report"
+    }
+  ]
+}

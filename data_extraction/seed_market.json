@@ -1,0 +1,80 @@
+{
+  "market_insights": [
+    {
+      "overview": {
+        "market_size_2024": "504.4亿元",
+        "market_size_2025_forecast": "634亿元",
+        "user_count_2024": "6.62亿",
+        "user_count_2025_forecast": "6.96亿",
+        "growth_rate": "25.7%"
+      },
+      "key_findings": [
+        "情绪先行优于逻辑完备——短剧本质是情绪生意",
+        "信息差是爽感核心机制——身份揭露、能力隐藏",
+        "钩子密度决定免费模式成败——15秒冲突、30秒推进",
+        "免费模式以66.3%占比成为主流",
+        "头部效应加剧——仅1.38%短剧贡献18%总热度值"
+      ],
+      "genre_rankings": [
+        {
+          "rank": 1,
+          "genre": "revenge",
+          "heat_score": 95.5,
+          "market_share": "25%"
+        },
+        {
+          "rank": 2,
+          "genre": "transmigration",
+          "heat_score": 90.0,
+          "market_share": "20%"
+        },
+        {
+          "rank": 3,
+          "genre": "sweet_romance",
+          "heat_score": 88.0,
+          "market_share": "18%"
+        },
+        {
+          "rank": 4,
+          "genre": "mystery",
+          "heat_score": 82.0,
+          "market_share": "15%"
+        },
+        {
+          "rank": 5,
+          "genre": "family",
+          "heat_score": 75.0,
+          "market_share": "12%"
+        }
+      ],
+      "trending_combinations": [
+        {
+          "name": "复仇+甜宠",
+          "genres": [
+            "revenge",
+            "sweet_romance"
+          ],
+          "heat_score": 92,
+          "example": "《我在八零年代当后妈》"
+        },
+        {
+          "name": "穿越+系统",
+          "genres": [
+            "transmigration"
+          ],
+          "heat_score": 91,
+          "example": "《全家偷听我心声》"
+        },
+        {
+          "name": "悬疑+现实",
+          "genres": [
+            "mystery",
+            "family"
+          ],
+          "heat_score": 85,
+          "example": "《隐秘的角落》"
+        }
+      ]
+    }
+  ]
+}

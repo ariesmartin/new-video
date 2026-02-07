@@ -1,0 +1,729 @@
+{
+  "theme_elements": [
+    {
+      "genre_slug": "revenge",
+      "element_type": "trope",
+      "name": "白切黑伪装",
+      "description": "主角表面柔弱、逆来顺受，实则内心强大、筹谋已久，在关键时刻撕下伪装，展现真实实力",
+      "effectiveness_score": 95,
+      "weight": 1.0,
+      "usage_guidance": {
+        "best_timing": "第5-10集首次展现伪装下的实力",
+        "preparation": "",
+        "execution_tips": "",
+        "variations": []
+      },
+      "emotional_impact": {
+        "satisfaction": 95,
+        "surprise": 85,
+        "replay_value": 80
+      },
+      "classic_examples": [
+        {
+          "drama": "好一个乖乖女",
+          "scene": "《好一个乖乖女》鹿鸣野"
+        },
+        {
+          "drama": "穿书富家妯娌",
+          "scene": "《穿书富家妯娌》女主"
+        }
+      ]
+    },
+    {
+      "genre_slug": "revenge",
+      "element_type": "trope",
+      "name": "身份揭露",
+      "description": "主角隐藏的真实身份（如豪门千金、顶级大佬）在关键时刻被揭露，震惊全场，反转局势",
+      "effectiveness_score": 92,
+      "weight": 1.0,
+      "usage_guidance": {
+        "best_timing": "第15-20集的关键剧情节点",
+        "preparation": "",
+        "execution_tips": "",
+        "variations": []
+      },
+      "emotional_impact": {
+        "satisfaction": 92,
+        "surprise": 85,
+        "replay_value": 80
+      },
+      "classic_examples": [
+        {
+          "drama": "好一个乖乖女",
+          "scene": "《好一个乖乖女》鹿鸣野真实身份揭露"
+        },
+        {
+          "drama": "乡下真千金竟是老祖宗",
+          "scene": "《乡下真千金竟是老祖宗》林小满身份曝光"
+        }
+      ]
+    },
+    {
+      "genre_slug": "revenge",
+      "element_type": "trope",
+      "name": "当众打脸",
+      "description": "主角在公开场合，用事实或实力反击反派的嘲讽和构陷，让反派颜面扫地",
+      "effectiveness_score": 98,
+      "weight": 1.0,
+      "usage_guidance": {
+        "best_timing": "每5-8集设置一次小打脸，高潮集数设置大打脸",
+        "preparation": "",
+        "execution_tips": "",
+        "variations": []
+      },
+      "emotional_impact": {
+        "satisfaction": 98,
+        "surprise": 85,
+        "replay_value": 80
+      },
+      "classic_examples": [
+        {
+          "drama": "好一个乖乖女",
+          "scene": "《好一个乖乖女》女主在画展上反击继母"
+        },
+        {
+          "drama": "乔迁新禧",
+          "scene": "《乔迁新禧》男主拆迁款到账打脸前岳家"
+        }
+      ]
+    },
+    {
+      "genre_slug": "revenge",
+      "element_type": "trope",
+      "name": "复仇同盟",
+      "description": "主角与有共同敌人的角色结成同盟，联手对抗反派，增强复仇的力量",
+      "effectiveness_score": 88,
+      "weight": 1.0,
+      "usage_guidance": {
+        "best_timing": "第10-12集结成同盟",
+        "preparation": "",
+        "execution_tips": "",
+        "variations": []
+      },
+      "emotional_impact": {
+        "satisfaction": 88,
+        "surprise": 85,
+        "replay_value": 80
+      },
+      "classic_examples": [
+        {
+          "drama": "精神病院归来:闺蜜同盟",
+          "scene": "《精神病院归来:闺蜜同盟》疯批美人+冷艳律师"
+        },
+        {
+          "drama": "穿书富家妯娌",
+          "scene": "《穿书富家妯娌》闺蜜双穿成豪门妯娌联手"
+        }
+      ]
+    },
+    {
+      "genre_slug": "revenge",
+      "element_type": "trope",
+      "name": "前世遗憾弥补",
+      "description": "重生类复仇题材中，主角带着前世的记忆，弥补过去的遗憾，避免重蹈覆辙",
+      "effectiveness_score": 90,
+      "weight": 1.0,
+      "usage_guidance": {
+        "best_timing": "第1集就展现前世的遗憾，后续逐步弥补",
+        "preparation": "",
+        "execution_tips": "",
+        "variations": []
+      },
+      "emotional_impact": {
+        "satisfaction": 90,
+        "surprise": 85,
+        "replay_value": 80
+      },
+      "classic_examples": [
+        {
+          "drama": "烬梦欢",
+          "scene": "《烬梦欢》女主重生后改变命运"
+        },
+        {
+          "drama": "请和我的老公结婚",
+          "scene": "《请和我的老公结婚》姜智媛重生后预防胃癌"
+        }
+      ]
+    },
+    {
+      "genre_slug": "sweet_romance",
+      "element_type": "trope",
+      "name": "契约婚姻",
+      "description": "主角因家族压力、债务、签证等原因，与对方签订婚姻契约，在相处中假戏真做",
+      "effectiveness_score": 93,
+      "weight": 1.0,
+      "usage_guidance": {
+        "best_timing": "第1-2集建立契约关系",
+        "preparation": "",
+        "execution_tips": "",
+        "variations": []
+      },
+      "emotional_impact": {
+        "satisfaction": 93,
+        "surprise": 85,
+        "replay_value": 80
+      },
+      "classic_examples": [
+        {
+          "drama": "深情诱引",
+          "scene": "《深情诱引》协议婚姻"
+        },
+        {
+          "drama": "闪婚老伴是豪门",
+          "scene": "《闪婚老伴是豪门》闪婚契约"
+        }
+      ]
+    },
+    {
+      "genre_slug": "sweet_romance",
+      "element_type": "trope",
+      "name": "反差萌人设",
+      "description": "主角表面与真实性格有强烈反差，如表面高冷实则撒娇粘人，表面强势实则温柔细腻",
+      "effectiveness_score": 96,
+      "weight": 1.0,
+      "usage_guidance": {
+        "best_timing": "第1集就展现反差萌的细节",
+        "preparation": "",
+        "execution_tips": "",
+        "variations": []
+      },
+      "emotional_impact": {
+        "satisfaction": 96,
+        "surprise": 85,
+        "replay_value": 80
+      },
+      "classic_examples": [
+        {
+          "drama": "闪婚后，裴先生又又撒娇了",
+          "scene": "《闪婚后，裴先生又又撒娇了》男主高冷外表下的撒娇精"
+        },
+        {
+          "drama": "夫人她专治不服2",
+          "scene": "《夫人她专治不服2》男主外冷内热宠妻无度"
+        }
+      ]
+    },
+    {
+      "genre_slug": "sweet_romance",
+      "element_type": "trope",
+      "name": "双向救赎",
+      "description": "两人都有各自的心理创伤或人生困境，在相处中互相治愈，共同成长",
+      "effectiveness_score": 90,
+      "weight": 1.0,
+      "usage_guidance": {
+        "best_timing": "第10-15集展现彼此的创伤，开始救赎过程",
+        "preparation": "",
+        "execution_tips": "",
+        "variations": []
+      },
+      "emotional_impact": {
+        "satisfaction": 90,
+        "surprise": 85,
+        "replay_value": 80
+      },
+      "classic_examples": [
+        {
+          "drama": "盛夏芬德拉",
+          "scene": "《盛夏芬德拉》男主克制守护，女主主动成长"
+        },
+        {
+          "drama": "朝阳似我",
+          "scene": "《朝阳似我》职场新人与上司互相治愈"
+        }
+      ]
+    },
+    {
+      "genre_slug": "sweet_romance",
+      "element_type": "trope",
+      "name": "暗恋成真",
+      "description": "主角多年暗恋对方，因意外契机两人产生交集，最终暗恋成真",
+      "effectiveness_score": 88,
+      "weight": 1.0,
+      "usage_guidance": {
+        "best_timing": "第1集展现暗恋的过往，第5-8集产生交集",
+        "preparation": "",
+        "execution_tips": "",
+        "variations": []
+      },
+      "emotional_impact": {
+        "satisfaction": 88,
+        "surprise": 85,
+        "replay_value": 80
+      },
+      "classic_examples": [
+        {
+          "drama": "咬清梨",
+          "scene": "《咬清梨》多年暗恋后意外关系"
+        },
+        {
+          "drama": "坠入春夜",
+          "scene": "《坠入春夜》暗恋后的情感逆袭"
+        }
+      ]
+    },
+    {
+      "genre_slug": "sweet_romance",
+      "element_type": "trope",
+      "name": "治愈系陪伴",
+      "description": "主角在对方的陪伴下，走出人生低谷，重新找到生活的意义",
+      "effectiveness_score": 85,
+      "weight": 1.0,
+      "usage_guidance": {
+        "best_timing": "第3-5集开始展现陪伴的情节",
+        "preparation": "",
+        "execution_tips": "",
+        "variations": []
+      },
+      "emotional_impact": {
+        "satisfaction": 85,
+        "surprise": 85,
+        "replay_value": 80
+      },
+      "classic_examples": [
+        {
+          "drama": "夏天，海浪与你",
+          "scene": "《夏天，海浪与你》海边小镇的浪漫陪伴"
+        },
+        {
+          "drama": "她超好哄",
+          "scene": "《她超好哄》学生与总裁的治愈陪伴"
+        }
+      ]
+    },
+    {
+      "genre_slug": "mystery",
+      "element_type": "trope",
+      "name": "罗生门叙事",
+      "description": "多个视角反复改写真相，让观众跟着人物一起“犯错”，参与感强烈",
+      "effectiveness_score": 92,
+      "weight": 1.0,
+      "usage_guidance": {
+        "best_timing": "第5-10集开始展现多视角叙事",
+        "preparation": "",
+        "execution_tips": "",
+        "variations": []
+      },
+      "emotional_impact": {
+        "satisfaction": 92,
+        "surprise": 85,
+        "replay_value": 80
+      },
+      "classic_examples": [
+        {
+          "drama": "沙尘暴",
+          "scene": "《沙尘暴》西北县城的犯罪故事多视角叙事"
+        },
+        {
+          "drama": "命悬一生",
+          "scene": "《命悬一生》一人多面的身份切换叙事"
+        }
+      ]
+    },
+    {
+      "genre_slug": "mystery",
+      "element_type": "trope",
+      "name": "多重身份",
+      "description": "主角或反派有多个身份，身份切换让冲突更强，反转更顺",
+      "effectiveness_score": 90,
+      "weight": 1.0,
+      "usage_guidance": {
+        "best_timing": "第10-15集揭露多重身份",
+        "preparation": "",
+        "execution_tips": "",
+        "variations": []
+      },
+      "emotional_impact": {
+        "satisfaction": 90,
+        "surprise": 85,
+        "replay_value": 80
+      },
+      "classic_examples": [
+        {
+          "drama": "命悬一生",
+          "scene": "《命悬一生》黄轩一人多面的身份"
+        },
+        {
+          "drama": "彼岸灯塔",
+          "scene": "《彼岸灯塔》双女主的身份秘密"
+        }
+      ]
+    },
+    {
+      "genre_slug": "mystery",
+      "element_type": "trope",
+      "name": "无绝对善恶",
+      "description": "角色没有绝对的善恶，每个人都有自己的动机和苦衷，展现人性的复杂",
+      "effectiveness_score": 88,
+      "weight": 1.0,
+      "usage_guidance": {
+        "best_timing": "第15-20集展现角色的复杂动机",
+        "preparation": "",
+        "execution_tips": "",
+        "variations": []
+      },
+      "emotional_impact": {
+        "satisfaction": 88,
+        "surprise": 85,
+        "replay_value": 80
+      },
+      "classic_examples": [
+        {
+          "drama": "沙尘暴",
+          "scene": "《沙尘暴》群像人物的复杂人性"
+        },
+        {
+          "drama": "人之初",
+          "scene": "《人之初》探讨血缘与人性的哲学命题"
+        }
+      ]
+    },
+    {
+      "genre_slug": "mystery",
+      "element_type": "trope",
+      "name": "医术解谜",
+      "description": "结合医学知识解开神秘案件，用专业技能推动剧情",
+      "effectiveness_score": 85,
+      "weight": 1.0,
+      "usage_guidance": {
+        "best_timing": "第1集就展现医术解谜的设定",
+        "preparation": "",
+        "execution_tips": "",
+        "variations": []
+      },
+      "emotional_impact": {
+        "satisfaction": 85,
+        "surprise": 85,
+        "replay_value": 80
+      },
+      "classic_examples": [
+        {
+          "drama": "天书黎明",
+          "scene": "《天书黎明》中医智慧与江湖阴谋交织"
+        },
+        {
+          "drama": "以法之名",
+          "scene": "《以法之名》法医视角展现连环奇案"
+        }
+      ]
+    },
+    {
+      "genre_slug": "mystery",
+      "element_type": "trope",
+      "name": "社会议题聚焦",
+      "description": "通过案件探讨社会问题，如职场性别歧视、城乡差距等，引发观众思考",
+      "effectiveness_score": 95,
+      "weight": 1.0,
+      "usage_guidance": {
+        "best_timing": "第5-10集开始融入社会议题",
+        "preparation": "",
+        "execution_tips": "",
+        "variations": []
+      },
+      "emotional_impact": {
+        "satisfaction": 95,
+        "surprise": 85,
+        "replay_value": 80
+      },
+      "classic_examples": [
+        {
+          "drama": "乌云之上",
+          "scene": "《乌云之上》女性相关案件聚焦职场性别歧视"
+        },
+        {
+          "drama": "黄雀",
+          "scene": "《黄雀》铁路反扒警察与盗窃团伙的博弈展现社会图景"
+        }
+      ]
+    },
+    {
+      "genre_slug": "transmigration",
+      "element_type": "trope",
+      "name": "金手指技能",
+      "description": "主角带着现代的专业技能（如医学、烹饪、商业）或特殊异能在古代或异世界立足",
+      "effectiveness_score": 93,
+      "weight": 1.0,
+      "usage_guidance": {
+        "best_timing": "第1集就展现金手指技能",
+        "preparation": "",
+        "execution_tips": "",
+        "variations": []
+      },
+      "emotional_impact": {
+        "satisfaction": 93,
+        "surprise": 85,
+        "replay_value": 80
+      },
+      "classic_examples": [
+        {
+          "drama": "我家王妃怀里藏着万能空间",
+          "scene": "《我家王妃怀里藏着万能空间》女主带着万能空间穿越"
+        },
+        {
+          "drama": "小小厨娘不好惹",
+          "scene": "《小小厨娘不好惹》现代烹饪技能穿越古代"
+        }
+      ]
+    },
+    {
+      "genre_slug": "transmigration",
+      "element_type": "trope",
+      "name": "信息差逆袭",
+      "description": "主角利用前世的记忆或现代的知识，预知未来的事件，提前布局，实现逆袭",
+      "effectiveness_score": 95,
+      "weight": 1.0,
+      "usage_guidance": {
+        "best_timing": "第3-5集开始展现信息差逆袭的情节",
+        "preparation": "",
+        "execution_tips": "",
+        "variations": []
+      },
+      "emotional_impact": {
+        "satisfaction": 95,
+        "surprise": 85,
+        "replay_value": 80
+      },
+      "classic_examples": [
+        {
+          "drama": "我真没想重生啊",
+          "scene": "《我真没想重生啊》陈汉升凭借超前认知创业"
+        },
+        {
+          "drama": "重生90:富豪榜我排第一，牛排第二",
+          "scene": "《重生90:富豪榜我排第一，牛排第二》女主用现代畜牧科学体系逆袭"
+        }
+      ]
+    },
+    {
+      "genre_slug": "transmigration",
+      "element_type": "trope",
+      "name": "弥补前世遗憾",
+      "description": "主角回到过去，弥补前世的遗憾，如拯救亲人、挽回爱情、改变错误的选择",
+      "effectiveness_score": 90,
+      "weight": 1.0,
+      "usage_guidance": {
+        "best_timing": "第1集展现前世的遗憾，后续逐步弥补",
+        "preparation": "",
+        "execution_tips": "",
+        "variations": []
+      },
+      "emotional_impact": {
+        "satisfaction": 90,
+        "surprise": 85,
+        "replay_value": 80
+      },
+      "classic_examples": [
+        {
+          "drama": "请和我的老公结婚",
+          "scene": "《请和我的老公结婚》姜智媛重生后预防胃癌，反击渣男闺蜜"
+        },
+        {
+          "drama": "烬梦欢",
+          "scene": "《烬梦欢》女主重生后改变恶女命运"
+        }
+      ]
+    },
+    {
+      "genre_slug": "transmigration",
+      "element_type": "trope",
+      "name": "种田跃升",
+      "description": "主角从一无所有开始，利用现代知识经商致富，帮助家人或自己跃升阶层",
+      "effectiveness_score": 88,
+      "weight": 1.0,
+      "usage_guidance": {
+        "best_timing": "第5-10集开始展现种田跃升的情节",
+        "preparation": "",
+        "execution_tips": "",
+        "variations": []
+      },
+      "emotional_impact": {
+        "satisfaction": 88,
+        "surprise": 85,
+        "replay_value": 80
+      },
+      "classic_examples": [
+        {
+          "drama": "如意满堂",
+          "scene": "《如意满堂》首富穿越后经商致富"
+        },
+        {
+          "drama": "饥荒年嫁首辅，锦鲤娇妻超旺夫",
+          "scene": "《饥荒年嫁首辅，锦鲤娇妻超旺夫》女主帮助丈夫科考成功"
+        }
+      ]
+    },
+    {
+      "genre_slug": "transmigration",
+      "element_type": "trope",
+      "name": "身份错位",
+      "description": "主角穿越后身份错位，如真千金归来、灵魂互换，在新身份中适应并逆袭",
+      "effectiveness_score": 85,
+      "weight": 1.0,
+      "usage_guidance": {
+        "best_timing": "第1集就展现身份错位的设定",
+        "preparation": "",
+        "execution_tips": "",
+        "variations": []
+      },
+      "emotional_impact": {
+        "satisfaction": 85,
+        "surprise": 85,
+        "replay_value": 80
+      },
+      "classic_examples": [
+        {
+          "drama": "乡下真千金竟是老祖宗",
+          "scene": "《乡下真千金竟是老祖宗》林小满是家族失踪百年的活祖宗"
+        },
+        {
+          "drama": "十八岁太奶奶驾到",
+          "scene": "《十八岁太奶奶驾到》科学院院士灵魂重生到重孙女身上"
+        }
+      ]
+    },
+    {
+      "genre_slug": "family",
+      "element_type": "trope",
+      "name": "职场逆袭",
+      "description": "主角在职场中遭遇打压，凭借自身能力和努力，逆袭成为职场精英",
+      "effectiveness_score": 92,
+      "weight": 1.0,
+      "usage_guidance": {
+        "best_timing": "第5-10集开始展现职场逆袭的情节",
+        "preparation": "",
+        "execution_tips": "",
+        "variations": []
+      },
+      "emotional_impact": {
+        "satisfaction": 92,
+        "surprise": 85,
+        "replay_value": 80
+      },
+      "classic_examples": [
+        {
+          "drama": "朝阳似我",
+          "scene": "《朝阳似我》职场新人阮朝阳与顶头上司共同成长"
+        },
+        {
+          "drama": "幸得相遇离婚时",
+          "scene": "《幸得相遇离婚时》女主离婚后职场逆袭"
+        }
+      ]
+    },
+    {
+      "genre_slug": "family",
+      "element_type": "trope",
+      "name": "家庭伦理冲突",
+      "description": "主角面临家庭矛盾（如婆媳矛盾、原生家庭打压），通过智慧解决矛盾，实现家庭和解",
+      "effectiveness_score": 88,
+      "weight": 1.0,
+      "usage_guidance": {
+        "best_timing": "第1集就展现家庭伦理冲突",
+        "preparation": "",
+        "execution_tips": "",
+        "variations": []
+      },
+      "emotional_impact": {
+        "satisfaction": 88,
+        "surprise": 85,
+        "replay_value": 80
+      },
+      "classic_examples": [
+        {
+          "drama": "家里家外",
+          "scene": "《家里家外》重组家庭的日常矛盾与和解"
+        },
+        {
+          "drama": "回到70年代，霸道婆婆带我飞",
+          "scene": "《回到70年代，霸道婆婆带我飞》穿越女主与重生婆婆的同盟"
+        }
+      ]
+    },
+    {
+      "genre_slug": "family",
+      "element_type": "trope",
+      "name": "情感救赎",
+      "description": "主角在情感中遭遇背叛，在新的情感关系中获得救赎，重新找到自我",
+      "effectiveness_score": 90,
+      "weight": 1.0,
+      "usage_guidance": {
+        "best_timing": "第10-15集开始展现情感救赎的情节",
+        "preparation": "",
+        "execution_tips": "",
+        "variations": []
+      },
+      "emotional_impact": {
+        "satisfaction": 90,
+        "surprise": 85,
+        "replay_value": 80
+      },
+      "classic_examples": [
+        {
+          "drama": "幸得相遇离婚时",
+          "scene": "《幸得相遇离婚时》女主离婚后遇到真爱"
+        },
+        {
+          "drama": "晚夏微澜",
+          "scene": "《晚夏微澜》女主在情感纠葛中自我成长"
+        }
+      ]
+    },
+    {
+      "genre_slug": "family",
+      "element_type": "trope",
+      "name": "现实题材聚焦",
+      "description": "聚焦都市青年的现实困境（如北漂、打工、职场压力），引发观众共鸣",
+      "effectiveness_score": 95,
+      "weight": 1.0,
+      "usage_guidance": {
+        "best_timing": "第1集就展现现实题材的设定",
+        "preparation": "",
+        "execution_tips": "",
+        "variations": []
+      },
+      "emotional_impact": {
+        "satisfaction": 95,
+        "surprise": 85,
+        "replay_value": 80
+      },
+      "classic_examples": [
+        {
+          "drama": "职场新人日志",
+          "scene": "《职场新人日志》聚焦职场新人的成长"
+        },
+        {
+          "drama": "夏天，海浪与你",
+          "scene": "《夏天，海浪与你》海边小镇的治愈生活，缓解都市压力"
+        }
+      ]
+    },
+    {
+      "genre_slug": "family",
+      "element_type": "trope",
+      "name": "反套路人设",
+      "description": "主角人设打破传统套路，如冷静理性的女主、尊重女性的男主",
+      "effectiveness_score": 93,
+      "weight": 1.0,
+      "usage_guidance": {
+        "best_timing": "第1集就展现反套路人设",
+        "preparation": "",
+        "execution_tips": "",
+        "variations": []
+      },
+      "emotional_impact": {
+        "satisfaction": 93,
+        "surprise": 85,
+        "replay_value": 80
+      },
+      "classic_examples": [
+        {
+          "drama": "好一个乖乖女",
+          "scene": "《好一个乖乖女》女主白切黑的反套路人设"
+        },
+        {
+          "drama": "盛夏芬德拉",
+          "scene": "《盛夏芬德拉》男主克制守护的反套路霸总"
+        }
+      ]
+    }
+  ]
+}

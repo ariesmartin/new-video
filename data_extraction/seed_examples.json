@@ -1,0 +1,46 @@
+{
+  "theme_examples": [
+    {
+      "genre_slug": "revenge",
+      "genre_name": "复仇逆袭",
+      "title": "《黑莲花上位手册》",
+      "achievements": "24小时充值破2000万",
+      "description": "因极端暴力被下架，但商业成功不可否认"
+    },
+    {
+      "genre_slug": "revenge",
+      "genre_name": "复仇逆袭",
+      "title": "《幸得相遇离婚时》",
+      "achievements": "分账8000万创纪录",
+      "description": "前5秒留存率62%，行业标杆"
+    },
+    {
+      "genre_slug": "sweet_romance",
+      "genre_name": "甜宠恋爱",
+      "title": "《我在八零年代当后妈》",
+      "achievements": "分账破亿",
+      "description": "穿越+甜宠+年代，创新组合"
+    },
+    {
+      "genre_slug": "mystery",
+      "genre_name": "悬疑推理",
+      "title": "《隐秘的角落》",
+      "achievements": "现象级爆款",
+      "description": "笛卡尔符号系统，多螺旋叙事典范"
+    },
+    {
+      "genre_slug": "transmigration",
+      "genre_name": "穿越重生",
+      "title": "《全家偷听我心声》",
+      "achievements": "2025新趋势代表",
+      "description": "从个人逆袭扩展到家庭共同成长"
+    },
+    {
+      "genre_slug": "family",
+      "genre_name": "家庭伦理",
+      "title": "《杜小慧》",
+      "achievements": "话题营销典范",
+      "description": "#职场PUA有多隐蔽# 48小时阅读32亿"
+    }
+  ]
+}

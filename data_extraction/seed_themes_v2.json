@@ -1,0 +1,269 @@
+{
+  "themes": [
+    {
+      "slug": "revenge",
+      "name": "复仇逆袭",
+      "name_en": "Revenge & Comeback",
+      "category": "drama",
+      "description": "主角遭遇极致压迫（如家族背叛、职场构陷、情感欺骗），处于人生低谷，埋下复仇动机，同时隐藏自身真实实力或身份",
+      "summary": "从压抑隐忍到愤怒觉醒，再到爽感爆发，最终归于平静释然的情绪曲线",
+      "core_formula": {
+        "setup": {
+          "description": "主角遭遇极致压迫（如家族背叛、职场构陷、情感欺骗），处于人生低谷，埋下复仇动机，同时隐藏自身真实实力或身份",
+          "emotional_arc": "从压抑隐忍到愤怒觉醒，再到爽感爆发，最终归于平静释然的情绪曲线"
+        },
+        "rising": {
+          "description": "主角利用信息差、自身能力或隐藏身份，逐步展开复仇计划，通过智斗反派、打脸配角、夺回资源等情节层层升级，同时揭露反派的更多恶行"
+        },
+        "climax": {
+          "description": "主角在关键公开场合（如家族会议、行业盛典）揭露反派的全部罪行，彻底颠覆反派的地位，完成核心复仇目标"
+        },
+        "resolution": {
+          "description": "主角实现自我救赎，摆脱过去的阴影，获得事业、情感的双重圆满，同时建立新的生活秩序"
+        }
+      },
+      "keywords": {
+        "writing": [
+          "隐忍",
+          "逆袭",
+          "打脸",
+          "觉醒",
+          "复仇",
+          "救赎",
+          "双强",
+          "伪装"
+        ],
+        "visual": [
+          "冷色调",
+          "特写镜头",
+          "对比光影",
+          "破碎感",
+          "气场转变",
+          "公开场合",
+          "秘密空间"
+        ]
+      },
+      "audience_analysis": {
+        "age_range": "18-35",
+        "gender": "female",
+        "psychographics": "渴望自我成长、追求公平正义、喜欢爽感叙事，对压抑后的爆发有强烈共鸣",
+        "pain_points": [],
+        "emotional_needs": []
+      },
+      "market_score": 95.5,
+      "success_rate": 85.0
+    },
+    {
+      "slug": "sweet_romance",
+      "name": "甜宠恋爱",
+      "name_en": "Sweet Romance",
+      "category": "romance",
+      "description": "主角因意外（契约婚姻、一夜情、误会）与对方产生交集，初期带有抵触或利用心理",
+      "summary": "从抵触到心动，从试探到坚定，从自我到双向救赎的情绪曲线",
+      "core_formula": {
+        "setup": {
+          "description": "主角因意外（契约婚姻、一夜情、误会）与对方产生交集，初期带有抵触或利用心理",
+          "emotional_arc": "从抵触到心动，从试探到坚定，从自我到双向救赎的情绪曲线"
+        },
+        "rising": {
+          "description": "在日常相处中，两人逐渐了解彼此的真实性格，产生情感羁绊，同时解决外界的阻碍（如家族反对、前任干扰）"
+        },
+        "climax": {
+          "description": "在关键事件中（如主角遭遇危机、真相揭露），两人认清自己的心意，勇敢表达爱意，突破阻碍"
+        },
+        "resolution": {
+          "description": "两人走到一起，实现双向成长，获得事业与爱情的双重圆满"
+        }
+      },
+      "keywords": {
+        "writing": [
+          "甜宠",
+          "反差萌",
+          "双向救赎",
+          "契约婚姻",
+          "暗恋成真",
+          "治愈陪伴",
+          "双向奔赴",
+          "小甜饼"
+        ],
+        "visual": [
+          "暖色调",
+          "柔光镜头",
+          "浪漫场景",
+          "细节特写",
+          "温馨日常",
+          "氛围感",
+          "亲密互动"
+        ]
+      },
+      "audience_analysis": {
+        "age_range": "18-30",
+        "gender": "female",
+        "psychographics": "渴望理想爱情、喜欢温馨治愈的叙事，对细腻的情感互动有强烈共鸣",
+        "pain_points": [],
+        "emotional_needs": []
+      },
+      "market_score": 88.0,
+      "success_rate": 85.0
+    },
+    {
+      "slug": "mystery",
+      "name": "悬疑推理",
+      "name_en": "Mystery & Suspense",
+      "category": "thriller",
+      "description": "以一个离奇的案件或神秘事件为开端，主角（侦探、普通人）被卷入其中，需要寻找真相",
+      "summary": "从好奇到紧张，从疑惑到震惊，从压抑到释然的情绪曲线",
+      "core_formula": {
+        "setup": {
+          "description": "以一个离奇的案件或神秘事件为开端，主角（侦探、普通人）被卷入其中，需要寻找真相",
+          "emotional_arc": "从好奇到紧张，从疑惑到震惊，从压抑到释然的情绪曲线"
+        },
+        "rising": {
+          "description": "主角在调查过程中，发现更多的线索和疑点，逐步揭开事件的层层迷雾，同时遭遇反派的阻碍和威胁"
+        },
+        "climax": {
+          "description": "主角在关键节点，揭露事件的核心真相，反转局势，解决危机"
+        },
+        "resolution": {
+          "description": "真相大白，凶手伏法，主角完成自我成长或实现正义，同时留下新的悬念（如有续集）"
+        }
+      },
+      "keywords": {
+        "writing": [
+          "悬疑",
+          "反转",
+          "真相",
+          "人性",
+          "解谜",
+          "社会议题",
+          "群像",
+          "线索"
+        ],
+        "visual": [
+          "冷色调",
+          "低角度镜头",
+          "阴影光影",
+          "手持镜头",
+          "悬疑氛围",
+          "细节特写",
+          "紧张场景"
+        ]
+      },
+      "audience_analysis": {
+        "age_range": "20-40",
+        "gender": "男女均有",
+        "psychographics": "喜欢烧脑剧情、关注社会问题、对人性探讨有兴趣，享受解谜的过程",
+        "pain_points": [],
+        "emotional_needs": []
+      },
+      "market_score": 82.0,
+      "success_rate": 85.0
+    },
+    {
+      "slug": "transmigration",
+      "name": "穿越重生",
+      "name_en": "Transmigration & Rebirth",
+      "category": "fantasy",
+      "description": "主角因意外（死亡、穿越）回到过去或穿越到异世界，带着前世的记忆或现代的技能",
+      "summary": "从遗憾到觉醒，从迷茫到坚定，从逆袭到圆满的情绪曲线",
+      "core_formula": {
+        "setup": {
+          "description": "主角因意外（死亡、穿越）回到过去或穿越到异世界，带着前世的记忆或现代的技能",
+          "emotional_arc": "从遗憾到觉醒，从迷茫到坚定，从逆袭到圆满的情绪曲线"
+        },
+        "rising": {
+          "description": "主角利用信息差或现代技能，改变自己的命运，同时解决前世的遗憾或当下的危机"
+        },
+        "climax": {
+          "description": "主角在关键节点，彻底逆转命运，击败前世的仇人或当下的反派"
+        },
+        "resolution": {
+          "description": "主角实现事业爱情双丰收，建立新的生活，弥补过去的遗憾"
+        }
+      },
+      "keywords": {
+        "writing": [
+          "穿越",
+          "重生",
+          "金手指",
+          "逆袭",
+          "弥补遗憾",
+          "种田",
+          "身份错位",
+          "信息差"
+        ],
+        "visual": [
+          "古今对比",
+          "细节特写",
+          "成长变化",
+          "温馨日常",
+          "爽感场景",
+          "古风场景",
+          "现代元素"
+        ]
+      },
+      "audience_analysis": {
+        "age_range": "18-35",
+        "gender": "female为主",
+        "psychographics": "喜欢爽感逆袭、对弥补遗憾有共鸣，向往穿越到不同世界改变命运的设定",
+        "pain_points": [],
+        "emotional_needs": []
+      },
+      "market_score": 90.0,
+      "success_rate": 85.0
+    },
+    {
+      "slug": "family",
+      "name": "家庭伦理",
+      "name_en": "Family & Urban Reality",
+      "category": "drama",
+      "description": "主角在现代都市中遭遇人生困境（如职场打压、情感背叛、家庭矛盾），处于人生低谷",
+      "summary": "从压抑到觉醒，从迷茫到坚定，从困境到逆袭的情绪曲线",
+      "core_formula": {
+        "setup": {
+          "description": "主角在现代都市中遭遇人生困境（如职场打压、情感背叛、家庭矛盾），处于人生低谷",
+          "emotional_arc": "从压抑到觉醒，从迷茫到坚定，从困境到逆袭的情绪曲线"
+        },
+        "rising": {
+          "description": "主角凭借自身能力或外界帮助，逐步解决困境，实现职场逆袭或情感成长"
+        },
+        "climax": {
+          "description": "主角在关键事件中（如职场竞争、情感抉择），证明自己的实力，获得认可"
+        },
+        "resolution": {
+          "description": "主角实现自我价值，获得事业或情感的圆满，建立新的生活"
+        }
+      },
+      "keywords": {
+        "writing": [
+          "都市",
+          "职场",
+          "家庭",
+          "逆袭",
+          "情感救赎",
+          "现实题材",
+          "反套路",
+          "成长"
+        ],
+        "visual": [
+          "都市场景",
+          "职场环境",
+          "温馨日常",
+          "细节特写",
+          "情绪表达",
+          "现代风格",
+          "生活场景"
+        ]
+      },
+      "audience_analysis": {
+        "age_range": "20-40",
+        "gender": "男女均有",
+        "psychographics": "关注都市生活、职场成长、家庭关系，对现实题材有共鸣，喜欢贴近生活的叙事",
+        "pain_points": [],
+        "emotional_needs": []
+      },
+      "market_score": 75.0,
+      "success_rate": 85.0
+    }
+  ]
+}

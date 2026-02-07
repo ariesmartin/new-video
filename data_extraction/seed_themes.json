@@ -1,0 +1,550 @@
+{
+  "themes": [
+    {
+      "slug": "revenge",
+      "name": "复仇逆袭",
+      "name_en": "Revenge & Comeback",
+      "category": "drama",
+      "description": "主角遭受不公，通过努力或隐藏身份实现逆袭打脸",
+      "summary": "悲情开局，隐忍蓄力，层层反击，最终复仇成功",
+      "core_formula": {
+        "setup": {
+          "episodes": "第1-5集（10-15%）",
+          "task": "悲情渲染与仇恨种子埋设",
+          "key_elements": [
+            "至亲被害",
+            "财产被夺",
+            "当众羞辱",
+            "信任崩塌"
+          ],
+          "emotional_goal": "让观众产生强烈同情和愤怒",
+          "avoid": "不要过度虐待主角（不超过3集无反击）"
+        },
+        "rising": {
+          "episodes": "第6-30集（30-40%）",
+          "task": "隐忍蓄力与身份/能力提升",
+          "key_elements": [
+            "隐藏身份",
+            "获取金手指",
+            "建立盟友",
+            "小试牛刀"
+          ],
+          "pacing": "每3集一个小打脸，保持爽感",
+          "tension_building": "逐渐揭露主角真实实力的线索"
+        },
+        "climax": {
+          "episodes": "第31-70集（40-50%）",
+          "task": "层层反击与终极对决",
+          "key_elements": [
+            "身份揭露",
+            "证据公开",
+            "权力碾压",
+            "当众打脸"
+          ],
+          "satisfaction_curve": "身份揭露→打脸1→打脸2→打脸3（递进式）",
+          "visual_requirements": "必须使用特写、慢动作、强烈对比"
+        },
+        "resolution": {
+          "episodes": "第71-80+集（10-15%）",
+          "task": "复仇完成与新身份确立",
+          "key_elements": [
+            "反派下场",
+            "情感收束",
+            "主题升华",
+            "新生活开始"
+          ],
+          "avoid": "圣母原谅（主角必须彻底胜利）"
+        }
+      },
+      "tropes": [
+        {
+          "name": "隐藏大佬/扮猪吃虎",
+          "score": 95,
+          "description": "表面是底层，实则是顶层大佬",
+          "usage_timing": "贯穿全剧"
+        },
+        {
+          "name": "身份揭露/当众打脸",
+          "score": 90,
+          "description": "真实身份在关键时刻暴露，震惊全场",
+          "usage_timing": "第10-15集"
+        },
+        {
+          "name": "法律复仇/智取型",
+          "score": 92,
+          "description": "通过法律手段或智慧复仇，非暴力",
+          "usage_timing": "第20-40集"
+        },
+        {
+          "name": "金手指/系统绑定",
+          "score": 88,
+          "description": "获得特殊能力或系统辅助",
+          "usage_timing": "第3-5集"
+        }
+      ],
+      "examples": [
+        {
+          "title": "《黑莲花上位手册》",
+          "achievements": "24小时充值破2000万",
+          "description": "因极端暴力被下架，但商业成功不可否认"
+        },
+        {
+          "title": "《幸得相遇离婚时》",
+          "achievements": "分账8000万创纪录",
+          "description": "前5秒留存率62%，行业标杆"
+        }
+      ],
+      "keywords": {
+        "writing": [
+          "红眼",
+          "掐腰",
+          "居高临下",
+          "冷笑",
+          "颤抖",
+          "咬牙",
+          "攥拳"
+        ],
+        "visual": [
+          "破碎感",
+          "逆光",
+          "高对比",
+          "权力象征",
+          "阴影",
+          "破碎的玻璃"
+        ]
+      },
+      "market_score": 95.5,
+      "success_rate": 88.0
+    },
+    {
+      "slug": "sweet_romance",
+      "name": "甜宠恋爱",
+      "name_en": "Sweet Romance",
+      "category": "romance",
+      "description": "高糖度恋爱故事，强调宠溺、保护和甜蜜互动",
+      "summary": "从相遇到暧昧到确认关系，全程发糖的甜蜜旅程",
+      "core_formula": {
+        "setup": {
+          "episodes": "第1-8集",
+          "task": "快速建立相遇场景",
+          "key_elements": [
+            "职业差异",
+            "意外事件",
+            "一见钟情",
+            "被迫同居"
+          ],
+          "emotional_goal": "建立好感，制造心动瞬间"
+        },
+        "rising": {
+          "episodes": "第9-35集",
+          "task": "建立关系纽带",
+          "key_elements": [
+            "契约婚姻",
+            "同居场景",
+            "护短行为",
+            "暧昧推拉"
+          ],
+          "pacing": "每3-5集一个糖点，保持甜度"
+        },
+        "climax": {
+          "episodes": "第36-65集",
+          "task": "制造重大考验",
+          "key_elements": [
+            "重大误会",
+            "外部阻力",
+            "追妻火葬场",
+            "双向奔赴"
+          ],
+          "satisfaction_curve": "误会→解释→和解→确认关系"
+        },
+        "resolution": {
+          "episodes": "第66-80+集",
+          "task": "消除障碍，确认关系",
+          "key_elements": [
+            "求婚婚礼",
+            "公开关系",
+            "共同事业",
+            "甜蜜日常"
+          ],
+          "avoid": "狗血误会（不能超过1集不解开）"
+        }
+      },
+      "tropes": [
+        {
+          "name": "契约婚姻/假戏真做",
+          "score": 94,
+          "description": "被迫结婚，但在相处中产生真情",
+          "usage_timing": "第5-15集"
+        },
+        {
+          "name": "追妻/追夫火葬场",
+          "score": 93,
+          "description": "前期冷漠，后期疯狂追求",
+          "usage_timing": "第30-50集"
+        },
+        {
+          "name": "双向暗恋",
+          "score": 90,
+          "description": "双方都喜欢但都不敢表白",
+          "usage_timing": "第10-25集"
+        },
+        {
+          "name": "霸道总裁爱上我",
+          "score": 88,
+          "description": "高富帅爱上平凡女孩",
+          "usage_timing": "贯穿全剧"
+        }
+      ],
+      "examples": [
+        {
+          "title": "《我在八零年代当后妈》",
+          "achievements": "分账破亿",
+          "description": "穿越+甜宠+年代，创新组合"
+        }
+      ],
+      "keywords": {
+        "writing": [
+          "宠溺",
+          "温柔",
+          "耳语",
+          "拥抱",
+          "额头吻",
+          "护短",
+          "独占欲"
+        ],
+        "visual": [
+          "柔光",
+          "暖色调",
+          "花瓣",
+          "阳光",
+          "暖色滤镜",
+          "柔焦"
+        ]
+      },
+      "market_score": 88.0,
+      "success_rate": 85.0
+    },
+    {
+      "slug": "mystery",
+      "name": "悬疑推理",
+      "name_en": "Mystery & Suspense",
+      "category": "thriller",
+      "description": "谜题设计、悬念维持、逻辑严密的推理故事",
+      "summary": "抛出谜团，多线调查，层层反转，最终揭晓真相",
+      "core_formula": {
+        "setup": {
+          "episodes": "第1-6集",
+          "task": "抛出核心谜团",
+          "key_elements": [
+            "离奇案件",
+            "关键符号",
+            "多视角碎片",
+            "悬念建立"
+          ],
+          "emotional_goal": "激发好奇心和探索欲"
+        },
+        "rising": {
+          "episodes": "第7-30集",
+          "task": "多线推进调查",
+          "key_elements": [
+            "新嫌疑人",
+            "红鲱鱼误导",
+            "关系网展开",
+            "线索交织"
+          ],
+          "pacing": "每3-5集一个新线索或误导"
+        },
+        "climax": {
+          "episodes": "第31-60集",
+          "task": "核心谜题解答",
+          "key_elements": [
+            "核心证据",
+            "真凶反转",
+            "动机解读",
+            "真相揭露"
+          ],
+          "satisfaction_curve": "线索回收→真相揭露→动机解释"
+        },
+        "resolution": {
+          "episodes": "第61-80+集",
+          "task": "完整解答谜题",
+          "key_elements": [
+            "伏笔回收",
+            "主题升华",
+            "开放式结局",
+            "人物归宿"
+          ],
+          "avoid": "逻辑漏洞（所有线索必须有解释）"
+        }
+      },
+      "tropes": [
+        {
+          "name": "符号隐喻系统",
+          "score": 93,
+          "description": "如《隐秘的角落》笛卡尔符号",
+          "usage_timing": "贯穿全剧"
+        },
+        {
+          "name": "多螺旋叙事",
+          "score": 90,
+          "description": "不同线索如螺旋交织",
+          "usage_timing": "全剧结构"
+        },
+        {
+          "name": "不可靠叙述者",
+          "score": 88,
+          "description": "主角或旁白信息有限或误导",
+          "usage_timing": "关键反转"
+        },
+        {
+          "name": "时间线诡计",
+          "score": 85,
+          "description": "非线性叙事制造悬念",
+          "usage_timing": "中段使用"
+        }
+      ],
+      "examples": [
+        {
+          "title": "《隐秘的角落》",
+          "achievements": "现象级爆款",
+          "description": "笛卡尔符号系统，多螺旋叙事典范"
+        }
+      ],
+      "keywords": {
+        "writing": [
+          "谜团",
+          "线索",
+          "反转",
+          "真相",
+          "悬疑",
+          "推理",
+          "揭秘"
+        ],
+        "visual": [
+          "冷色调",
+          "阴影",
+          "特写",
+          "快速剪辑",
+          "暗调",
+          "紧张氛围"
+        ]
+      },
+      "market_score": 82.0,
+      "success_rate": 78.0
+    },
+    {
+      "slug": "transmigration",
+      "name": "穿越重生",
+      "name_en": "Transmigration & Rebirth",
+      "category": "fantasy",
+      "description": "主角穿越到古代或重生回到过去，利用现代知识改变命运",
+      "summary": "死亡/穿越→适应新世界→运用现代知识→改变命运→选择归留",
+      "core_formula": {
+        "setup": {
+          "episodes": "第1-5集",
+          "task": "完成死亡-穿越-觉醒",
+          "key_elements": [
+            "现代死亡",
+            "穿越触发",
+            "新身份认知",
+            "新世界规则"
+          ],
+          "emotional_goal": "建立身份落差和期待感"
+        },
+        "rising": {
+          "episodes": "第6-25集",
+          "task": "探索新世界规则",
+          "key_elements": [
+            "世界观获取",
+            "关键人物",
+            "首次金手指",
+            "小冲突"
+          ],
+          "pacing": "逐渐展示现代知识的威力"
+        },
+        "climax": {
+          "episodes": "第26-60集",
+          "task": "运用现代知识改变命运",
+          "key_elements": [
+            "现代知识降维",
+            "历史事件干预",
+            "身份地位提升",
+            "敌人打脸"
+          ],
+          "satisfaction_curve": "小成功→大成功→身份确立"
+        },
+        "resolution": {
+          "episodes": "第61-80+集",
+          "task": "处理归留抉择",
+          "key_elements": [
+            "回归机会",
+            "情感羁绊",
+            "身份整合",
+            "最终选择"
+          ],
+          "avoid": "强行回到现代（除非必要）"
+        }
+      },
+      "tropes": [
+        {
+          "name": "系统绑定/任务驱动",
+          "score": 94,
+          "description": "系统发布任务，奖励能力",
+          "usage_timing": "第2-3集"
+        },
+        {
+          "name": "读心术/心声外泄",
+          "score": 91,
+          "description": "2025新趋势：全家偷听心声",
+          "usage_timing": "第5-10集"
+        },
+        {
+          "name": "现代知识降维",
+          "score": 88,
+          "description": "用现代知识在古代/过去取得优势",
+          "usage_timing": "贯穿全剧"
+        },
+        {
+          "name": "历史人物互动",
+          "score": 85,
+          "description": "与真实历史人物产生交集",
+          "usage_timing": "中段使用"
+        }
+      ],
+      "examples": [
+        {
+          "title": "《全家偷听我心声》",
+          "achievements": "2025新趋势代表",
+          "description": "从个人逆袭扩展到家庭共同成长"
+        }
+      ],
+      "keywords": {
+        "writing": [
+          "穿越",
+          "重生",
+          "现代",
+          "古代",
+          "金手指",
+          "系统",
+          "心声"
+        ],
+        "visual": [
+          "古今对比",
+          "时空扭曲",
+          "系统界面",
+          "现代服装",
+          "古装"
+        ]
+      },
+      "market_score": 90.0,
+      "success_rate": 86.0
+    },
+    {
+      "slug": "family",
+      "name": "家庭伦理",
+      "name_en": "Family & Urban Reality",
+      "category": "drama",
+      "description": "聚焦家庭关系、代际冲突、都市现实问题的短剧",
+      "summary": "矛盾潜伏→冲突爆发→危机顶点→和解/重建",
+      "core_formula": {
+        "setup": {
+          "episodes": "第1-10集",
+          "task": "铺陈关系网络，埋下矛盾种子",
+          "key_elements": [
+            "代际差异",
+            "财产隐患",
+            "婚姻张力",
+            "职场压力"
+          ],
+          "emotional_goal": "建立代入感和共鸣"
+        },
+        "rising": {
+          "episodes": "第11-40集",
+          "task": "矛盾公开化，冲突升级",
+          "key_elements": [
+            "遗产争夺",
+            "赡养纠纷",
+            "职场PUA",
+            "婚姻危机"
+          ],
+          "pacing": "每5-8集一个冲突高潮"
+        },
+        "climax": {
+          "episodes": "第41-65集",
+          "task": "冲突达到顶点",
+          "key_elements": [
+            "离婚断绝",
+            "失业崩塌",
+            "健康危机",
+            "关系破裂"
+          ],
+          "satisfaction_curve": "危机→觉醒→改变"
+        },
+        "resolution": {
+          "episodes": "第66-80+集",
+          "task": "完成个人成长，重建关系",
+          "key_elements": [
+            "自我和解",
+            "关系修复",
+            "新生活方式",
+            "主题升华"
+          ],
+          "avoid": "强行大团圆（要真实）"
+        }
+      },
+      "tropes": [
+        {
+          "name": "职场PUA/反PUA",
+          "score": 90,
+          "description": "职场不公与反抗",
+          "usage_timing": "第10-30集"
+        },
+        {
+          "name": "婆媳矛盾/和解",
+          "score": 88,
+          "description": "传统家庭冲突",
+          "usage_timing": "贯穿全剧"
+        },
+        {
+          "name": "重组家庭张力",
+          "score": 85,
+          "description": "继父母、继子女关系",
+          "usage_timing": "第15-40集"
+        },
+        {
+          "name": "养老困境",
+          "score": 82,
+          "description": "赡养老人引发的家庭矛盾",
+          "usage_timing": "第20-50集"
+        }
+      ],
+      "examples": [
+        {
+          "title": "《杜小慧》",
+          "achievements": "话题营销典范",
+          "description": "#职场PUA有多隐蔽# 48小时阅读32亿"
+        }
+      ],
+      "keywords": {
+        "writing": [
+          "家庭",
+          "矛盾",
+          "和解",
+          "成长",
+          "现实",
+          "职场",
+          "代际"
+        ],
+        "visual": [
+          "日常场景",
+          "烟火气",
+          "菜市场",
+          "社区医院",
+          "家庭餐桌"
+        ]
+      },
+      "market_score": 75.0,
+      "success_rate": 72.0
+    }
+  ]
+}

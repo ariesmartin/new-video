@@ -1,0 +1,795 @@
+{
+  "hook_templates": [
+    {
+      "hook_type": "trope",
+      "name": "身份揭露",
+      "description": "主角的真实身份在关键时刻被揭露，震惊全场，反转剧情局势",
+      "template": "",
+      "variables": {},
+      "effectiveness_score": 92,
+      "psychology_mechanism": "",
+      "usage_constraints": {
+        "best_timing": "第10-15集效果最佳，在剧情进入中期，观众好奇心达到顶峰时揭露",
+        "preparation": "需要前期铺垫3-5集，通过细节暗示主角的真实身份，如特殊的物品、习惯等",
+        "execution": "揭露时机要配合高潮场景，如公开场合、危机时刻，增强戏剧效果"
+      },
+      "applicable_genres": [],
+      "examples": [
+        {
+          "drama": "好一个乖乖女",
+          "scene": "画展上女主揭露自己是知名画家的身份，反击继母的嘲讽",
+          "why_effective": "揭露时机配合画展的高潮场景，主角的身份反转彻底颠覆了反派的认知，给观众带来强烈的爽感"
+        },
+        {
+          "drama": "乡下真千金竟是老祖宗",
+          "scene": "家族会议上女主拿出祖传玉佩，揭露自己是家族失踪百年的活祖宗",
+          "why_effective": "身份反转巨大，从乡村孤女变为家族老祖宗，反差强烈，同时解决了家族的继承权问题，剧情逻辑通顺"
+        }
+      ],
+      "emotional_impact": {
+        "satisfaction": 95,
+        "surprise": 90,
+        "replay_value": 85
+      },
+      "risk_factors": [
+        "过早揭露会削弱后续剧情的悬念",
+        "铺垫不足会显得突兀，缺乏说服力",
+        "身份设定过于离谱，不符合剧情逻辑"
+      ]
+    },
+    {
+      "hook_type": "trope",
+      "name": "契约婚姻",
+      "description": "主角因家族压力、债务、签证等原因，与对方签订婚姻契约，在相处中假戏真做，产生真实的情感",
+      "template": "",
+      "variables": {},
+      "effectiveness_score": 90,
+      "psychology_mechanism": "",
+      "usage_constraints": {
+        "best_timing": "第1-2集建立契约关系，快速进入剧情主线",
+        "preparation": "需要铺垫主角的困境，让契约婚姻的设定合理，如家族的逼迫、债务的压力等",
+        "execution": "在契约期间设置多个情感升温的细节，让假戏真做的过程自然流畅"
+      },
+      "applicable_genres": [],
+      "examples": [
+        {
+          "drama": "深情诱引",
+          "scene": "女主因家族债务，与男主签订契约婚姻，在相处中逐渐爱上对方",
+          "why_effective": "契约婚姻的设定合理，女主的困境让观众产生共鸣，后续的情感升温细节细腻，让假戏真做的过程自然"
+        },
+        {
+          "drama": "闪婚老伴是豪门",
+          "scene": "女主为了户口，与男主闪婚，在相处中发现男主的温柔，产生真实情感",
+          "why_effective": "闪婚的设定快速进入剧情，男主的豪门身份与女主的普通身份形成反差，后续的日常互动温馨有趣，引发观众的向往"
+        }
+      ],
+      "emotional_impact": {
+        "satisfaction": 93,
+        "surprise": 80,
+        "replay_value": 88
+      },
+      "risk_factors": [
+        "契约设定过于牵强，缺乏逻辑",
+        "情感进展过于突兀，没有铺垫",
+        "契约结束后剧情无法继续推进"
+      ]
+    },
+    {
+      "hook_type": "trope",
+      "name": "当众打脸",
+      "description": "主角在公开场合，用事实或实力反击反派的嘲讽和构陷，让反派颜面扫地，获得爽感",
+      "template": "",
+      "variables": {},
+      "effectiveness_score": 95,
+      "psychology_mechanism": "",
+      "usage_constraints": {
+        "best_timing": "每5-8集设置一次小打脸，高潮集数（如第15、20集）设置大打脸，保持观众的爽感",
+        "preparation": "需要前期铺垫反派的嘲讽和构陷，让观众对反派产生反感，期待主角的反击",
+        "execution": "打脸场景要设置在公开场合，如宴会、会议、发布会等，增强戏剧效果"
+      },
+      "applicable_genres": [],
+      "examples": [
+        {
+          "drama": "好一个乖乖女",
+          "scene": "家族宴会上，女主拿出证据反击继母的构陷，让继母颜面扫地",
+          "why_effective": "前期继母多次构陷女主，观众积累了强烈的情绪，女主的反击彻底释放了观众的情绪，爽感强烈"
+        },
+        {
+          "drama": "乔迁新禧",
+          "scene": "前岳家嘲讽男主穷酸，男主拿出千万拆迁款的证明，打脸前岳家",
+          "why_effective": "前期前岳家对男主的打压和嘲讽让观众产生共情，男主的反击用现实的金钱实力打脸，符合观众的爽点预期"
+        }
+      ],
+      "emotional_impact": {
+        "satisfaction": 98,
+        "surprise": 85,
+        "replay_value": 90
+      },
+      "risk_factors": [
+        "打脸过于频繁，会让剧情显得单调",
+        "反击的方式过于暴力，不符合主角的人设",
+        "反派的嘲讽过于离谱，脱离现实"
+      ]
+    },
+    {
+      "hook_type": "trope",
+      "name": "系统金手指",
+      "description": "主角获得系统帮助，通过完成任务获得奖励，实现快速逆袭",
+      "template": "",
+      "variables": {},
+      "effectiveness_score": 88,
+      "psychology_mechanism": "",
+      "usage_constraints": {
+        "best_timing": "第1集就引入系统设定，快速建立主角的逆袭逻辑",
+        "preparation": "需要铺垫主角的困境，让系统的出现合理，如主角处于人生低谷，渴望改变",
+        "execution": "系统任务要与剧情主线结合，避免系统成为独立的存在，影响剧情的连贯性"
+      },
+      "applicable_genres": [],
+      "examples": [
+        {
+          "drama": "我有吹牛成真系统",
+          "scene": "同学聚会上，同学吹牛说男主是首富，系统让吹牛成真，男主瞬间成为首富",
+          "why_effective": "反套路的系统设定，打破传统逆袭剧的套路，剧情荒诞有趣，符合年轻观众的喜好"
+        },
+        {
+          "drama": "我家王妃怀里藏着万能空间",
+          "scene": "女主穿越后获得万能空间，可储存物品和获得药材，帮助她在古代立足",
+          "why_effective": "空间系统的设定合理，帮助女主解决了古代的生存问题，同时为后续的逆袭提供了支持，剧情逻辑通顺"
+        }
+      ],
+      "emotional_impact": {
+        "satisfaction": 90,
+        "surprise": 88,
+        "replay_value": 80
+      },
+      "risk_factors": [
+        "系统过于强大，让主角的逆袭过于容易，缺乏挑战",
+        "系统任务过于繁琐，影响剧情的节奏",
+        "系统设定过于复杂，观众难以理解"
+      ]
+    },
+    {
+      "hook_type": "trope",
+      "name": "时间循环",
+      "description": "主角被困在时间循环中，不断重复同一天，在循环中寻找突破的方法，同时改变自己和他人的命运",
+      "template": "",
+      "variables": {},
+      "effectiveness_score": 82,
+      "psychology_mechanism": "",
+      "usage_constraints": {
+        "best_timing": "第1集就引入时间循环设定，快速建立悬念",
+        "preparation": "需要铺垫循环的原因，如主角的遗憾、某个未解决的事件等",
+        "execution": "在循环中设置不同的尝试和变化，让剧情保持新鲜感，避免单调"
+      },
+      "applicable_genres": [],
+      "examples": [
+        {
+          "drama": "循环初恋",
+          "scene": "女主被困在初恋去世的那一天，不断循环，最终找到拯救初恋的方法",
+          "why_effective": "时间循环的设定结合初恋的情感线，既有悬念又有情感共鸣，女主在循环中的成长让观众产生共情"
+        },
+        {
+          "drama": "时间重启的逆袭",
+          "scene": "男主被困在被公司开除的那一天，不断循环，最终找到公司的黑幕，实现逆袭",
+          "why_effective": "时间循环的设定结合职场逆袭，剧情紧凑，男主在循环中的尝试和变化让观众保持好奇心"
+        }
+      ],
+      "emotional_impact": {
+        "satisfaction": 85,
+        "surprise": 92,
+        "replay_value": 88
+      },
+      "risk_factors": [
+        "循环的原因过于牵强，缺乏逻辑",
+        "循环的剧情过于单调，缺乏变化",
+        "跳出循环的方式过于突兀，缺乏铺垫"
+      ]
+    },
+    {
+      "hook_type": "situation",
+      "name": "极限羞辱",
+      "template": "主角正在遭受[极端羞辱]，但[隐藏实力/即将反击]",
+      "variables": {
+        "humiliation_type": [
+          "被当众退婚",
+          "被开除",
+          "被嘲笑",
+          "被泼咖啡",
+          "被家族排挤",
+          "被同事刁难"
+        ],
+        "hidden_element": [
+          "真实身份",
+          "隐藏实力",
+          "即将反击",
+          "准备好的证据",
+          "等待的盟友"
+        ]
+      },
+      "effectiveness_score": 95,
+      "psychology_mechanism": "使用时要强化羞辱的程度，让观众对主角产生共情，同时暗示主角的隐藏实力，引发观众的期待",
+      "usage_constraints": {
+        "duration": "前30秒"
+      },
+      "applicable_genres": [
+        "revenge",
+        "urban",
+        "rebirth"
+      ],
+      "examples": [
+        {
+          "drama": "好一个乖乖女",
+          "hook_text": "女主正在被继母当众嘲笑是没本事的乖乖女，但她隐藏着知名画家的身份，即将反击",
+          "completion_rate": "92%"
+        }
+      ]
+    },
+    {
+      "hook_type": "situation",
+      "name": "生死一线",
+      "template": "主角正处于[生死危机]，此时[意外转机/神秘人物出现]",
+      "variables": {
+        "crisis_type": [
+          "被追杀",
+          "遭遇车祸",
+          "被困火场",
+          "中毒",
+          "被陷害入狱"
+        ],
+        "turning_point": [
+          "神秘人物出现",
+          "金手指激活",
+          "记忆恢复",
+          "盟友赶到",
+          "证据出现"
+        ]
+      },
+      "effectiveness_score": 90,
+      "psychology_mechanism": "使用时要营造紧张的氛围，让观众感受到主角的危机，同时设置转机的悬念，引发观众的追更欲望",
+      "usage_constraints": {
+        "duration": "前30秒"
+      },
+      "applicable_genres": [
+        "suspense",
+        "revenge",
+        "rebirth"
+      ],
+      "examples": [
+        {
+          "drama": "沙尘暴",
+          "hook_text": "男主正被反派追杀，被困在废弃工厂，此时神秘的目击者出现，带来了反转的证据",
+          "completion_rate": "88%"
+        }
+      ]
+    },
+    {
+      "hook_type": "situation",
+      "name": "误会冲突",
+      "template": "主角被[误会]，但[无法解释/选择隐忍，准备后续反击]",
+      "variables": {
+        "misunderstanding_type": [
+          "被诬陷出轨",
+          "被误解偷东西",
+          "被认为是反派",
+          "被误会背叛",
+          "被误解能力不足"
+        ],
+        "reaction": [
+          "无法解释",
+          "选择隐忍",
+          "准备后续反击",
+          "寻找证据",
+          "等待时机"
+        ]
+      },
+      "effectiveness_score": 85,
+      "psychology_mechanism": "使用时要设置合理的误会原因，让观众理解主角的困境，同时暗示主角的反击计划，引发观众的期待",
+      "usage_constraints": {
+        "duration": "前30秒"
+      },
+      "applicable_genres": [
+        "romance",
+        "urban",
+        "suspense"
+      ],
+      "examples": [
+        {
+          "drama": "深情诱引",
+          "hook_text": "女主被男主误会是为了钱接近他，但女主无法解释契约婚姻的真相，选择隐忍，准备用实力证明自己",
+          "completion_rate": "85%"
+        }
+      ]
+    },
+    {
+      "hook_type": "situation",
+      "name": "意外邂逅",
+      "template": "主角在[意外场景]遇到了[特殊人物]，两人产生了[意外交集]",
+      "variables": {
+        "scene_type": [
+          "咖啡厅",
+          "图书馆",
+          "车祸现场",
+          "机场",
+          "公司电梯"
+        ],
+        "character_type": [
+          "豪门总裁",
+          "神秘侦探",
+          "落魄艺术家",
+          "职场精英",
+          "古代穿越者"
+        ],
+        "encounter_type": [
+          "碰撞打翻物品",
+          "帮助解决麻烦",
+          "捡到对方的物品",
+          "误会对方是坏人",
+          "意外救了对方"
+        ]
+      },
+      "effectiveness_score": 88,
+      "psychology_mechanism": "使用时要设置有趣的邂逅场景，让两人的交集自然，同时暗示后续的情感发展，引发观众的好奇心",
+      "usage_constraints": {
+        "duration": "前30秒"
+      },
+      "applicable_genres": [
+        "romance",
+        "urban",
+        "rebirth"
+      ],
+      "examples": [
+        {
+          "drama": "盛夏芬德拉",
+          "hook_text": "女主在咖啡厅遇到了男主，不小心打翻了男主的咖啡，两人产生了意外的交集",
+          "completion_rate": "87%"
+        }
+      ]
+    },
+    {
+      "hook_type": "situation",
+      "name": "家庭冲突",
+      "template": "主角在[家庭场合]被[家人]逼迫[做不愿意的事]，但主角[准备反抗/有隐藏的底牌]",
+      "variables": {
+        "occasion_type": [
+          "家族宴会",
+          "家庭聚餐",
+          "长辈寿宴",
+          "家庭会议",
+          "相亲场合"
+        ],
+        "family_member": [
+          "继母",
+          "父亲",
+          "兄长",
+          "姑姑",
+          "婆婆"
+        ],
+        "demand": [
+          "嫁给不喜欢的人",
+          "放弃自己的事业",
+          "让出继承权",
+          "承担债务",
+          "道歉认错"
+        ],
+        "reaction": [
+          "准备反抗",
+          "有隐藏的底牌",
+          "拿出证据",
+          "揭露真相",
+          "寻求帮助"
+        ]
+      },
+      "effectiveness_score": 92,
+      "psychology_mechanism": "使用时要强化家庭冲突的激烈程度，让观众对主角产生共情，同时暗示主角的反抗计划，引发观众的期待",
+      "usage_constraints": {
+        "duration": "前30秒"
+      },
+      "applicable_genres": [
+        "revenge",
+        "urban",
+        "rebirth"
+      ],
+      "examples": [
+        {
+          "drama": "乡下真千金竟是老祖宗",
+          "hook_text": "女主在家族宴会上被继母逼迫让出继承权，但女主有祖传玉佩作为底牌，准备揭露自己的身份",
+          "completion_rate": "90%"
+        }
+      ]
+    },
+    {
+      "hook_type": "question",
+      "name": "直接提问",
+      "template": "你知道[神秘事件]的真相吗？主角[正在调查/即将揭开]这个隐藏了[时间]的秘密",
+      "variables": {
+        "mystery_type": [
+          "连环杀人案",
+          "家族失踪案",
+          "公司黑幕",
+          "古代宝藏",
+          "身份秘密"
+        ],
+        "action": [
+          "正在调查",
+          "即将揭开",
+          "已经发现",
+          "接近真相",
+          "掌握证据"
+        ],
+        "time": [
+          "10年",
+          "20年",
+          "一辈子",
+          "几代人",
+          "几个月"
+        ]
+      },
+      "effectiveness_score": 88,
+      "psychology_mechanism": "使用时要设置有吸引力的神秘事件，让观众产生好奇心，同时暗示主角的调查进展，引发观众的追更欲望",
+      "usage_constraints": {
+        "duration": "前30秒"
+      },
+      "applicable_genres": [
+        "suspense",
+        "rebirth",
+        "urban"
+      ],
+      "examples": [
+        {
+          "drama": "沙尘暴",
+          "hook_text": "你知道西北县城连环焚尸案的真相吗？男主正在调查这个隐藏了10年的秘密",
+          "completion_rate": "86%"
+        }
+      ]
+    },
+    {
+      "hook_type": "question",
+      "name": "反常识陈述",
+      "template": "[反常识的事实]，但这正是主角[正在经历/即将利用]的真相",
+      "variables": {
+        "counter_fact": [
+          "死人竟然复活了",
+          "首富竟然是乞丐",
+          "凶手竟然是受害者",
+          "继母竟然是亲妈",
+          "仇人竟然是盟友"
+        ],
+        "action": [
+          "正在经历",
+          "即将利用",
+          "已经发现",
+          "准备揭露",
+          "掌握证据"
+        ]
+      },
+      "effectiveness_score": 90,
+      "psychology_mechanism": "使用时要设置足够反常识的事实，让观众感到惊讶，同时暗示主角的计划，引发观众的好奇心",
+      "usage_constraints": {
+        "duration": "前30秒"
+      },
+      "applicable_genres": [
+        "suspense",
+        "revenge",
+        "rebirth"
+      ],
+      "examples": [
+        {
+          "drama": "请和我的老公结婚",
+          "hook_text": "死人竟然复活了，这正是女主正在经历的重生真相，她即将利用这个机会复仇",
+          "completion_rate": "89%"
+        }
+      ]
+    },
+    {
+      "hook_type": "question",
+      "name": "预言钩子",
+      "template": "[神秘预言]，主角[正在验证/即将面对]这个预言的实现",
+      "variables": {
+        "prophecy_type": [
+          "你会在3天内死亡",
+          "你会成为首富",
+          "你会遇到真爱",
+          "你会复仇成功",
+          "你会改变世界"
+        ],
+        "action": [
+          "正在验证",
+          "即将面对",
+          "已经开始",
+          "准备阻止",
+          "利用预言"
+        ]
+      },
+      "effectiveness_score": 85,
+      "psychology_mechanism": "使用时要设置有吸引力的预言，让观众产生期待，同时暗示主角的行动，引发观众的追更欲望",
+      "usage_constraints": {
+        "duration": "前30秒"
+      },
+      "applicable_genres": [
+        "romance",
+        "rebirth",
+        "suspense"
+      ],
+      "examples": [
+        {
+          "drama": "重生90:富豪榜我排第一，牛排第二",
+          "hook_text": "你会成为90年代的首富，主角正在验证这个预言的实现，利用现代知识创业",
+          "completion_rate": "84%"
+        }
+      ]
+    },
+    {
+      "hook_type": "question",
+      "name": "秘密预告",
+      "template": "主角不知道，[隐藏的秘密]即将在[时间]揭露，而这将改变他的一生",
+      "variables": {
+        "secret_type": [
+          "他的亲生父母是豪门",
+          "他的爱人是反派",
+          "他的公司有黑幕",
+          "他的朋友是卧底",
+          "他的记忆是假的"
+        ],
+        "time": [
+          "3天后",
+          "下周",
+          "下个月",
+          "明天",
+          "下一集"
+        ]
+      },
+      "effectiveness_score": 92,
+      "psychology_mechanism": "使用时要设置有冲击力的秘密，让观众产生好奇心，同时设置明确的揭露时间，引发观众的追更欲望",
+      "usage_constraints": {
+        "duration": "前30秒"
+      },
+      "applicable_genres": [
+        "revenge",
+        "urban",
+        "suspense"
+      ],
+      "examples": [
+        {
+          "drama": "好一个乖乖女",
+          "hook_text": "女主不知道，她的真实身份是豪门千金，即将在下一集揭露，而这将改变她的一生",
+          "completion_rate": "91%"
+        }
+      ]
+    },
+    {
+      "hook_type": "question",
+      "name": "神秘物品",
+      "template": "主角捡到了[神秘物品]，这个物品[有特殊能力/隐藏着秘密]，即将改变他的生活",
+      "variables": {
+        "object_type": [
+          "玉佩",
+          "日记",
+          "手机",
+          "项链",
+          "盒子"
+        ],
+        "ability_type": [
+          "有特殊能力",
+          "隐藏着秘密",
+          "能实现愿望",
+          "能看到未来",
+          "能连接过去"
+        ]
+      },
+      "effectiveness_score": 87,
+      "psychology_mechanism": "使用时要设置有吸引力的神秘物品，让观众产生好奇心，同时暗示物品的特殊能力，引发观众的追更欲望",
+      "usage_constraints": {
+        "duration": "前30秒"
+      },
+      "applicable_genres": [
+        "rebirth",
+        "suspense",
+        "romance"
+      ],
+      "examples": [
+        {
+          "drama": "我家王妃怀里藏着万能空间",
+          "hook_text": "女主捡到了一个神秘的玉佩，这个玉佩隐藏着万能空间，即将改变她在古代的生活",
+          "completion_rate": "86%"
+        }
+      ]
+    },
+    {
+      "hook_type": "visual",
+      "name": "奇观展示",
+      "template": "镜头展示[奇观场景]，主角[身处其中/即将探索]这个神秘的地方",
+      "variables": {
+        "spectacle_type": [
+          "古代宝藏洞穴",
+          "未来科技城市",
+          "神秘的异世界",
+          "悬浮的岛屿",
+          "燃烧的大楼"
+        ],
+        "action": [
+          "身处其中",
+          "即将探索",
+          "正在逃离",
+          "正在寻找",
+          "正在发现"
+        ]
+      },
+      "effectiveness_score": 90,
+      "psychology_mechanism": "使用时要营造震撼的视觉效果，让观众感到惊讶，同时暗示主角的行动，引发观众的好奇心",
+      "usage_constraints": {
+        "duration": "前30秒"
+      },
+      "applicable_genres": [
+        "rebirth",
+        "suspense",
+        "romance"
+      ],
+      "examples": [
+        {
+          "drama": "天书黎明",
+          "hook_text": "镜头展示神秘的古代医书洞穴，主角身处其中，即将探索这个隐藏着中医秘密的地方",
+          "completion_rate": "88%"
+        }
+      ]
+    },
+    {
+      "hook_type": "visual",
+      "name": "强烈对比",
+      "template": "镜头对比[两个极端场景]，主角[在两个场景之间切换/即将改变自己的处境]",
+      "variables": {
+        "contrast_type": [
+          "贫民窟与豪门宴会",
+          "职场底层与总裁办公室",
+          "古代与现代",
+          "生离与死别",
+          "贫穷与富贵"
+        ],
+        "action": [
+          "在两个场景之间切换",
+          "即将改变自己的处境",
+          "正在经历变化",
+          "准备跨越",
+          "已经改变"
+        ]
+      },
+      "effectiveness_score": 95,
+      "psychology_mechanism": "使用时要强化对比的强烈程度，让观众感受到主角的变化，同时暗示后续的爽点，引发观众的期待",
+      "usage_constraints": {
+        "duration": "前30秒"
+      },
+      "applicable_genres": [
+        "revenge",
+        "urban",
+        "rebirth"
+      ],
+      "examples": [
+        {
+          "drama": "乔迁新禧",
+          "hook_text": "镜头对比男主以前的贫民窟和现在的豪宅，男主即将改变自己的处境，打脸前岳家",
+          "completion_rate": "93%"
+        }
+      ]
+    },
+    {
+      "hook_type": "visual",
+      "name": "神秘场景",
+      "template": "镜头展示[神秘场景]，主角[正在调查/即将发现]这个场景背后的秘密",
+      "variables": {
+        "scene_type": [
+          "废弃的精神病院",
+          "古老的宅",
+          "深夜的图书馆",
+          "无人的医院",
+          "神秘的实验室"
+        ],
+        "action": [
+          "正在调查",
+          "即将发现",
+          "正在逃离",
+          "正在探索",
+          "已经发现"
+        ]
+      },
+      "effectiveness_score": 88,
+      "psychology_mechanism": "使用时要营造神秘的氛围，让观众感到紧张，同时暗示主角的调查进展，引发观众的追更欲望",
+      "usage_constraints": {
+        "duration": "前30秒"
+      },
+      "applicable_genres": [
+        "suspense",
+        "revenge",
+        "rebirth"
+      ],
+      "examples": [
+        {
+          "drama": "彼岸灯塔",
+          "hook_text": "镜头展示深夜的废弃灯塔，主角正在调查这个场景背后的秘密，即将发现杀人案的真相",
+          "completion_rate": "87%"
+        }
+      ]
+    },
+    {
+      "hook_type": "visual",
+      "name": "细节特写",
+      "template": "镜头特写[关键细节]，这个细节[隐藏着线索/暗示着真相]，主角[即将发现/正在利用]这个细节",
+      "variables": {
+        "detail_type": [
+          "血迹",
+          "指纹",
+          "特殊的纹身",
+          "神秘的符号",
+          "破碎的照片"
+        ],
+        "clue_type": [
+          "隐藏着线索",
+          "暗示着真相",
+          "能证明清白",
+          "能揭露反派",
+          "能改变命运"
+        ],
+        "action": [
+          "即将发现",
+          "正在利用",
+          "已经发现",
+          "准备寻找",
+          "正在验证"
+        ]
+      },
+      "effectiveness_score": 92,
+      "psychology_mechanism": "使用时要设置关键的细节，让观众产生好奇心，同时暗示细节的重要性，引发观众的追更欲望",
+      "usage_constraints": {
+        "duration": "前30秒"
+      },
+      "applicable_genres": [
+        "suspense",
+        "revenge",
+        "urban"
+      ],
+      "examples": [
+        {
+          "drama": "沙尘暴",
+          "hook_text": "镜头特写案发现场的神秘指纹，这个指纹隐藏着线索，主角即将发现这个细节，揭开杀人案的真相",
+          "completion_rate": "90%"
+        }
+      ]
+    },
+    {
+      "hook_type": "visual",
+      "name": "情感视觉",
+      "template": "镜头展示[情感场景]，主角[正在经历/即将面对]这个强烈的情感冲击",
+      "variables": {
+        "emotion_type": [
+          "撕心裂肺的离别",
+          "激动人心的重逢",
+          "当众的羞辱",
+          "成功的喜悦",
+          "绝望的哭泣"
+        ],
+        "action": [
+          "正在经历",
+          "即将面对",
+          "已经经历",
+          "准备迎接",
+          "正在克服"
+        ]
+      },
+      "effectiveness_score": 85,
+      "psychology_mechanism": "使用时要营造强烈的情感氛围，让观众产生共情，同时暗示主角的后续行动，引发观众的追更欲望",
+      "usage_constraints": {
+        "duration": "前30秒"
+      },
+      "applicable_genres": [
+        "romance",
+        "revenge",
+        "urban"
+      ],
+      "examples": [
+        {
+          "drama": "请和我的老公结婚",
+          "hook_text": "镜头展示女主前世撕心裂肺的离别，女主正在经历重生后的情感冲击，即将开始复仇",
+          "completion_rate": "84%"
+        }
+      ]
+    }
+  ]
+}

@@ -1,0 +1,164 @@
+{
+  "theme_elements": [
+    {
+      "genre_slug": "revenge",
+      "genre_name": "复仇逆袭",
+      "name": "隐藏大佬/扮猪吃虎",
+      "score": 95,
+      "description": "表面是底层，实则是顶层大佬",
+      "usage_timing": "贯穿全剧"
+    },
+    {
+      "genre_slug": "revenge",
+      "genre_name": "复仇逆袭",
+      "name": "身份揭露/当众打脸",
+      "score": 90,
+      "description": "真实身份在关键时刻暴露，震惊全场",
+      "usage_timing": "第10-15集"
+    },
+    {
+      "genre_slug": "revenge",
+      "genre_name": "复仇逆袭",
+      "name": "法律复仇/智取型",
+      "score": 92,
+      "description": "通过法律手段或智慧复仇，非暴力",
+      "usage_timing": "第20-40集"
+    },
+    {
+      "genre_slug": "revenge",
+      "genre_name": "复仇逆袭",
+      "name": "金手指/系统绑定",
+      "score": 88,
+      "description": "获得特殊能力或系统辅助",
+      "usage_timing": "第3-5集"
+    },
+    {
+      "genre_slug": "sweet_romance",
+      "genre_name": "甜宠恋爱",
+      "name": "契约婚姻/假戏真做",
+      "score": 94,
+      "description": "被迫结婚，但在相处中产生真情",
+      "usage_timing": "第5-15集"
+    },
+    {
+      "genre_slug": "sweet_romance",
+      "genre_name": "甜宠恋爱",
+      "name": "追妻/追夫火葬场",
+      "score": 93,
+      "description": "前期冷漠，后期疯狂追求",
+      "usage_timing": "第30-50集"
+    },
+    {
+      "genre_slug": "sweet_romance",
+      "genre_name": "甜宠恋爱",
+      "name": "双向暗恋",
+      "score": 90,
+      "description": "双方都喜欢但都不敢表白",
+      "usage_timing": "第10-25集"
+    },
+    {
+      "genre_slug": "sweet_romance",
+      "genre_name": "甜宠恋爱",
+      "name": "霸道总裁爱上我",
+      "score": 88,
+      "description": "高富帅爱上平凡女孩",
+      "usage_timing": "贯穿全剧"
+    },
+    {
+      "genre_slug": "mystery",
+      "genre_name": "悬疑推理",
+      "name": "符号隐喻系统",
+      "score": 93,
+      "description": "如《隐秘的角落》笛卡尔符号",
+      "usage_timing": "贯穿全剧"
+    },
+    {
+      "genre_slug": "mystery",
+      "genre_name": "悬疑推理",
+      "name": "多螺旋叙事",
+      "score": 90,
+      "description": "不同线索如螺旋交织",
+      "usage_timing": "全剧结构"
+    },
+    {
+      "genre_slug": "mystery",
+      "genre_name": "悬疑推理",
+      "name": "不可靠叙述者",
+      "score": 88,
+      "description": "主角或旁白信息有限或误导",
+      "usage_timing": "关键反转"
+    },
+    {
+      "genre_slug": "mystery",
+      "genre_name": "悬疑推理",
+      "name": "时间线诡计",
+      "score": 85,
+      "description": "非线性叙事制造悬念",
+      "usage_timing": "中段使用"
+    },
+    {
+      "genre_slug": "transmigration",
+      "genre_name": "穿越重生",
+      "name": "系统绑定/任务驱动",
+      "score": 94,
+      "description": "系统发布任务，奖励能力",
+      "usage_timing": "第2-3集"
+    },
+    {
+      "genre_slug": "transmigration",
+      "genre_name": "穿越重生",
+      "name": "读心术/心声外泄",
+      "score": 91,
+      "description": "2025新趋势：全家偷听心声",
+      "usage_timing": "第5-10集"
+    },
+    {
+      "genre_slug": "transmigration",
+      "genre_name": "穿越重生",
+      "name": "现代知识降维",
+      "score": 88,
+      "description": "用现代知识在古代/过去取得优势",
+      "usage_timing": "贯穿全剧"
+    },
+    {
+      "genre_slug": "transmigration",
+      "genre_name": "穿越重生",
+      "name": "历史人物互动",
+      "score": 85,
+      "description": "与真实历史人物产生交集",
+      "usage_timing": "中段使用"
+    },
+    {
+      "genre_slug": "family",
+      "genre_name": "家庭伦理",
+      "name": "职场PUA/反PUA",
+      "score": 90,
+      "description": "职场不公与反抗",
+      "usage_timing": "第10-30集"
+    },
+    {
+      "genre_slug": "family",
+      "genre_name": "家庭伦理",
+      "name": "婆媳矛盾/和解",
+      "score": 88,
+      "description": "传统家庭冲突",
+      "usage_timing": "贯穿全剧"
+    },
+    {
+      "genre_slug": "family",
+      "genre_name": "家庭伦理",
+      "name": "重组家庭张力",
+      "score": 85,
+      "description": "继父母、继子女关系",
+      "usage_timing": "第15-40集"
+    },
+    {
+      "genre_slug": "family",
+      "genre_name": "家庭伦理",
+      "name": "养老困境",
+      "score": 82,
+      "description": "赡养老人引发的家庭矛盾",
+      "usage_timing": "第20-50集"
+    }
+  ]
+}

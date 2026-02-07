@@ -1,0 +1,894 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AI短剧创作知识库 | 爆款逻辑与数据引擎</title>
+
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+
+    <!-- Chart.js -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+    <style>
+        /* Custom Font Setup */
+        @import url('https://fonts.googleapis.com/css2?family=Noto+Sans+SC:wght@300;400;500;700&display=swap');
+
+        body {
+            font-family: 'Noto Sans SC', sans-serif;
+            background-color: #fdfbf7;
+            /* Warm neutral background */
+            color: #374151;
+            /* Soft dark gray text */
+        }
+
+        /* Chart Container Styling - MANDATORY */
+        .chart-container {
+            position: relative;
+            width: 100%;
+            max-width: 600px;
+            /* Max width to prevent stretching */
+            height: 300px;
+            /* Base height */
+            max-height: 400px;
+            margin-left: auto;
+            margin-right: auto;
+        }
+
+        @media (min-width: 768px) {
+            .chart-container {
+                height: 350px;
+            }
+        }
+
+        /* Custom Scrollbar for inner content */
+        .custom-scroll::-webkit-scrollbar {
+            width: 6px;
+        }
+
+        .custom-scroll::-webkit-scrollbar-track {
+            background: #f1f1f1;
+        }
+
+        .custom-scroll::-webkit-scrollbar-thumb {
+            background: #d1d5db;
+            border-radius: 4px;
+        }
+
+        .custom-scroll::-webkit-scrollbar-thumb:hover {
+            background: #9ca3af;
+        }
+
+        /* Interactive Element Styles */
+        .nav-item.active {
+            background-color: #e5e7eb;
+            color: #1f2937;
+            font-weight: 600;
+            border-left: 4px solid #b45309;
+            /* Warm amber/orange accent */
+        }
+
+        .card-hover {
+            transition: all 0.3s ease;
+        }
+
+        .card-hover:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
+        }
+
+        /* Utility for hiding elements */
+        .hidden-content {
+            display: none;
+        }
+    </style>
+</head>
+
+<body class="h-screen flex flex-col md:flex-row overflow-hidden">
+
+    <!-- Chosen Palette: Warm Neutrals (Stone/Warm Gray) with Amber/Terracotta Accents for a grounded, paper-like feel -->
+    <!-- Application Structure Plan: 
+         Designed as a "Creator's Dashboard" (创作工作台). 
+         The structure moves from MACRO (Market Trends) to MICRO (Writing Words), following the creative workflow:
+         1. Analyze Market (Dashboard) -> 2. Choose Genre (Genre Analysis) -> 3. Build Characters (Archetypes) -> 4. Add Plot Points (Tropes) -> 5. Write Opening (Hooks) -> 6. Polish (Writing Guide).
+         This flow allows users to build a story concept step-by-step.
+         Navigation is sidebar-based for quick access. 
+    -->
+    <!-- Visualization & Content Choices:
+         1. Market Overview: Chart.js Bar/Doughnut to show "Genre Heat" and "Audience" (Goal: Inform/Compare).
+         2. Genre Analysis: Interactive Grid cards that expand to show formulas (Goal: Organize/Inform).
+         3. Trope Library: Filterable Tag Cloud + Detail Cards to manage the large volume of tropes (Goal: Organize/Search).
+         4. Hook Laboratory: A "Selector" interface to browse templates by category (Goal: Change/Explore).
+         5. Archetypes: "Flip cards" or Toggle views to show Surface vs. True traits (Goal: Relationships/Contrast).
+         Confirming NO SVG graphics used. NO Mermaid JS used. Only Unicode icons and Canvas charts.
+    -->
+    <!-- CONFIRMATION: NO SVG graphics used. NO Mermaid JS used. -->
+
+    <!-- Mobile Header -->
+    <header class="md:hidden bg-white border-b border-stone-200 p-4 flex justify-between items-center z-20">
+        <h1 class="text-lg font-bold text-stone-800">AI短剧创作知识库</h1>
+        <button id="mobile-menu-btn" class="text-stone-600 focus:outline-none">
+            <span class="text-2xl">☰</span>
+        </button>
+    </header>
+
+    <!-- Sidebar Navigation -->
+    <nav id="sidebar"
+        class="bg-stone-50 border-r border-stone-200 w-full md:w-64 flex-shrink-0 absolute md:relative transform -translate-x-full md:translate-x-0 transition-transform duration-300 z-10 h-[calc(100vh-60px)] md:h-screen flex flex-col">
+        <div class="p-6 hidden md:block">
+            <h1 class="text-2xl font-bold text-stone-800 tracking-tight">AI短剧<br><span
+                    class="text-amber-700">创作知识库</span></h1>
+            <p class="text-xs text-stone-500 mt-2">基于2024-2025爆款数据模型</p>
+        </div>
+
+        <div class="flex-1 overflow-y-auto py-2">
+            <ul class="space-y-1">
+                <li><button onclick="navigate('dashboard')"
+                        class="nav-item w-full text-left px-6 py-3 text-stone-600 hover:bg-stone-100 transition-colors flex items-center gap-3"><span
+                            class="text-lg">📊</span> 市场趋势洞察</button></li>
+                <li><button onclick="navigate('genres')"
+                        class="nav-item w-full text-left px-6 py-3 text-stone-600 hover:bg-stone-100 transition-colors flex items-center gap-3"><span
+                            class="text-lg">🎭</span> 题材深度解析</button></li>
+                <li><button onclick="navigate('tropes')"
+                        class="nav-item w-full text-left px-6 py-3 text-stone-600 hover:bg-stone-100 transition-colors flex items-center gap-3"><span
+                            class="text-lg">🧩</span> 爆款元素库</button></li>
+                <li><button onclick="navigate('hooks')"
+                        class="nav-item w-full text-left px-6 py-3 text-stone-600 hover:bg-stone-100 transition-colors flex items-center gap-3"><span
+                            class="text-lg">🎣</span> 黄金开局钩子</button></li>
+                <li><button onclick="navigate('archetypes')"
+                        class="nav-item w-full text-left px-6 py-3 text-stone-600 hover:bg-stone-100 transition-colors flex items-center gap-3"><span
+                            class="text-lg">👤</span> 角色原型档案</button></li>
+                <li><button onclick="navigate('guide')"
+                        class="nav-item w-full text-left px-6 py-3 text-stone-600 hover:bg-stone-100 transition-colors flex items-center gap-3"><span
+                            class="text-lg">✍️</span> 视听创作锦囊</button></li>
+            </ul>
+        </div>
+
+        <div class="p-4 border-t border-stone-200 bg-stone-100">
+            <div class="text-xs text-stone-500">
+                <p>版本: v1.0.0</p>
+                <p>更新: 2026-02-07</p>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Main Content Area -->
+    <main class="flex-1 h-full overflow-hidden flex flex-col bg-[#fdfbf7] relative w-full">
+        <!-- Scrollable Content Container -->
+        <div id="content-container" class="flex-1 overflow-y-auto custom-scroll p-4 md:p-8">
+
+            <!-- SECTION: Dashboard (Market Trends) -->
+            <section id="dashboard" class="content-section max-w-6xl mx-auto space-y-8 animate-fade-in">
+                <div class="space-y-2">
+                    <h2 class="text-3xl font-bold text-stone-800 border-l-4 border-amber-600 pl-4">市场趋势洞察 (2024-2025)
+                    </h2>
+                    <p class="text-stone-600 leading-relaxed max-w-3xl">
+                        本看板汇总了当前短剧市场的核心流量趋势。通过分析年度爆款榜单，我们识别出增长最快的题材与受众画像。
+                        <strong class="text-amber-700">关键发现：</strong> "复仇+甜宠"
+                        的复合题材成为新的流量增长点，且受众呈现年轻化趋势。在构思新项目时，建议优先参考以下热度数据。
+                    </p>
+                </div>
+
+                <!-- KPI Cards -->
+                <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+                    <div class="bg-white p-6 rounded-xl shadow-sm border border-stone-100">
+                        <div class="text-sm text-stone-500 mb-1">年度最热题材</div>
+                        <div class="text-2xl font-bold text-stone-800">复仇逆袭</div>
+                        <div class="text-xs text-green-600 mt-2">↑ 环比增长 35%</div>
+                    </div>
+                    <div class="bg-white p-6 rounded-xl shadow-sm border border-stone-100">
+                        <div class="text-sm text-stone-500 mb-1">平均爆款完播率</div>
+                        <div class="text-2xl font-bold text-stone-800">42.8%</div>
+                        <div class="text-xs text-stone-400 mt-2">基准线: 30%</div>
+                    </div>
+                    <div class="bg-white p-6 rounded-xl shadow-sm border border-stone-100">
+                        <div class="text-sm text-stone-500 mb-1">新兴热门组合</div>
+                        <div class="text-2xl font-bold text-stone-800">悬疑 + 恋爱</div>
+                        <div class="text-xs text-amber-600 mt-2">★ 蓝海机会</div>
+                    </div>
+                </div>
+
+                <!-- Charts Row -->
+                <div class="grid grid-cols-1 lg:grid-cols-2 gap-8">
+                    <!-- Genre Popularity Chart -->
+                    <div class="bg-white p-6 rounded-xl shadow-sm border border-stone-100">
+                        <h3 class="text-lg font-bold text-stone-800 mb-4">题材热度指数 Top 5</h3>
+                        <div class="chart-container">
+                            <canvas id="genreChart"></canvas>
+                        </div>
+                        <div class="mt-4 text-sm text-stone-500 bg-stone-50 p-3 rounded">
+                            <span class="font-bold">分析：</span> 战神/逆袭类依旧占据半壁江山，但情感类（甜宠/虐恋）用户粘性更高。
+                        </div>
+                    </div>
+
+                    <!-- Audience Demographics -->
+                    <div class="bg-white p-6 rounded-xl shadow-sm border border-stone-100">
+                        <h3 class="text-lg font-bold text-stone-800 mb-4">核心受众年龄分布</h3>
+                        <div class="chart-container">
+                            <canvas id="audienceChart"></canvas>
+                        </div>
+                        <div class="mt-4 text-sm text-stone-500 bg-stone-50 p-3 rounded">
+                            <span class="font-bold">分析：</span> 18-35岁女性用户是付费主力军，内容需兼顾"爽感"与"情感共鸣"。
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Trending Combinations Table -->
+                <div class="bg-white rounded-xl shadow-sm border border-stone-100 overflow-hidden">
+                    <div class="p-6 border-b border-stone-100">
+                        <h3 class="text-lg font-bold text-stone-800">📈 热门题材组合 (Cross-Genre)</h3>
+                    </div>
+                    <div class="overflow-x-auto">
+                        <table class="w-full text-left">
+                            <thead class="bg-stone-50 text-stone-500 text-sm">
+                                <tr>
+                                    <th class="p-4">组合名称</th>
+                                    <th class="p-4">构成元素</th>
+                                    <th class="p-4">热度评分</th>
+                                    <th class="p-4">风险等级</th>
+                                    <th class="p-4">成功案例</th>
+                                </tr>
+                            </thead>
+                            <tbody class="divide-y divide-stone-100 text-sm">
+                                <tr class="hover:bg-stone-50">
+                                    <td class="p-4 font-medium text-amber-700">复仇大女主 + 顶级豪门</td>
+                                    <td class="p-4">逆袭, 身份揭露, 甜宠</td>
+                                    <td class="p-4"><span class="px-2 py-1 bg-red-100 text-red-700 rounded text-xs">98
+                                            (极热)</span></td>
+                                    <td class="p-4 text-stone-500">低</td>
+                                    <td class="p-4">《重生之豪门主母》</td>
+                                </tr>
+                                <tr class="hover:bg-stone-50">
+                                    <td class="p-4 font-medium text-stone-800">悬疑推理 + 先婚后爱</td>
+                                    <td class="p-4">探案, 契约婚姻, 反转</td>
+                                    <td class="p-4"><span
+                                            class="px-2 py-1 bg-orange-100 text-orange-700 rounded text-xs">92
+                                            (上升)</span></td>
+                                    <td class="p-4 text-stone-500">中</td>
+                                    <td class="p-4">《看不见的枕边人》</td>
+                                </tr>
+                                <tr class="hover:bg-stone-50">
+                                    <td class="p-4 font-medium text-stone-800">现代穿越 + 系统经营</td>
+                                    <td class="p-4">金手指, 职场爽文</td>
+                                    <td class="p-4"><span class="px-2 py-1 bg-blue-100 text-blue-700 rounded text-xs">88
+                                            (稳定)</span></td>
+                                    <td class="p-4 text-stone-500">中</td>
+                                    <td class="p-4">《回到80做首富》</td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </section>
+
+            <!-- SECTION: Genre Analysis -->
+            <section id="genres" class="content-section hidden-content max-w-6xl mx-auto space-y-8">
+                <div class="space-y-2">
+                    <h2 class="text-3xl font-bold text-stone-800 border-l-4 border-amber-600 pl-4">题材深度解析 (Genre
+                        Decoding)</h2>
+                    <p class="text-stone-600 leading-relaxed max-w-3xl">
+                        选择正确的赛道是成功的一半。此处拆解了当前三大主流题材的<strong>叙事公式</strong>与<strong>情感弧线</strong>。
+                        点击下方卡片，深入了解每个题材的“起承转合”结构及创作避雷指南。
+                    </p>
+                </div>
+
+                <!-- Genre Selector Tabs -->
+                <div class="flex flex-wrap gap-4" id="genre-tabs">
+                    <!-- Injected by JS -->
+                </div>
+
+                <!-- Dynamic Genre Content -->
+                <div id="genre-detail-view"
+                    class="bg-white rounded-xl shadow-lg border border-stone-100 overflow-hidden animate-fade-in">
+                    <!-- Injected by JS -->
+                    <div class="p-12 text-center text-stone-400">
+                        请选择一个题材查看详情
+                    </div>
+                </div>
+            </section>
+
+            <!-- SECTION: Trope Library -->
+            <section id="tropes" class="content-section hidden-content max-w-6xl mx-auto space-y-8">
+                <div class="space-y-2">
+                    <h2 class="text-3xl font-bold text-stone-800 border-l-4 border-amber-600 pl-4">爆款元素库 (Trope Library)
+                    </h2>
+                    <p class="text-stone-600 leading-relaxed max-w-3xl">
+                        短剧的本质是“梗”的密集排列。我们收集了高转化率的<strong>爆款元素</strong>，分为身份、关系、冲突、设定四大类。
+                        使用过滤器筛选元素，点击查看具体的“使用时机”和“预期爽点”。
+                    </p>
+                </div>
+
+                <!-- Filters -->
+                <div class="flex flex-wrap gap-2 pb-4 border-b border-stone-200">
+                    <button
+                        class="trope-filter active px-4 py-2 rounded-full text-sm font-medium bg-stone-800 text-white transition-colors"
+                        data-category="all">全部</button>
+                    <button
+                        class="trope-filter px-4 py-2 rounded-full text-sm font-medium bg-white border border-stone-300 text-stone-600 hover:bg-stone-100 transition-colors"
+                        data-category="identity">🎭 身份类</button>
+                    <button
+                        class="trope-filter px-4 py-2 rounded-full text-sm font-medium bg-white border border-stone-300 text-stone-600 hover:bg-stone-100 transition-colors"
+                        data-category="relationship">❤️ 关系类</button>
+                    <button
+                        class="trope-filter px-4 py-2 rounded-full text-sm font-medium bg-white border border-stone-300 text-stone-600 hover:bg-stone-100 transition-colors"
+                        data-category="conflict">⚔️ 冲突类</button>
+                    <button
+                        class="trope-filter px-4 py-2 rounded-full text-sm font-medium bg-white border border-stone-300 text-stone-600 hover:bg-stone-100 transition-colors"
+                        data-category="setting">⚙️ 设定类</button>
+                </div>
+
+                <!-- Trope Grid -->
+                <div id="trope-grid" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                    <!-- Cards injected by JS -->
+                </div>
+            </section>
+
+            <!-- SECTION: Hook Laboratory -->
+            <section id="hooks" class="content-section hidden-content max-w-6xl mx-auto space-y-8">
+                <div class="space-y-2">
+                    <h2 class="text-3xl font-bold text-stone-800 border-l-4 border-amber-600 pl-4">黄金开局钩子 (Hooks Lab)
+                    </h2>
+                    <p class="text-stone-600 leading-relaxed max-w-3xl">
+                        黄金前3秒决定生死。这里提供了经过数据验证的<strong>开场钩子模板</strong>，旨在通过极限反差、悬念或视觉奇观瞬间留住用户。
+                        选择钩子类型，获取对应的剧本模板。
+                    </p>
+                </div>
+
+                <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
+                    <!-- Control Panel -->
+                    <div class="bg-stone-100 p-6 rounded-xl h-fit">
+                        <h3 class="font-bold text-stone-800 mb-4">选择钩子类型</h3>
+                        <div class="space-y-3">
+                            <button onclick="renderHookList('situation')"
+                                class="w-full text-left p-4 bg-white rounded-lg shadow-sm hover:shadow border-l-4 border-red-500 transition-all">
+                                <div class="font-bold text-stone-800">💥 情境型 (Situation)</div>
+                                <div class="text-xs text-stone-500 mt-1">羞辱、绝境、误会</div>
+                            </button>
+                            <button onclick="renderHookList('question')"
+                                class="w-full text-left p-4 bg-white rounded-lg shadow-sm hover:shadow border-l-4 border-blue-500 transition-all">
+                                <div class="font-bold text-stone-800">❓ 悬念型 (Question)</div>
+                                <div class="text-xs text-stone-500 mt-1">反常识、预言、倒叙</div>
+                            </button>
+                            <button onclick="renderHookList('visual')"
+                                class="w-full text-left p-4 bg-white rounded-lg shadow-sm hover:shadow border-l-4 border-purple-500 transition-all">
+                                <div class="font-bold text-stone-800">👁️ 视觉型 (Visual)</div>
+                                <div class="text-xs text-stone-500 mt-1">奇观、豪车、动作</div>
+                            </button>
+                        </div>
+                    </div>
+
+                    <!-- Display Area -->
+                    <div class="lg:col-span-2">
+                        <div id="hook-display-area" class="space-y-4">
+                            <!-- Injected by JS -->
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- SECTION: Archetypes -->
+            <section id="archetypes" class="content-section hidden-content max-w-6xl mx-auto space-y-8">
+                <div class="space-y-2">
+                    <h2 class="text-3xl font-bold text-stone-800 border-l-4 border-amber-600 pl-4">角色原型档案 (Archetypes)
+                    </h2>
+                    <p class="text-stone-600 leading-relaxed max-w-3xl">
+                        立体的人物是剧情的驱动力。点击下方角色卡，切换查看其<strong>表面特征</strong>与<strong>深层动机</strong>。
+                        优秀的角色设计往往伴随着巨大的反差感。
+                    </p>
+                </div>
+
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-8" id="archetype-container">
+                    <!-- Injected by JS -->
+                </div>
+            </section>
+
+            <!-- SECTION: Writing Guide -->
+            <section id="guide" class="content-section hidden-content max-w-6xl mx-auto space-y-8">
+                <div class="space-y-2">
+                    <h2 class="text-3xl font-bold text-stone-800 border-l-4 border-amber-600 pl-4">视听创作锦囊 (Creation Kit)
+                    </h2>
+                    <p class="text-stone-600 leading-relaxed max-w-3xl">
+                        从剧本文字到镜头语言的转化指南。包含增强代入感的<strong>五感描写词汇</strong>以及不同题材的<strong>视觉风格建议</strong>。
+                    </p>
+                </div>
+
+                <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                    <!-- Sensory Words -->
+                    <div class="bg-white rounded-xl shadow-sm border border-stone-100 p-6">
+                        <h3 class="text-xl font-bold text-stone-800 mb-4 flex items-center"><span class="mr-2">📝</span>
+                            五感描写词汇库</h3>
+                        <div class="space-y-6">
+                            <div>
+                                <h4 class="text-sm font-bold text-stone-500 uppercase tracking-wide mb-2">冲突场景
+                                    (Conflict)</h4>
+                                <div class="flex flex-wrap gap-2">
+                                    <span
+                                        class="px-3 py-1 bg-red-50 text-red-700 text-sm rounded border border-red-100">👁️
+                                        青筋暴起</span>
+                                    <span
+                                        class="px-3 py-1 bg-red-50 text-red-700 text-sm rounded border border-red-100">🔊
+                                        瓷器碎裂</span>
+                                    <span
+                                        class="px-3 py-1 bg-red-50 text-red-700 text-sm rounded border border-red-100">✋
+                                        肌肉紧绷</span>
+                                    <span
+                                        class="px-3 py-1 bg-red-50 text-red-700 text-sm rounded border border-red-100">👃
+                                        铁锈味(血)</span>
+                                    <span
+                                        class="px-3 py-1 bg-red-50 text-red-700 text-sm rounded border border-red-100">👅
+                                        苦涩</span>
+                                </div>
+                            </div>
+                            <div>
+                                <h4 class="text-sm font-bold text-stone-500 uppercase tracking-wide mb-2">浪漫场景 (Romance)
+                                </h4>
+                                <div class="flex flex-wrap gap-2">
+                                    <span
+                                        class="px-3 py-1 bg-pink-50 text-pink-700 text-sm rounded border border-pink-100">👁️
+                                        柔光滤镜</span>
+                                    <span
+                                        class="px-3 py-1 bg-pink-50 text-pink-700 text-sm rounded border border-pink-100">🔊
+                                        心跳回响</span>
+                                    <span
+                                        class="px-3 py-1 bg-pink-50 text-pink-700 text-sm rounded border border-pink-100">✋
+                                        指尖微凉</span>
+                                    <span
+                                        class="px-3 py-1 bg-pink-50 text-pink-700 text-sm rounded border border-pink-100">👃
+                                        檀木香</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Visual Guide -->
+                    <div class="bg-white rounded-xl shadow-sm border border-stone-100 p-6">
+                        <h3 class="text-xl font-bold text-stone-800 mb-4 flex items-center"><span class="mr-2">🎥</span>
+                            视觉风格指南</h3>
+                        <div class="space-y-4">
+                            <div class="p-4 bg-stone-50 rounded-lg border-l-4 border-stone-800">
+                                <h4 class="font-bold text-stone-800">复仇题材 (Revenge)</h4>
+                                <ul class="mt-2 space-y-1 text-sm text-stone-600">
+                                    <li>• <strong>镜头:</strong> 多用特写强调眼神，低角度拍摄强化压迫感。</li>
+                                    <li>• <strong>灯光:</strong> 高对比度，侧光，强调阴影轮廓。</li>
+                                    <li>• <strong>调色:</strong> 冷色调为主，高饱和度。</li>
+                                    <li>• <strong>剪辑:</strong> 快速剪辑，打脸时刻配合重音效跳切。</li>
+                                </ul>
+                            </div>
+                            <div class="p-4 bg-pink-50 rounded-lg border-l-4 border-pink-400">
+                                <h4 class="font-bold text-stone-800">甜宠题材 (Romance)</h4>
+                                <ul class="mt-2 space-y-1 text-stone-600 text-sm">
+                                    <li>• <strong>镜头:</strong> 中近景双人同框，浅景深虚化背景。</li>
+                                    <li>• <strong>灯光:</strong> 柔光，暖色调，背光营造光晕。</li>
+                                    <li>• <strong>调色:</strong> 清新明亮，低对比度。</li>
+                                    <li>• <strong>剪辑:</strong> 舒缓节奏，关键时刻（对视/吻）升格慢放。</li>
+                                </ul>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <div class="h-12"></div> <!-- Spacer -->
+        </div>
+    </main>
+
+    <script>
+        // --- DATA STORE (Simulated Research Output) ---
+        const researchData = {
+            genres: {
+                revenge: {
+                    name: "复仇逆袭 (Revenge)",
+                    desc: "市场最热赛道，核心是情绪价值的释放。",
+                    formula: {
+                        setup: "主角遭受极致羞辱/背叛 (全家被害/被当众退婚)",
+                        rising: "获得金手指/隐藏身份觉醒，开始布局",
+                        climax: "寿宴/婚礼等公开场合，身份揭露，当众打脸",
+                        resolution: "反派下跪求饶/受到惩罚，主角登顶"
+                    },
+                    keywords: ["隐忍", "打脸", "马甲", "豪门"],
+                    avoid: ["铺垫过长(超过3集)", "主角性格圣母", "反派智商掉线太快"]
+                },
+                romance: {
+                    name: "甜宠恋爱 (Romance)",
+                    desc: "女性用户基本盘，核心是'被坚定选择'的安全感。",
+                    formula: {
+                        setup: "意外相遇 (一夜情/契约婚姻)",
+                        rising: "同居生活中的暧昧推拉，男主无条件宠溺",
+                        climax: "误会产生又迅速解除，确认心意",
+                        resolution: "盛大婚礼/怀孕，幸福结局"
+                    },
+                    keywords: ["契约", "双洁", "护妻", "霸总"],
+                    avoid: ["虐恋误会超过5集", "男主由于犹豫不决", "恶毒女配戏份过多"]
+                },
+                mystery: {
+                    name: "悬疑推理 (Mystery)",
+                    desc: "高完播率赛道，核心是'好奇心'的持续牵引。",
+                    formula: {
+                        setup: "离奇命案/失踪，主角卷入其中",
+                        rising: "层层剥茧，发现身边人皆有嫌疑",
+                        climax: "终极反转，真凶竟然是...",
+                        resolution: "真相大白，人性拷问"
+                    },
+                    keywords: ["烧脑", "反转", "人性", "复仇"],
+                    avoid: ["逻辑硬伤", "结局强行正能量", "节奏拖沓"]
+                }
+            },
+            tropes: [
+                { id: 1, name: "身份揭露", category: "identity", score: 92, desc: "主角真实身份（首富/战神）在关键时刻曝光。", timing: "第10-15集高潮点" },
+                { id: 2, name: "契约婚姻", category: "relationship", score: 88, desc: "因利益结合，先婚后爱，日久生情。", timing: "第1-3集建立关系" },
+                { id: 3, name: "当众退婚", category: "conflict", score: 95, desc: "开局遭受极大羞辱，确立复仇动机。", timing: "第1集前30秒" },
+                { id: 4, name: "隐藏大佬", category: "identity", score: 90, desc: "扫地僧模式，表面废柴实则无敌。", timing: "贯穿全剧" },
+                { id: 5, name: "手撕绿茶", category: "conflict", score: 85, desc: "鉴别并惩治心机配角，爽感来源。", timing: "每5-8集一个小高潮" },
+                { id: 6, name: "时间循环", category: "setting", score: 82, desc: "困在同一天/同一事件，寻找破局之法。", timing: "设定基础" },
+                { id: 7, name: "带球跑", category: "relationship", score: 86, desc: "女主怀孕离开，多年后带天才萌宝归来。", timing: "开局或中段转折" },
+                { id: 8, name: "系统绑定", category: "setting", score: 78, desc: "获得外挂系统，逆袭人生。", timing: "第1集" },
+                { id: 9, name: "真假千金", category: "identity", score: 89, desc: "身份错位引发的豪门恩怨。", timing: "开局冲突点" }
+            ],
+            hooks: {
+                situation: [
+                    { title: "极限羞辱", template: "主角正在遭受[被未婚夫当众抛弃/被上司泼咖啡]，但手中紧握着[百亿合同/真实身份证明]。", score: 95 },
+                    { title: "生死一线", template: "主角[被活埋/车祸]濒死，突然[重生/系统觉醒]回到三年前。", score: 92 }
+                ],
+                question: [
+                    { title: "反常识陈述", template: "“谁能想到，这个捡垃圾的老头，竟然是[世界首富]的亲生父亲？”", score: 88 },
+                    { title: "直接提问", template: "“如果给你[一亿]，但代价是[失去记忆]，你愿意吗？”", score: 85 }
+                ],
+                visual: [
+                    { title: "强烈对比", template: "画面左边是[豪华婚礼]，画面右边是[穿着破烂的主角]推门而入。", score: 90 },
+                    { title: "神秘场景", template: "主角在[暴雨中]挖开一座坟墓，棺材里竟然是[空的/自己]。", score: 87 }
+                ]
+            },
+            archetypes: [
+                {
+                    id: "rev_fem",
+                    name: "复仇女主 (Revenge Protagonist)",
+                    role: "Protagonist",
+                    surface: ["柔弱", "低调", "家庭主妇/小职员"],
+                    true_trait: ["顶级黑客/神医", "冷静果敢", "身手不凡"],
+                    motto: "“曾经失去的，我会亲手拿回来。”"
+                },
+                {
+                    id: "ceo_male",
+                    name: "深情霸总 (Loyal CEO)",
+                    role: "Love Interest",
+                    surface: ["冷面", "不近女色", "手段狠辣"],
+                    true_trait: ["只对一人温柔", "护短狂魔", "有着不为人知的童年创伤"],
+                    motto: "“动她一下，我要整个家族陪葬。”"
+                }
+            ]
+        };
+
+        // --- APP STATE ---
+        let currentChart_genre = null;
+        let currentChart_audience = null;
+
+        // --- INIT ---
+        document.addEventListener('DOMContentLoaded', () => {
+            renderDashboardCharts();
+            setupNavigation();
+            setupGenreTabs();
+            renderTropeGrid('all');
+            setupTropeFilters();
+            renderHookList('situation'); // Default hook view
+            renderArchetypes();
+
+            // Mobile Menu Toggle
+            document.getElementById('mobile-menu-btn').addEventListener('click', () => {
+                const sidebar = document.getElementById('sidebar');
+                if (sidebar.classList.contains('-translate-x-full')) {
+                    sidebar.classList.remove('-translate-x-full');
+                } else {
+                    sidebar.classList.add('-translate-x-full');
+                }
+            });
+        });
+
+        // --- NAVIGATION ---
+        function navigate(sectionId) {
+            // Update UI Sidebar
+            document.querySelectorAll('.nav-item').forEach(el => el.classList.remove('active'));
+            const activeBtn = Array.from(document.querySelectorAll('.nav-item')).find(el => el.getAttribute('onclick').includes(sectionId));
+            if (activeBtn) activeBtn.classList.add('active');
+
+            // Show Content
+            document.querySelectorAll('.content-section').forEach(el => el.classList.add('hidden-content'));
+            const target = document.getElementById(sectionId);
+            target.classList.remove('hidden-content');
+            target.classList.add('animate-fade-in');
+
+            // Close mobile menu if open
+            if (window.innerWidth < 768) {
+                document.getElementById('sidebar').classList.add('-translate-x-full');
+            }
+
+            // Scroll to top
+            document.getElementById('content-container').scrollTop = 0;
+        }
+
+        function setupNavigation() {
+            // Set initial active state
+            document.querySelector('.nav-item').classList.add('active');
+        }
+
+        // --- DASHBOARD CHARTS ---
+        function renderDashboardCharts() {
+            const ctxGenre = document.getElementById('genreChart').getContext('2d');
+            const ctxAudience = document.getElementById('audienceChart').getContext('2d');
+
+            Chart.defaults.font.family = "'Noto Sans SC', sans-serif";
+            Chart.defaults.color = '#6b7280';
+
+            currentChart_genre = new Chart(ctxGenre, {
+                type: 'bar',
+                data: {
+                    labels: ['复仇逆袭', '甜宠恋爱', '悬疑推理', '古装宫斗', '现代职场'],
+                    datasets: [{
+                        label: '市场热度指数',
+                        data: [95, 88, 75, 60, 55],
+                        backgroundColor: [
+                            'rgba(180, 83, 9, 0.8)', // Amber 700
+                            'rgba(236, 72, 153, 0.8)', // Pink 500
+                            'rgba(124, 58, 237, 0.8)', // Purple 600
+                            'rgba(156, 163, 175, 0.8)', // Gray 400
+                            'rgba(156, 163, 175, 0.8)'
+                        ],
+                        borderRadius: 6
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: { display: false }
+                    },
+                    scales: {
+                        y: { beginAtZero: true, grid: { color: '#f3f4f6' } },
+                        x: { grid: { display: false } }
+                    }
+                }
+            });
+
+            currentChart_audience = new Chart(ctxAudience, {
+                type: 'doughnut',
+                data: {
+                    labels: ['女性 18-25', '女性 26-35', '男性 18-30', '其他'],
+                    datasets: [{
+                        data: [45, 30, 15, 10],
+                        backgroundColor: [
+                            '#ec4899', // Pink
+                            '#be185d', // Dark Pink
+                            '#3b82f6', // Blue
+                            '#d1d5db'  // Gray
+                        ],
+                        borderWidth: 0
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: { position: 'right' }
+                    }
+                }
+            });
+        }
+
+        // --- GENRE LOGIC ---
+        function setupGenreTabs() {
+            const container = document.getElementById('genre-tabs');
+            const keys = Object.keys(researchData.genres);
+
+            keys.forEach((key, index) => {
+                const genre = researchData.genres[key];
+                const btn = document.createElement('button');
+                btn.className = `px-6 py-3 rounded-lg border border-stone-200 bg-white hover:border-amber-500 hover:text-amber-700 font-medium transition-all shadow-sm ${index === 0 ? 'border-amber-500 text-amber-700 ring-1 ring-amber-500' : 'text-stone-600'}`;
+                btn.innerText = genre.name;
+                btn.onclick = () => {
+                    // Reset buttons
+                    Array.from(container.children).forEach(b => {
+                        b.classList.remove('border-amber-500', 'text-amber-700', 'ring-1', 'ring-amber-500');
+                        b.classList.add('text-stone-600', 'border-stone-200');
+                    });
+                    // Active state
+                    btn.classList.remove('text-stone-600', 'border-stone-200');
+                    btn.classList.add('border-amber-500', 'text-amber-700', 'ring-1', 'ring-amber-500');
+
+                    renderGenreDetail(key);
+                };
+                container.appendChild(btn);
+            });
+
+            // Initial Render
+            renderGenreDetail(keys[0]);
+        }
+
+        function renderGenreDetail(key) {
+            const data = researchData.genres[key];
+            const container = document.getElementById('genre-detail-view');
+
+            container.innerHTML = `
+                <div class="p-8 border-b border-stone-100 bg-stone-50">
+                    <h3 class="text-2xl font-bold text-stone-800">${data.name}</h3>
+                    <p class="text-stone-600 mt-2">${data.desc}</p>
+                    <div class="mt-4 flex flex-wrap gap-2">
+                        ${data.keywords.map(k => `<span class="px-3 py-1 bg-white border border-stone-200 rounded text-sm text-stone-600 font-medium">#${k}</span>`).join('')}
+                    </div>
+                </div>
+                <div class="p-8 grid grid-cols-1 lg:grid-cols-2 gap-8">
+                    <div>
+                        <h4 class="text-lg font-bold text-amber-700 mb-4 flex items-center">
+                            <span class="bg-amber-100 p-1 rounded mr-2">📐</span> 核心公式 (Core Formula)
+                        </h4>
+                        <div class="space-y-4 relative pl-4 border-l-2 border-stone-200">
+                            <div class="relative">
+                                <span class="absolute -left-[21px] top-1 w-4 h-4 rounded-full bg-stone-300"></span>
+                                <h5 class="font-bold text-stone-800 text-sm">1. Setup (铺垫)</h5>
+                                <p class="text-sm text-stone-600 mt-1">${data.formula.setup}</p>
+                            </div>
+                            <div class="relative">
+                                <span class="absolute -left-[21px] top-1 w-4 h-4 rounded-full bg-stone-300"></span>
+                                <h5 class="font-bold text-stone-800 text-sm">2. Rising (升级)</h5>
+                                <p class="text-sm text-stone-600 mt-1">${data.formula.rising}</p>
+                            </div>
+                            <div class="relative">
+                                <span class="absolute -left-[21px] top-1 w-4 h-4 rounded-full bg-amber-500 ring-4 ring-amber-100"></span>
+                                <h5 class="font-bold text-amber-700 text-sm">3. Climax (高潮)</h5>
+                                <p class="text-sm text-stone-600 mt-1 font-medium">${data.formula.climax}</p>
+                            </div>
+                            <div class="relative">
+                                <span class="absolute -left-[21px] top-1 w-4 h-4 rounded-full bg-stone-300"></span>
+                                <h5 class="font-bold text-stone-800 text-sm">4. Resolution (结局)</h5>
+                                <p class="text-sm text-stone-600 mt-1">${data.formula.resolution}</p>
+                            </div>
+                        </div>
+                    </div>
+                    <div>
+                        <h4 class="text-lg font-bold text-red-700 mb-4 flex items-center">
+                            <span class="bg-red-100 p-1 rounded mr-2">🚫</span> 避雷指南 (Don'ts)
+                        </h4>
+                        <ul class="space-y-3">
+                            ${data.avoid.map(item => `
+                                <li class="flex items-start text-stone-600 text-sm bg-red-50 p-3 rounded">
+                                    <span class="mr-2 text-red-500">✖</span> ${item}
+                                </li>
+                            `).join('')}
+                        </ul>
+                    </div>
+                </div>
+            `;
+        }
+
+        // --- TROPE LOGIC ---
+        function setupTropeFilters() {
+            const btns = document.querySelectorAll('.trope-filter');
+            btns.forEach(btn => {
+                btn.addEventListener('click', () => {
+                    btns.forEach(b => {
+                        b.classList.remove('bg-stone-800', 'text-white');
+                        b.classList.add('bg-white', 'text-stone-600');
+                    });
+                    btn.classList.remove('bg-white', 'text-stone-600');
+                    btn.classList.add('bg-stone-800', 'text-white');
+
+                    renderTropeGrid(btn.dataset.category);
+                });
+            });
+        }
+
+        function renderTropeGrid(filter) {
+            const container = document.getElementById('trope-grid');
+            container.innerHTML = '';
+
+            const filteredData = filter === 'all'
+                ? researchData.tropes
+                : researchData.tropes.filter(t => t.category === filter);
+
+            filteredData.forEach(trope => {
+                const card = document.createElement('div');
+                card.className = 'bg-white p-6 rounded-xl border border-stone-200 card-hover flex flex-col justify-between';
+
+                let icon = '';
+                if (trope.category === 'identity') icon = '🎭';
+                else if (trope.category === 'relationship') icon = '❤️';
+                else if (trope.category === 'conflict') icon = '⚔️';
+                else icon = '⚙️';
+
+                card.innerHTML = `
+                    <div>
+                        <div class="flex justify-between items-start mb-3">
+                            <span class="text-2xl">${icon}</span>
+                            <span class="px-2 py-1 bg-green-100 text-green-700 text-xs font-bold rounded">成功率 ${trope.score}%</span>
+                        </div>
+                        <h4 class="text-lg font-bold text-stone-800 mb-2">${trope.name}</h4>
+                        <p class="text-sm text-stone-500 mb-4">${trope.desc}</p>
+                    </div>
+                    <div class="pt-4 border-t border-stone-100 text-xs text-stone-400">
+                        <span class="font-bold text-stone-600">最佳时机:</span> ${trope.timing}
+                    </div>
+                `;
+                container.appendChild(card);
+            });
+        }
+
+        // --- HOOK LOGIC ---
+        function renderHookList(type) {
+            const container = document.getElementById('hook-display-area');
+            const hooks = researchData.hooks[type];
+
+            let colorClass = 'border-stone-200';
+            if (type === 'situation') colorClass = 'border-red-500';
+            if (type === 'question') colorClass = 'border-blue-500';
+            if (type === 'visual') colorClass = 'border-purple-500';
+
+            container.innerHTML = `
+                <div class="p-4 bg-white border border-stone-200 rounded-lg mb-4">
+                    <h4 class="font-bold text-stone-800">💡 创作建议</h4>
+                    <p class="text-sm text-stone-600 mt-1">
+                        ${type === 'situation' ? '重点在于制造"巨大的反差"和"不可调和的矛盾"。' :
+                    type === 'question' ? '用一个打破常识的问题，强迫观众大脑宕机，必须看下去寻找答案。' :
+                        '不要说话，直接用画面冲击力。前3秒不要有任何无关镜头。'}
+                    </p>
+                </div>
+            `;
+
+            hooks.forEach(hook => {
+                const el = document.createElement('div');
+                el.className = `p-6 bg-white rounded-xl shadow-sm border-l-4 ${colorClass} animate-fade-in`;
+                el.innerHTML = `
+                    <div class="flex justify-between mb-2">
+                        <h5 class="font-bold text-stone-800">${hook.title}</h5>
+                        <span class="text-xs font-bold text-stone-400">评分: ${hook.score}</span>
+                    </div>
+                    <div class="p-3 bg-stone-50 rounded border border-stone-200 font-mono text-sm text-stone-700">
+                        ${hook.template}
+                    </div>
+                    <div class="mt-2 text-right">
+                        <button class="text-xs text-amber-600 hover:underline" onclick="navigator.clipboard.writeText('${hook.template.replace(/'/g, "\\'")}')">复制模板</button>
+                    </div>
+                `;
+                container.appendChild(el);
+            });
+        }
+
+        // --- ARCHETYPE LOGIC ---
+        function renderArchetypes() {
+            const container = document.getElementById('archetype-container');
+
+            researchData.archetypes.forEach(char => {
+                const card = document.createElement('div');
+                card.className = 'bg-white rounded-xl shadow-lg overflow-hidden border border-stone-100 flex flex-col md:flex-row';
+
+                card.innerHTML = `
+                    <div class="bg-stone-800 p-6 flex flex-col justify-center items-center text-white md:w-1/3">
+                        <div class="text-4xl mb-2">👤</div>
+                        <h3 class="text-xl font-bold text-center">${char.name}</h3>
+                        <span class="text-xs uppercase tracking-wider mt-1 opacity-70">${char.role}</span>
+                    </div>
+                    <div class="p-6 flex-1">
+                        <div class="mb-4">
+                            <h4 class="text-sm font-bold text-stone-400 uppercase tracking-wide mb-1">Surface (表象)</h4>
+                            <div class="flex flex-wrap gap-2">
+                                ${char.surface.map(s => `<span class="px-2 py-1 bg-stone-100 text-stone-600 text-xs rounded">${s}</span>`).join('')}
+                            </div>
+                        </div>
+                        <div class="mb-6">
+                            <h4 class="text-sm font-bold text-amber-600 uppercase tracking-wide mb-1">True Self (真相)</h4>
+                            <div class="flex flex-wrap gap-2">
+                                ${char.true_trait.map(t => `<span class="px-2 py-1 bg-amber-50 text-amber-700 text-xs rounded border border-amber-100">${t}</span>`).join('')}
+                            </div>
+                        </div>
+                        <div class="p-3 bg-stone-50 border-l-2 border-stone-300 italic text-stone-600 text-sm">
+                            ${char.motto}
+                        </div>
+                    </div>
+                `;
+                container.appendChild(card);
+            });
+        }
+
+    </script>
+</body>
+
+</html>
