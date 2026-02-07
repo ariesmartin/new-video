@@ -10,6 +10,20 @@ from langgraph.prebuilt import create_react_agent
 from backend.services.model_router import get_model_router
 from backend.services.market_analysis import get_market_analysis_service
 from backend.schemas.model_config import TaskType
+
+# ✅ 使用 Skills
+from backend.skills.theme_library import (
+    load_genre_context,
+    get_tropes,
+    get_hooks,
+    get_character_archetypes,
+    get_writing_keywords,
+)
+from backend.skills.writing_assistant import (
+    get_sensory_guide,
+    get_pacing_rules,
+    get_trending_combinations,
+)
 import structlog
 
 logger = structlog.get_logger(__name__)
@@ -164,10 +178,21 @@ async def create_story_planner_agent(
         user_id=user_id, task_type=TaskType.STORY_PLANNER, project_id=project_id
     )
 
-    # 3. 创建 Agent（注入市场报告和剧集配置到 Prompt）
+    # 3. 创建 Agent（使用 Skills）
     agent = create_react_agent(
         model=model,
-        tools=[],  # Story Planner 是纯创作任务，不需要工具
+        tools=[
+            # ✅ Theme Library Skills
+            load_genre_context,  # 加载题材上下文
+            get_tropes,  # 获取推荐元素
+            get_hooks,  # 获取钩子模板
+            get_character_archetypes,  # 获取角色原型
+            get_writing_keywords,  # 获取写作关键词
+            # ✅ Writing Assistant Skills
+            get_sensory_guide,  # 获取五感指导
+            get_pacing_rules,  # 获取节奏规则
+            get_trending_combinations,  # 获取热门组合
+        ],
         prompt=_load_story_planner_prompt(
             market_report=market_report,
             episode_count=episode_count,

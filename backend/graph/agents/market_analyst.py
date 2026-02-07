@@ -8,7 +8,15 @@ from pathlib import Path
 from langgraph.prebuilt import create_react_agent
 from backend.services.model_router import get_model_router
 from backend.schemas.model_config import TaskType
-from backend.tools import duckduckgo_search, metaso_search
+
+# ✅ 使用 Skills 替代直接调用 Tools
+from backend.skills.theme_library import (
+    load_genre_context,
+    get_tropes,
+    get_hooks,
+    get_character_archetypes,
+    get_market_trends,
+)
 import structlog
 
 logger = structlog.get_logger(__name__)
@@ -56,10 +64,16 @@ async def create_market_analyst_agent(user_id: str, project_id: str = None):
         user_id=user_id, task_type=TaskType.MARKET_ANALYST, project_id=project_id
     )
 
-    # 创建 Agent - 使用 create_react_agent
+    # 创建 Agent - 使用 Skills 替代直接 Tools
     agent = create_react_agent(
         model=model,
-        tools=[duckduckgo_search, metaso_search],
+        tools=[
+            load_genre_context,  # ✅ 加载题材上下文
+            get_tropes,  # ✅ 获取推荐元素
+            get_hooks,  # ✅ 获取钩子模板
+            get_character_archetypes,  # ✅ 获取角色原型
+            get_market_trends,  # ✅ 获取市场趋势
+        ],
         prompt=_load_market_analyst_prompt(),
     )
 
