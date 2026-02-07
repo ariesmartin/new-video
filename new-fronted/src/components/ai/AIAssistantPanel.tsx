@@ -1,5 +1,5 @@
 import { useState, useRef, useCallback } from 'react';
-import { Bot, Send, Sparkles, RotateCcw, Loader2, Maximize2 } from 'lucide-react';
+import { Bot, Send, Sparkles, RotateCcw, Loader2, Maximize2, Square } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { ScrollArea } from '@/components/ui/scroll-area';
@@ -184,6 +184,9 @@ export function AIAssistantPanel({ projectId: externalProjectId, sceneContext }:
       'reset_genre': '🔙 重选背景',
       'random_plan': '🎲 随机生成方案',
       'select_plan': '选择方案',
+      'regenerate_plans': '🔄 重新生成方案',
+      'fuse_plans': '🔀 融合方案',
+      'custom_fusion': '⚡ 自定义融合',
       'start_creation': '🎬 开始创作',
       'adapt_script': '📜 剧本改编',
       'create_storyboard': '🎨 分镜制作',
@@ -197,6 +200,8 @@ export function AIAssistantPanel({ projectId: externalProjectId, sceneContext }:
       displayLabel = `选择：${payload.genre}`;
     } else if (action === 'random_plan' && payload?.genre) {
       displayLabel = `🎲 生成 ${payload.genre} 方案`;
+    } else if (action === 'select_plan' && payload?.label) {
+      displayLabel = `选择：${payload.label}`;
     } else if (action === 'reset_genre') {
       displayLabel = '🔙 重新选择赛道';
     } else if (action === 'set_episode_config' && payload?.episode_count) {
@@ -279,6 +284,15 @@ export function AIAssistantPanel({ projectId: externalProjectId, sceneContext }:
       }]);
     }
   }, [externalProjectId, currentProject?.id, currentEpisode?.id, sceneContext?.id, setMessages]);
+
+  const handleStopGenerating = useCallback(() => {
+    if (abortControllerRef.current) {
+      abortControllerRef.current();
+      abortControllerRef.current = null;
+      setStreamingContent('');
+      setThinkingStatus('已停止');
+    }
+  }, []);
 
   const handleResetSession = () => {
     setShowResetDialog(true);
@@ -491,13 +505,23 @@ export function AIAssistantPanel({ projectId: externalProjectId, sceneContext }:
               className="flex-1 h-10 bg-background"
               disabled={isTyping}
             />
-            <Button
-              onClick={() => handleSendMessage()}
-              disabled={!inputValue.trim() || isTyping}
-              className="btn-primary h-10 w-10 p-0"
-            >
-              <Send size={16} />
-            </Button>
+            {isTyping ? (
+              <Button
+                onClick={handleStopGenerating}
+                className="h-10 w-10 p-0 bg-red-500 hover:bg-red-600 text-white"
+                title="停止生成"
+              >
+                <Square size={16} />
+              </Button>
+            ) : (
+              <Button
+                onClick={() => handleSendMessage()}
+                disabled={!inputValue.trim()}
+                className="btn-primary h-10 w-10 p-0"
+              >
+                <Send size={16} />
+              </Button>
+            )}
           </div>
         </div>
       </div>

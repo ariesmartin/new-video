@@ -160,6 +160,9 @@ export function AIAssistantBar() {
       'reset_genre': '🔙 重选赛道',
       'random_plan': '🎲 随机生成方案',
       'select_plan': '选择方案',
+      'regenerate_plans': '🔄 重新生成方案',
+      'fuse_plans': '🔀 融合方案',
+      'custom_fusion': '⚡ 自定义融合',
       'start_creation': '🎬 开始创作',
       'adapt_script': '📜 剧本改编',
       'create_storyboard': '🎨 分镜制作',
@@ -173,6 +176,8 @@ export function AIAssistantBar() {
       displayLabel = `选择：${payload.genre}`;
     } else if (action === 'random_plan' && payload?.genre) {
       displayLabel = `🎲 生成 ${payload.genre} 方案`;
+    } else if (action === 'select_plan' && payload?.label) {
+      displayLabel = `选择：${payload.label}`;
     } else if (action === 'set_episode_config' && payload?.episode_count) {
       displayLabel = `✅ 配置：${payload.episode_count}集，每集${payload.episode_duration}分钟`;
     } else if (action === 'custom_episode_config') {
