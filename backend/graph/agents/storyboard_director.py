@@ -8,6 +8,12 @@ from pathlib import Path
 from langgraph.prebuilt import create_react_agent
 from backend.services.model_router import get_model_router
 from backend.schemas.model_config import TaskType
+from backend.skills.storyboard import (
+    design_shots,
+    generate_nano_banana_prompt,
+    generate_video_prompt,
+    plan_shot_sequence,
+)
 import structlog
 
 logger = structlog.get_logger(__name__)
@@ -57,9 +63,15 @@ async def create_storyboard_director_agent(user_id: str, project_id: str = None)
     )
 
     # 创建 Agent - 使用 create_react_agent
+    # 使用 Skills 进行分镜设计
     agent = create_react_agent(
         model=model,
-        tools=[],  # 分镜导演目前不需要外部工具
+        tools=[
+            design_shots,  # Skill: 镜头设计
+            generate_nano_banana_prompt,  # Skill: 生成 Nano Banana 风格提示词
+            generate_video_prompt,  # Skill: 生成视频提示词
+            plan_shot_sequence,  # Skill: 镜头序列规划
+        ],
         prompt=_load_storyboard_director_prompt(),
     )
 

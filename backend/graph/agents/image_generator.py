@@ -8,6 +8,10 @@ from pathlib import Path
 from langgraph.prebuilt import create_react_agent
 from backend.services.model_router import get_model_router
 from backend.schemas.model_config import TaskType
+from backend.skills.image_generation import (
+    storyboard_to_image_prompt,
+    optimize_prompt_for_model,
+)
 import structlog
 
 logger = structlog.get_logger(__name__)
@@ -57,9 +61,13 @@ async def create_image_generator_agent(user_id: str, project_id: str = None):
     )
 
     # 创建 Agent - 使用 create_react_agent
+    # 使用 Skills 生成和优化图片提示词
     agent = create_react_agent(
         model=model,
-        tools=[],  # 图片生成 Agent 目前只生成提示词
+        tools=[
+            storyboard_to_image_prompt,  # Skill: 分镜转图片提示词
+            optimize_prompt_for_model,  # Skill: 针对模型优化提示词
+        ],
         prompt=_load_image_generator_prompt(),
     )
 

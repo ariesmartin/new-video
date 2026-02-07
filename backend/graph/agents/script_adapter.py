@@ -8,6 +8,11 @@ from pathlib import Path
 from langgraph.prebuilt import create_react_agent
 from backend.services.model_router import get_model_router
 from backend.schemas.model_config import TaskType
+from backend.skills.script_adaptation import (
+    novel_to_script,
+    extract_scenes,
+    generate_dialogue,
+)
 import structlog
 
 logger = structlog.get_logger(__name__)
@@ -55,9 +60,14 @@ async def create_script_adapter_agent(user_id: str, project_id: str = None):
     )
 
     # 创建 Agent - 使用 create_react_agent
+    # 使用 Skills 而不是直接调用 Tools
     agent = create_react_agent(
         model=model,
-        tools=[],  # 剧本改编不需要外部工具
+        tools=[
+            novel_to_script,  # Skill: 小说转剧本
+            extract_scenes,  # Skill: 场景提取
+            generate_dialogue,  # Skill: 对话生成
+        ],
         prompt=_load_script_adapter_prompt(),
     )
 
