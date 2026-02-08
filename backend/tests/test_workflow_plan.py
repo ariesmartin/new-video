@@ -13,7 +13,7 @@ from pathlib import Path
 # 添加项目根目录到路径
 sys.path.insert(0, str(Path(__file__).parent.parent.parent))
 
-from backend.graph.agents.registry import AgentRegistry, WorkflowStep
+from backend.agents.registry import AgentRegistry, WorkflowStep
 from backend.schemas.agent_state import AgentState, create_initial_state
 
 
@@ -221,7 +221,7 @@ async def test_master_router_integration():
     print("=" * 60)
 
     try:
-        from backend.graph.agents.master_router import (
+        from backend.agents.master_router import (
             _extract_routing_decision,
             _check_workflow_continuation,
         )

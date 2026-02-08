@@ -6,6 +6,7 @@ Story Planner Agent - Level 2 故事策划
 """
 
 from pathlib import Path
+from typing import Optional
 from langgraph.prebuilt import create_react_agent
 from backend.services.model_router import get_model_router
 from backend.services.market_analysis import get_market_analysis_service
@@ -29,15 +30,42 @@ import structlog
 logger = structlog.get_logger(__name__)
 
 
-def _load_story_planner_prompt(
-    market_report: dict = None,
+def _get_background_context(background: str) -> str:
+    """
+    获取背景设定的上下文描述。
+
+    注意：此函数不再限制AI的题材选择，只提供背景参考信息。
+    AI可以自由组合任何题材元素，不受背景限制。
+    """
+    background_contexts = {
+        "现代都市": "背景设定在现代城市，可以包含职场、豪门、校园等元素",
+        "古装仙侠": "背景设定在古代或仙侠世界，可以包含宫廷、江湖、修仙等元素",
+        "民国传奇": "背景设定在民国时期，可以包含军阀、谍战、宅门等元素",
+        "未来科幻": "背景设定在未来或科幻世界，可以包含高科技、星际、末世等元素",
+    }
+    return background_contexts.get(background, f"背景设定：{background}")
+
+
+# 保留向后兼容的函数，但不再强制映射
+def _genre_to_slug(genre: str) -> Optional[str]:
+    """
+    【已弃用】不再强制映射题材。
+    请使用 _get_background_context() 获取背景信息。
+    为了保持兼容性，此函数返回 None，由调用方处理。
+    """
+    # 返回 None 表示不再强制映射，AI 可以自由选择
+    return None
+
+
+async def _load_story_planner_prompt(
+    market_report: Optional[dict] = None,
     episode_count: int = 80,
     episode_duration: float = 1.5,
     genre: str = "现代都市",
     setting: str = "modern",
 ) -> str:
     """从文件加载 Story Planner 的 System Prompt"""
-    prompt_path = Path(__file__).parent.parent.parent.parent / "prompts" / "2_Story_Planner.md"
+    prompt_path = Path(__file__).parent.parent.parent / "prompts" / "2_Story_Planner.md"
 
     try:
         with open(prompt_path, "r", encoding="utf-8") as f:
@@ -67,8 +95,84 @@ def _load_story_planner_prompt(
         # 注入剧集配置信息
         prompt = prompt.replace("{episode_count}", str(episode_count))
         prompt = prompt.replace("{episode_duration}", str(episode_duration))
+        # ✅ 重要：genre参数只作为参考，不限制AI的题材选择
         prompt = prompt.replace("{genre}", genre)
         prompt = prompt.replace("{setting}", setting)
+
+        # ✅ 注入主题库数据 - 加载所有主题供AI自由组合（不限于用户选择的genre）
+        all_theme_slugs = ["revenge", "romance", "suspense", "transmigration", "family_urban"]
+
+        try:
+            # ✅ 加载所有题材的完整数据（不再局限于单一genre）
+            all_themes_context = []
+            for slug in all_theme_slugs:
+                try:
+                    theme_context = await load_genre_context.ainvoke({"genre_id": slug})
+                    all_themes_context.append(f"\n{'=' * 50}\n{theme_context}\n{'=' * 50}")
+                except Exception as e:
+                    logger.warning(f"Failed to load theme {slug}", error=str(e))
+                    continue
+
+            if all_themes_context:
+                full_theme_data = "\n".join(all_themes_context)
+                prompt = prompt.replace("{theme_library_data}", full_theme_data)
+                logger.info(
+                    "Injected all themes library data", themes_count=len(all_themes_context)
+                )
+            else:
+                prompt = prompt.replace(
+                    "{theme_library_data}",
+                    "## 题材库\n系统包含五大题材：复仇逆袭、甜宠恋爱、悬疑推理、穿越重生、家庭伦理。",
+                )
+
+            # 清空跨主题占位符（已整合到主数据中）
+            prompt = prompt.replace("{all_themes_data}", "")
+
+        except Exception as e:
+            logger.warning("Failed to load theme library", error=str(e))
+            prompt = prompt.replace(
+                "{theme_library_data}",
+                "## 题材库\n系统包含五大题材：复仇逆袭、甜宠恋爱、悬疑推理、穿越重生、家庭伦理。",
+            )
+            prompt = prompt.replace("{all_themes_data}", "")
+
+        # 注入推荐元素 - 从所有主题中随机选择，增加多样性
+        try:
+            import random
+
+            # ✅ 从所有主题中随机选择2-3个，混合推荐
+            all_theme_slugs = ["revenge", "romance", "suspense", "transmigration", "family_urban"]
+            selected_themes = random.sample(all_theme_slugs, k=min(3, len(all_theme_slugs)))
+            all_tropes = []
+            for theme in selected_themes:
+                try:
+                    tropes = await get_tropes.ainvoke({"genre_id": theme, "limit": 3})
+                    if tropes and "错误" not in tropes:
+                        all_tropes.append(f"【{theme}】{tropes}")
+                except Exception:
+                    continue
+
+            if all_tropes:
+                combined_tropes = "\n\n".join(all_tropes)
+                prompt = prompt.replace("{recommended_tropes}", combined_tropes)
+                logger.info("Injected mixed tropes from multiple themes", themes=selected_themes)
+            else:
+                prompt = prompt.replace(
+                    "{recommended_tropes}", "调用 `get_tropes()` 获取推荐元素。"
+                )
+        except Exception as e:
+            logger.warning("Failed to load tropes", error=str(e))
+            prompt = prompt.replace("{recommended_tropes}", "调用 `get_tropes()` 获取推荐元素。")
+
+        # 注入市场趋势 - 获取所有题材的市场概览
+        try:
+            from backend.skills.theme_library import get_market_trends
+
+            trends = await get_market_trends.ainvoke({})  # 不传genre_id获取所有题材概览
+            prompt = prompt.replace("{market_trends}", trends)
+        except Exception as e:
+            logger.warning("Failed to load market trends", error=str(e))
+            prompt = prompt.replace("{market_trends}", "调用 `get_market_trends()` 获取市场数据。")
 
         logger.debug(
             "Loaded Story Planner prompt from file",
@@ -127,13 +231,28 @@ def _get_default_market_report() -> str:
 
 async def create_story_planner_agent(
     user_id: str,
-    project_id: str = None,
+    project_id: Optional[str] = None,
     episode_count: int = 80,
     episode_duration: float = 1.5,
     genre: str = "现代都市",
     setting: str = "modern",
+    is_regenerate: bool = False,
+    variation_seed: Optional[int] = None,
 ):
-    """创建 Story Planner Agent"""
+    """
+    创建 Story Planner Agent
+
+    🌡️ 温度建议（Temperature）:
+    - 首次生成：建议使用 temperature=0.85-0.9
+      平衡创意性和合理性，适合跨题材融合
+
+    - 重新生成（regenerate）：建议使用 temperature=0.9-0.95
+      更高的发散性，确保与上次生成明显不同
+
+    - 普通任务：temperature=0.7（默认）
+
+    请在模型映射配置中调整 Story Planner 任务的 temperature 参数。
+    """
     # 1. 获取缓存的市场分析报告
     try:
         market_service = get_market_analysis_service()
@@ -193,7 +312,7 @@ async def create_story_planner_agent(
             get_pacing_rules,  # 获取节奏规则
             get_trending_combinations,  # 获取热门组合
         ],
-        prompt=_load_story_planner_prompt(
+        prompt=await _load_story_planner_prompt(
             market_report=market_report,
             episode_count=episode_count,
             episode_duration=episode_duration,

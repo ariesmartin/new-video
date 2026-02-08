@@ -12,6 +12,7 @@ from backend.api import (
     canvas_router,
     connections_router,
     assets_router,
+    themes_router,
 )
 from backend.services.database import DatabaseService
 from backend.services.model_router import init_model_router
@@ -188,6 +189,7 @@ def create_app() -> FastAPI:
     app.include_router(canvas_router, prefix="/api")
     app.include_router(connections_router, prefix="/api")
     app.include_router(assets_router, prefix="/api")
+    app.include_router(themes_router, prefix="/api")
 
     @app.get("/health")
     async def health_check():

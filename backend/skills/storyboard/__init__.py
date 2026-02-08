@@ -4,7 +4,7 @@ Storyboard Skills
 分镜设计相关的 Skills
 """
 
-from typing import Dict
+from typing import Dict, List
 from langchain.tools import tool
 
 

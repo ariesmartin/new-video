@@ -26,8 +26,8 @@ from langchain_core.messages import HumanMessage
 
 from backend.config import settings
 from backend.schemas.agent_state import create_initial_state
-from backend.graph.agents.master_router import master_router_node
-from backend.graph.agents.registry import AgentRegistry
+from backend.agents.master_router import master_router_node
+from backend.agents.registry import AgentRegistry
 from backend.services.model_router import init_model_router, get_model_router
 from backend.services.database import DatabaseService
 

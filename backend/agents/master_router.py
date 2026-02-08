@@ -31,7 +31,7 @@ from langchain_core.messages import SystemMessage, HumanMessage, BaseMessage
 
 from backend.schemas.agent_state import AgentState, WorkflowStep
 from backend.services.model_router import get_model_router
-from backend.graph.agents.registry import AgentRegistry
+from backend.agents.registry import AgentRegistry
 from backend.schemas.model_config import TaskType
 from backend.utils.message_converter import normalize_messages
 
@@ -47,7 +47,7 @@ def _load_master_router_prompt_base() -> str:
     Returns:
         System Prompt 基础字符串
     """
-    prompt_path = Path(__file__).parent.parent.parent.parent / "prompts" / "0_Master_Router.md"
+    prompt_path = Path(__file__).parent.parent.parent / "prompts" / "0_Master_Router.md"
 
     try:
         with open(prompt_path, "r", encoding="utf-8") as f:
@@ -195,19 +195,19 @@ def _extract_routing_decision(response_content: str) -> Dict[str, Any]:
 
         return decision
 
-    except json.JSONDecodeError as e:
+    except (json.JSONDecodeError, KeyError) as e:
         logger.error(
             "Failed to parse routing decision", error=str(e), content=response_content[:500]
         )
         # 返回默认决策
         return {
-            "intent_analysis": "解析失败，使用默认路由",
+            "intent_analysis": "解析失败，可能是LLM输出被截断",
             "workflow_plan": [],
             "current_step_idx": 0,
             "routed_agent": "end",
             "routed_function": None,
             "routed_parameters": {},
-            "ui_feedback": "抱歉，我遇到了一些问题，请重新描述您的需求。",
+            "ui_feedback": "抱歉，处理您的请求时出现了问题。请重试或详细描述您的需求。",
         }
 
 
@@ -335,6 +335,9 @@ def _get_friendly_action_text(action: str, payload: Dict[str, Any]) -> str:
         "reset_genre": "🔙 重选背景",
         "random_plan": "🎲 随机生成方案",
         "select_plan": "选择方案",
+        "regenerate_plans": "🔄 重新生成方案",
+        "fuse_plans": "🔀 融合方案",
+        "custom_fusion": "⚡ 自定义融合",
         "adapt_script": "📜 剧本改编",
         "create_storyboard": "🎨 分镜制作",
         "inspect_assets": "👤 资产探查",
@@ -559,10 +562,26 @@ async def master_router_node(state: AgentState) -> Dict[str, Any]:
         current_stage=state.get("current_stage"),
     )
 
-    # 调用 LLM
+    # 调用 LLM - Master Router 需要更多 token 空间来输出完整的 JSON
     prompt = _get_master_router_prompt()
+
+    # 使用更短的 user_input 来节省 token 空间
+    # 只保留最近的几条消息上下文
+    short_context = context[:2000] if len(context) > 2000 else context  # 限制上下文长度
+    short_agent_desc = (
+        agent_description[:1500] if len(agent_description) > 1500 else agent_description
+    )  # 限制 Agent 描述长度
+
+    optimized_input = f"""上下文: {short_context}
+
+可用Agents: {short_agent_desc}
+
+用户输入: {last_user_message}
+
+请输出JSON路由决策(必须包含target_agent字段):"""
+
     response = await model.ainvoke(
-        [SystemMessage(content=prompt), HumanMessage(content=user_input)]
+        [SystemMessage(content=prompt), HumanMessage(content=optimized_input)]
     )
 
     # 解析路由决策

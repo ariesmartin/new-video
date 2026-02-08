@@ -18,7 +18,7 @@ from langgraph.graph import StateGraph, START, END
 from langgraph.checkpoint.base import BaseCheckpointSaver
 
 from backend.schemas.agent_state import AgentState
-from backend.graph.agents import (
+from backend.agents import (
     master_router_node,
     create_market_analyst_agent,
     create_story_planner_agent,

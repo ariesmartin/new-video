@@ -985,6 +985,14 @@ def create_main_graph(checkpointer: BaseCheckpointSaver | None = None):
     # Level 2: 故事策划（读取缓存的市场分析）
     graph.add_node("story_planner", _story_planner_node)
 
+    # Level 3: 骨架构建（大纲生成 + 审阅修复闭环）
+    # Skeleton Builder Graph 作为子图集成，包含完整的 5-Node 工作流：
+    # validate → skeleton_builder → editor → refiner → END
+    from backend.graph.workflows.skeleton_builder_graph import build_skeleton_builder_graph
+
+    skeleton_builder_graph = build_skeleton_builder_graph()
+    graph.add_node("skeleton_builder", skeleton_builder_graph)
+
     # Module B: 剧本改编
     graph.add_node("script_adapter", _script_adapter_node)
 
@@ -1035,6 +1043,9 @@ def create_main_graph(checkpointer: BaseCheckpointSaver | None = None):
                         "start_custom": "story_planner",
                         "proceed_to_planning": "story_planner",
                         "reset_genre": "story_planner",
+                        "start_skeleton_building": "skeleton_builder",  # V3.0: 大纲构建
+                        "confirm_skeleton": "skeleton_builder",  # V3.0: 确认大纲
+                        "regenerate_skeleton": "skeleton_builder",  # V3.0: 重新生成大纲
                     }
 
                     if action in sdui_action_map:
@@ -1075,6 +1086,7 @@ def create_main_graph(checkpointer: BaseCheckpointSaver | None = None):
         {
             "market_analyst": "market_analyst",
             "story_planner": "story_planner",
+            "skeleton_builder": "skeleton_builder",  # V3.0: 骨架构建
             "script_adapter": "script_adapter",
             "storyboard_director": "storyboard_director",
             "image_generator": "image_generator",
@@ -1089,6 +1101,7 @@ def create_main_graph(checkpointer: BaseCheckpointSaver | None = None):
     for node in [
         "market_analyst",
         "story_planner",
+        "skeleton_builder",  # V3.0: 骨架构建完成后回到 Master Router
         "script_adapter",
         "storyboard_director",
         "image_generator",

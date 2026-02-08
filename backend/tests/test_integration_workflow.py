@@ -18,7 +18,7 @@ from unittest.mock import AsyncMock, MagicMock, patch
 sys.path.insert(0, str(Path(__file__).parent.parent.parent))
 
 from backend.schemas.agent_state import AgentState, create_initial_state, WorkflowStep
-from backend.graph.agents.master_router import (
+from backend.agents.master_router import (
     master_router_node,
     _extract_routing_decision,
     _check_workflow_continuation,

@@ -4,6 +4,7 @@ Database Service
 使用 httpx 直接调用 Supabase REST API，提供类型安全的 CRUD 方法。
 """
 
+import asyncio
 import uuid
 from datetime import datetime, timezone
 from typing import Any, TypeVar
@@ -26,6 +27,9 @@ class DatabaseService:
     数据库服务类
 
     使用 httpx 调用 Supabase PostgREST API。
+
+    注意：使用懒加载 client 模式，自动处理 event loop 变化问题。
+    每次访问 client 时检查当前事件循环，如果变化则重新创建 client。
     """
 
     def __init__(self, base_url: str, service_key: str):
@@ -37,11 +41,41 @@ class DatabaseService:
             "Content-Type": "application/json",
             "Prefer": "return=representation",
         }
-        self._client = httpx.AsyncClient(headers=self._headers, timeout=30.0)
+        # 不立即创建 client，使用懒加载
+        self._client: httpx.AsyncClient | None = None
+        self._loop: asyncio.AbstractEventLoop | None = None
+
+    @property
+    def _client(self) -> httpx.AsyncClient:
+        """懒加载 HTTP client，自动检测 event loop 变化"""
+        current_loop = asyncio.get_running_loop()
+
+        # 如果 client 不存在或 event loop 已变化，重新创建 client
+        if self.__client is None or self._loop is not current_loop:
+            if self.__client is not None and self._loop is not current_loop:
+                # Event loop 变化，关闭旧 client
+                try:
+                    # 使用 asyncio.run_coroutine_thread_safe 或忽略关闭
+                    pass
+                except Exception:
+                    pass
+
+            self.__client = httpx.AsyncClient(headers=self._headers, timeout=30.0)
+            self._loop = current_loop
+            logger.debug("Created new httpx client", loop_id=id(current_loop))
+
+        return self.__client
+
+    @_client.setter
+    def _client(self, value: httpx.AsyncClient | None):
+        self.__client = value
 
     async def close(self):
         """关闭 HTTP 客户端"""
-        await self._client.aclose()
+        if self.__client is not None:
+            await self.__client.aclose()
+            self.__client = None
+            self._loop = None
 
     # ===== Project CRUD =====
 

@@ -109,12 +109,67 @@ class ModelRouter:
                 f"No API key configured for provider {provider.get('name', 'unknown')}"
             )
 
+        # ✅ 根据任务类型智能调整温度参数（用于发散性创作）
+        parameters = mapping.get("parameters", {}).copy()
+        task_type_value = task_type.value if hasattr(task_type, "value") else str(task_type)
+
+        # 创意类任务：使用更高温度促进发散思维
+        if task_type_value == "story_planner":
+            # Story Planner 需要最高发散性进行跨题材融合
+            parameters["temperature"] = 0.9
+            logger.info(
+                "Applied creative temperature for story_planner",
+                temperature=parameters["temperature"],
+                task_type=task_type_value,
+            )
+        elif task_type_value == "skeleton_builder":
+            # 大纲构建需要高发散性创造剧情转折和钩子设计
+            parameters["temperature"] = 0.88
+            logger.info(
+                "Applied creative temperature for skeleton_builder",
+                temperature=parameters["temperature"],
+                task_type=task_type_value,
+            )
+        elif task_type_value == "novel_writer":
+            # 小说写作需要高发散性进行章节内容创作
+            parameters["temperature"] = 0.85
+            logger.info(
+                "Applied creative temperature for novel_writer",
+                temperature=parameters["temperature"],
+                task_type=task_type_value,
+            )
+        elif task_type_value == "market_analyst":
+            # 市场分析：中等创意，需要基于数据但也要洞察趋势
+            parameters["temperature"] = 0.8
+            logger.info(
+                "Applied balanced temperature for market_analyst",
+                temperature=parameters["temperature"],
+                task_type=task_type_value,
+            )
+        elif task_type_value in ["script_adapter", "refiner"]:
+            # 剧本改编和优化：平衡创意和准确性
+            parameters["temperature"] = 0.75
+            logger.info(
+                "Applied balanced temperature for script tasks",
+                temperature=parameters["temperature"],
+                task_type=task_type_value,
+            )
+        elif task_type_value in ["analysis_lab", "editor", "asset_inspector"]:
+            # 分析类任务：低温度确保准确性
+            parameters["temperature"] = 0.4
+            logger.info(
+                "Applied conservative temperature for analysis tasks",
+                temperature=parameters["temperature"],
+                task_type=task_type_value,
+            )
+        # 其他任务保持用户配置或默认 0.7
+
         model = self._create_model(
             protocol=provider.get("protocol", "openai"),
             api_key=api_key,
             base_url=provider.get("base_url"),
             model_name=mapping["model_name"],
-            parameters=mapping.get("parameters", {}),
+            parameters=parameters,
         )
 
         self._cache[cache_key] = model

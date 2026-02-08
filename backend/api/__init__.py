@@ -13,6 +13,7 @@ from backend.api.shots import router as shots_router
 from backend.api.canvas import router as canvas_router
 from backend.api.connections import router as connections_router
 from backend.api.assets import router as assets_router
+from backend.api.themes import router as themes_router
 
 __all__ = [
     "graph_router",
@@ -24,4 +25,5 @@ __all__ = [
     "canvas_router",
     "connections_router",
     "assets_router",
+    "themes_router",
 ]

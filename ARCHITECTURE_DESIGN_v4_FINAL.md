@@ -2969,12 +2969,678 @@ workflow.add_node("genre_strategist", genre_strategist)  # Agent 作为 Node
 
 ---
 
+## 13. 前端架构设计（新增）
+
+### 13.1 前端技术栈
+
+```
+new-fronted/
+├── React 18 + TypeScript
+├── Vite（构建工具）
+├── Tailwind CSS（样式）
+├── TipTap（富文本编辑器）⭐
+├── Zustand（状态管理）
+├── React Query / SWR（数据获取）
+└── shadcn/ui（UI 组件库）
+```
+
+**技术选型说明：**
+- **TipTap**: 基于 ProseMirror 的现代化富文本编辑器，支持协作、扩展性强
+- **Zustand**: 轻量级状态管理，TypeScript 友好
+- **React Query**: 自动缓存、重新验证、乐观更新
+
+### 13.2 前端目录结构
+
+```
+new-fronted/src/
+├── components/
+│   ├── ai/                    # AI 相关组件
+│   │   ├── AIAssistantPanel.tsx      # AI 助手面板
+│   │   ├── ActionBlockRenderer.tsx   # SDUI 动作块渲染
+│   │   └── ScriptRenderer.tsx        # 剧本渲染
+│   │
+│   ├── workshop/              # 创作工坊核心组件
+│   │   ├── ModuleTabs.tsx            # 标签切换（大纲/小说/剧本/分镜）
+│   │   ├── OutlineEditor.tsx         # 大纲编辑器 ⭐新增
+│   │   ├── NovelEditor.tsx           # 小说编辑器（TipTap）
+│   │   ├── ScriptEditor.tsx          # 剧本编辑器
+│   │   ├── StoryboardEditor.tsx      # 分镜编辑器
+│   │   ├── ChapterTree.tsx           # 章节树（左侧）⭐新增
+│   │   ├── ReviewPanel.tsx           # 剧本医生面板（底部）⭐新增
+│   │   └── FooterToolbar.tsx         # 底部工具栏
+│   │
+│   └── ui/                    # 基础 UI 组件
+│
+├── api/                       # API 服务层
+│   ├── client.ts              # HTTP 客户端配置
+│   └── services/
+│       ├── chat.ts            # AI 聊天 API
+│       ├── outline.ts         # 大纲 API ⭐新增
+│       ├── novel.ts           # 小说 API ⭐新增
+│       ├── review.ts          # 审阅 API ⭐新增
+│       └── projects.ts        # 项目 API
+│
+├── hooks/                     # 自定义 Hooks
+│   ├── useStore.ts            # 状态管理
+│   └── useAIChat.ts           # AI 聊天 Hook
+│
+├── types/                     # TypeScript 类型定义
+│   ├── api.ts                 # API 响应类型
+│   ├── sdui.ts                # SDUI 类型
+│   └── review.ts              # 审阅类型 ⭐新增
+│
+└── lib/                       # 工具函数
+    └── utils.ts
+```
+
+### 13.3 页面布局设计
+
+```
+┌─────────────────────────────────────────────────────────────────────────┐
+│  📋 大纲   │  📖 小说   │  📝 剧本   │  🎬 分镜                    [保存] │
+├──────────────┬──────────────────────────────────────┬───────────────────┤
+│              │                                      │                   │
+│  项目结构     │                                      │   AI 创作助手      │
+│  （左侧）     │        富文本编辑器（中间）            │   （右侧面板）     │
+│              │                                      │                   │
+│  ▼ 第一集    │   ┌────────────────────────────┐    │   ┌───────────┐  │
+│    ├ 场景1   │   │ 第3章：初次相遇             │    │   │ 开始创作   │  │
+│    ├ 场景2   │   │                            │    │   │ 剧本改编   │  │
+│    └ 场景3   │   │ 这是一个**加粗**的文本...    │    │   │ ...       │  │
+│  ▶ 第二集    │   │                            │    │   └───────────┘  │
+│              │   │ ## 场景描述                  │    │                   │
+│              │   │                            │    │   [聊天输入框]    │
+│              │   │ 对话：                       │    │                   │
+│              │   │ 小明："你好..."               │    │                   │
+│              │   │ 小红："你好..."               │    │                   │
+│              │   └────────────────────────────┘    │                   │
+│              │                                      │                   │
+├──────────────┴──────────────────────────────────────┴───────────────────┤
+│ 📊 剧本医生 88  ▶ 剧情张力曲线（当前章）   ▼ 重新诊断                     │
+│ ┌─────────────────────────────────────────────────────────────────────┐ │
+│ │ 88  [逻辑/设定] "这双手值钱..."                                        │ │
+│ │     深井人从未适应过地表...                                           │ │
+│ │                                                                     │ │
+│ │ 75  [台词打磨] "仿佛还未适应..."                                       │ │
+│ └─────────────────────────────────────────────────────────────────────┘ │
+└─────────────────────────────────────────────────────────────────────────┘
+```
+
+### 13.4 核心组件设计
+
+#### 13.4.1 大纲编辑器（OutlineEditor）
+
+```typescript
+// src/components/workshop/OutlineEditor.tsx
+
+interface OutlineEditorProps {
+  outline: OutlineData;
+  onUpdate: (outline: OutlineData) => void;
+  reviewData: GlobalReview | null;
+}
+
+export function OutlineEditor({ outline, onUpdate, reviewData }: OutlineEditorProps) {
+  // 大纲结构化编辑器
+  // - 可视化大纲树
+  // - 拖拽调整集顺序
+  // - 节点展开/收起
+  // - 审阅状态标记
+}
+```
+
+**数据结构：**
+```typescript
+interface OutlineData {
+  episodes: Episode[];
+  globalReview: {
+    overallScore: number;
+    categories: ReviewCategories;
+    tensionCurve: number[];
+    issues: GlobalIssue[];
+  };
+}
+
+interface Episode {
+  id: string;
+  episodeNumber: number;
+  title: string;
+  scenes: Scene[];
+  reviewStatus: 'pending' | 'passed' | 'warning' | 'error';
+  reviewScore?: number;
+}
+```
+
+#### 13.4.2 小说编辑器（NovelEditor - TipTap）
+
+```typescript
+// src/components/workshop/NovelEditor.tsx
+
+import { useEditor, EditorContent } from '@tiptap/react';
+import StarterKit from '@tiptap/starter-kit';
+import Placeholder from '@tiptap/extension-placeholder';
+
+interface NovelEditorProps {
+  content: string;
+  onChange: (content: string) => void;
+  title: string;
+  onTitleChange: (title: string) => void;
+}
+
+export function NovelEditor({ content, onChange, title, onTitleChange }: NovelEditorProps) {
+  const editor = useEditor({
+    extensions: [
+      StarterKit,
+      Placeholder.configure({
+        placeholder: '开始创作你的小说...',
+      }),
+      // 自定义扩展
+      CustomChapterMark,    // 章节标记
+      CustomDialogueMark,   // 对话标记
+      CustomSceneMark,      // 场景标记
+    ],
+    content: content,
+    onUpdate: ({ editor }) => {
+      onChange(editor.getHTML());
+    },
+  });
+  
+  return (
+    <div className="novel-editor">
+      <Toolbar editor={editor} />
+      <EditorContent editor={editor} />
+    </div>
+  );
+}
+```
+
+**支持的小说格式：**
+```markdown
+# 第一章：初次相遇
+
+## 场景1：咖啡馆
+
+这是一个**重要**的场景。
+
+小明："你好，请问这里有人吗？"（对话格式）
+小红："没有，请坐。"
+
+[场景描述]
+阳光透过窗户洒进来...
+```
+
+#### 13.4.3 章节树（ChapterTree）
+
+```typescript
+// src/components/workshop/ChapterTree.tsx
+
+interface ChapterTreeProps {
+  data: ChapterNode[];
+  onSelect: (node: ChapterNode) => void;
+  activeId: string;
+  reviewMap: Map<string, ChapterReview>;
+}
+
+export function ChapterTree({ data, onSelect, activeId, reviewMap }: ChapterTreeProps) {
+  // 树状结构渲染
+  // - 集/场景/镜头的多级展开
+  // - 审阅状态标记（✓ ⚠️ ⏳）
+  // - 点击选中
+}
+```
+
+**显示效果：**
+```
+▼ 第一集                  [88分 ✓]
+  ├ 场景1：开场           [90分 ✓]
+  ├ 场景2：冲突           [85分 ⚠️]
+  └ 场景3：转折           [88分 ✓]
+▶ 第二集                  [待审阅]
+▶ 第三集                  [待审阅]
+```
+
+#### 13.4.4 剧本医生面板（ReviewPanel）
+
+```typescript
+// src/components/workshop/ReviewPanel.tsx
+
+interface ReviewPanelProps {
+  activeModule: 'outline' | 'novel' | 'script' | 'storyboard';
+  currentChapterId?: string;
+  outlineReview: GlobalReview | null;
+  chapterReviews: Map<string, ChapterReview>;
+  onReReview: () => void;
+}
+
+export function ReviewPanel({
+  activeModule,
+  currentChapterId,
+  outlineReview,
+  chapterReviews,
+  onReReview,
+}: ReviewPanelProps) {
+  // 根据当前模块决定显示内容
+  // - 大纲模式：显示全局报告
+  // - 其他模式：显示当前章审阅详情
+}
+```
+
+---
+
+## 14. 剧本医生审阅系统设计（新增）
+
+### 14.1 审阅触发机制
+
+| 场景 | 触发方式 | 审阅范围 | 显示位置 |
+|------|---------|---------|---------|
+| 大纲首次生成 | **自动** | 全部章节 | 底部全局报告 |
+| 大纲手动修改 | 保存后**自动** | 被修改章节 | 底部全局报告更新 |
+| 进入小说某章 | **自动加载**预存结果 | 该章 | 底部单章审阅 |
+| 小说某章修改 | 保存后**自动** | 该章 | 底部单章审阅实时更新 |
+| 用户点击"重新诊断" | **手动** | 当前内容 | 底部更新结果 |
+
+### 14.2 两种审阅模式
+
+**不是冲突，是不同阶段：**
+
+```
+阶段1：大纲生成（自动全局审阅）
+├─ 生成大纲 → 自动触发Editor审阅全部 → 显示全局报告
+└─ 用户看到：整体评分 + 问题章节列表
+
+阶段2：进入小说写作（单章审阅）
+├─ 用户点击第3章 → 显示第3章预存审阅结果
+├─ 用户修改第3章 → 实时重新审阅第3章
+└─ 用户看到：该章具体问题 + 修改建议
+```
+
+### 14.3 审阅数据结构
+
+```typescript
+// 大纲全局审阅结果
+interface GlobalReview {
+  generatedAt: string;
+  overallScore: number;
+  categories: {
+    logic: { score: number; issues: Issue[] };
+    pacing: { score: number; issues: Issue[] };
+    character: { score: number; issues: Issue[] };
+    conflict: { score: number; issues: Issue[] };
+    world: { score: number; issues: Issue[] };
+    hook: { score: number; issues: Issue[] };
+  };
+  tensionCurve: number[];  // 80个点的张力值
+  chapterReviews: {
+    [chapterId: string]: {
+      score: number;
+      issues: Issue[];
+      status: 'passed' | 'warning' | 'error';
+    }
+  };
+}
+
+// 单章审阅（实时）
+interface ChapterReview {
+  chapterId: string;
+  reviewedAt: string;
+  score: number;
+  issues: Issue[];
+  suggestions: Suggestion[];
+}
+
+interface Issue {
+  id: string;
+  category: 'logic' | 'pacing' | 'character' | 'conflict' | 'world' | 'hook';
+  severity: 'low' | 'medium' | 'high';
+  location?: {
+    line: number;
+    column: number;
+  };
+  description: string;
+  suggestion: string;
+}
+```
+
+### 14.4 审阅分类标准
+
+| 分类 | 权重 | 检查要点 | 严重级别 |
+|------|------|---------|---------|
+| 🧠 逻辑/设定 | 动态计算 | 结构完整、世界观一致、时间线合理 | 轻微/严重 |
+| 📈 节奏/张力 | 动态计算 | 曲线合理、高潮在87.5%、卡点张力≥90 | 需改进 |
+| 👤 人设/角色 | 动态计算 | 小传完整、极致美丽、B-Story存在 | 轻微/严重 |
+| ⚔️ 冲突/事件 | 动态计算 | 核心冲突明确、升级路径清晰 | 需改进 |
+| 🌍 世界/规则 | 动态计算 | 3条铁律明确、战力平衡 | 严重 |
+| 🪝 钩子/悬念 | 动态计算 | 开篇钩子≥90、每集cliffhanger | 严重 |
+
+**权重动态计算：**
+```typescript
+// 根据题材组合动态计算权重
+function calculateReviewWeights(genres: string[]): CategoryWeights {
+  const baseWeights = {
+    revenge: { logic: 0.10, pacing: 0.30, character: 0.10, conflict: 0.25, world: 0.05, hook: 0.20 },
+    romance: { logic: 0.10, pacing: 0.20, character: 0.30, conflict: 0.10, world: 0.05, hook: 0.25 },
+    suspense: { logic: 0.30, pacing: 0.20, character: 0.05, conflict: 0.05, world: 0.15, hook: 0.25 },
+    // ... 其他题材
+  };
+  
+  // 双题材取平均值并归一化
+  // 返回最终权重
+}
+```
+
+---
+
+## 15. 前后端 API 对接设计（新增）
+
+### 15.1 API 模块划分
+
+```typescript
+// src/api/services/index.ts
+
+export { chatService } from './chat';           // AI 聊天 API
+export { outlineService } from './outline';     // 大纲 API
+export { novelService } from './novel';         // 小说 API
+export { scriptService } from './script';       // 剧本 API
+export { storyboardService } from './storyboard'; // 分镜 API
+export { reviewService } from './review';       // 审阅 API
+export { projectService } from './projects';    // 项目 API
+```
+
+### 15.2 大纲 API
+
+```typescript
+// src/api/services/outline.ts
+
+export const outlineService = {
+  // 生成大纲（触发后端 skeleton_builder_graph）
+  generate: (projectId: string, planId: string) => 
+    api.post('/outline/generate', { projectId, planId }),
+  
+  // 获取大纲（包含审阅结果）
+  get: (projectId: string) => 
+    api.get(`/outline/${projectId}`),
+  
+  // 更新大纲节点
+  updateNode: (projectId: string, nodeId: string, data: any) =>
+    api.patch(`/outline/${projectId}/nodes/${nodeId}`, data),
+  
+  // 手动触发全局审阅
+  review: (projectId: string) =>
+    api.post(`/outline/${projectId}/review`),
+  
+  // 确认大纲（进入下一步）
+  confirm: (projectId: string) =>
+    api.post(`/outline/${projectId}/confirm`),
+};
+```
+
+### 15.3 小说 API
+
+```typescript
+// src/api/services/novel.ts
+
+export const novelService = {
+  // 获取章节列表
+  listChapters: (projectId: string) =>
+    api.get(`/novel/${projectId}/chapters`),
+  
+  // 获取单章内容
+  getChapter: (projectId: string, chapterId: string) =>
+    api.get(`/novel/${projectId}/chapters/${chapterId}`),
+  
+  // 保存章节（自动触发审阅）
+  saveChapter: (projectId: string, chapterId: string, content: string) =>
+    api.put(`/novel/${projectId}/chapters/${chapterId}`, { 
+      content,
+      autoReview: true  // 保存后自动审阅
+    }),
+  
+  // 获取章节审阅结果
+  getChapterReview: (projectId: string, chapterId: string) =>
+    api.get(`/novel/${projectId}/chapters/${chapterId}/review`),
+  
+  // 应用修改建议
+  applySuggestion: (projectId: string, chapterId: string, suggestionId: string) =>
+    api.post(`/novel/${projectId}/chapters/${chapterId}/apply`, { suggestionId }),
+};
+```
+
+### 15.4 审阅 API
+
+```typescript
+// src/api/services/review.ts
+
+export const reviewService = {
+  // 获取全局审阅报告（大纲用）
+  getGlobalReview: (projectId: string) =>
+    api.get(`/review/${projectId}/global`),
+  
+  // 获取单章审阅详情
+  getChapterReview: (projectId: string, chapterId: string) =>
+    api.get(`/review/${projectId}/chapters/${chapterId}`),
+  
+  // 触发重新审阅
+  reReview: (projectId: string, chapterId?: string) =>
+    api.post(`/review/${projectId}/re_review`, { chapterId }),
+  
+  // 获取张力曲线
+  getTensionCurve: (projectId: string, chapterId?: string) =>
+    api.get(`/review/${projectId}/tension_curve`, { params: { chapterId } }),
+};
+```
+
+### 15.5 后端对应 API 端点
+
+```python
+# backend/api/routes/outline.py
+
+@router.post("/outline/generate")
+async def generate_outline(request: OutlineGenerateRequest):
+    """触发大纲生成工作流"""
+    # 调用 skeleton_builder_graph
+    pass
+
+@router.get("/outline/{project_id}")
+async def get_outline(project_id: str):
+    """获取大纲数据（包含审阅结果）"""
+    pass
+
+@router.post("/outline/{project_id}/review")
+async def review_outline(project_id: str):
+    """手动触发大纲全局审阅"""
+    # 调用 Editor Agent 审阅全部章节
+    pass
+
+# backend/api/routes/novel.py
+
+@router.put("/novel/{project_id}/chapters/{chapter_id}")
+async def save_chapter(
+    project_id: str, 
+    chapter_id: str, 
+    request: ChapterSaveRequest
+):
+    """保存章节，如 autoReview=true 则自动审阅"""
+    # 保存内容
+    # 如 autoReview=true，调用 Editor Agent 审阅该章
+    pass
+
+# backend/api/routes/review.py
+
+@router.get("/review/{project_id}/global")
+async def get_global_review(project_id: str):
+    """获取大纲全局审阅报告"""
+    pass
+
+@router.get("/review/{project_id}/chapters/{chapter_id}")
+async def get_chapter_review(project_id: str, chapter_id: str):
+    """获取单章审阅详情"""
+    pass
+
+@router.post("/review/{project_id}/re_review")
+async def re_review(project_id: str, chapter_id: Optional[str] = None):
+    """触发重新审阅"""
+    # 调用 Editor Agent
+    pass
+```
+
+---
+
+## 16. 数据流设计（新增）
+
+```
+用户操作
+   ↓
+触发 API 调用（生成/保存/审阅）
+   ↓
+后端 LangGraph 工作流执行
+   ├─ skeleton_builder_graph（大纲生成）
+   ├─ novel_writer_graph（小说生成）
+   ├─ quality_control_graph（审阅）
+   └─ ...
+   ↓
+返回结果 + 审阅报告
+   ↓
+前端更新状态
+   ├─→ 左侧章节树（更新审阅状态标记 ✓ ⚠️ ⏳）
+   ├─→ 中间编辑器（显示生成内容）
+   ├─→ 底部面板（显示审阅结果）
+   └─→ 右侧 AI 面板（显示交互选项）
+```
+
+---
+
+## 17. 实施步骤更新（v4.1）
+
+### Phase 1: 基础架构（1-2 周）
+
+**Day 1-2: 前端基础**
+- [ ] 集成 TipTap 富文本编辑器
+- [ ] 替换现有 textarea 为 NovelEditor
+- [ ] 实现基础格式工具栏（加粗、标题、列表）
+
+**Day 3-4: 状态管理**
+- [ ] 配置 Zustand 状态管理
+- [ ] 定义 WorkshopState 接口
+- [ ] 实现基础 actions（switchModule, selectChapter）
+
+**Day 5-6: API 层**
+- [ ] 定义所有 API 接口类型
+- [ ] 创建 API 服务层（outline, novel, review）
+- [ ] 配置 React Query 数据获取
+
+**Day 7-8: 基础组件**
+- [ ] 实现章节树组件（ChapterTree）
+- [ ] 实现可折叠面板（ReviewPanel）
+- [ ] 集成到 ScriptWorkshopPage
+
+**交付物**:
+- 基础前端架构
+- 富文本编辑器可用
+- API 服务层完整
+- 基础组件可用
+
+### Phase 2: 大纲模块（1 周）
+
+**Day 9-10: 大纲编辑器**
+- [ ] 实现大纲结构化编辑器
+- [ ] 节点拖拽/展开/收起
+- [ ] 审阅状态标记
+
+**Day 11-12: 大纲 API 对接**
+- [ ] 对接后端 skeleton_builder_graph
+- [ ] 实现大纲生成流程
+- [ ] 全局审阅报告展示
+
+**Day 13-14: 大纲交互**
+- [ ] 大纲确认/重新生成
+- [ ] 流转到小说模块
+- [ ] 状态持久化
+
+**交付物**:
+- 完整大纲模块
+- 全局审阅报告
+- 大纲生成工作流对接
+
+### Phase 3: 小说模块完善（1 周）
+
+**Day 15-16: 小说编辑器完善**
+- [ ] TipTap 格式扩展（章节、对话、场景标记）
+- [ ] 完整格式工具栏
+- [ ] 内容导入/导出
+
+**Day 17-18: 单章审阅**
+- [ ] 对接后端 novel_writer_graph
+- [ ] 保存自动触发审阅
+- [ ] 底部剧本医生面板交互
+
+**Day 19-20: 审阅交互**
+- [ ] 问题列表展示
+- [ ] 应用/忽略建议
+- [ ] 实时更新审阅结果
+
+**交付物**:
+- 完整小说编辑器
+- 单章自动审阅
+- 审阅结果交互
+
+### Phase 4: 剧本和分镜（1 周）
+
+**Day 21-22: 剧本编辑器**
+- [ ] 专业剧本格式编辑器
+- [ ] 场景/对话/动作标记
+- [ ] 对接 script_adapter_graph
+
+**Day 23-24: 分镜编辑器**
+- [ ] 分镜列表/预览
+- [ ] 镜头编辑
+- [ ] 对接 storyboard_director_graph
+
+**Day 25: 集成测试**
+- [ ] 全链路测试
+- [ ] Bug 修复
+- [ ] 性能优化
+
+**交付物**:
+- 完整剧本编辑器
+- 分镜编辑器
+- 全工作流对接
+
+---
+
+## 18. 关键技术决策（新增）
+
+| 决策点 | 方案 | 理由 |
+|--------|------|------|
+| 富文本编辑器 | **TipTap** | 现代化、扩展性强、支持协作、TypeScript 原生 |
+| 状态管理 | **Zustand** | 轻量、TypeScript 友好、无样板代码 |
+| 数据同步 | **React Query** | 自动缓存、重新验证、乐观更新 |
+| 树形组件 | **自研** | 需要高度定制审阅状态显示 |
+| 实时协作 | **Yjs + TipTap** | 后期可扩展多人编辑 |
+| 编辑器选型 | **TipTap vs 自研** | 选择 TipTap（开发周期 1-2天 vs 2-4周） |
+
+---
+
+## 19. 前端与后端工作流对应关系
+
+| 前端模块 | 后端工作流 | 触发时机 | 数据流向 |
+|----------|-----------|---------|---------|
+| 故事策划 | story_planner_graph | 用户输入需求 | 用户输入 → 三维矩阵方案 |
+| 大纲 | skeleton_builder_graph | 选择方案后 | 方案 → 结构化大纲 + 审阅报告 |
+| 小说 | novel_writer_graph | 大纲确认后 | 大纲 → 章节内容 + 单章审阅 |
+| 剧本 | script_adapter_graph | 小说完成后 | 小说 → 剧本格式 |
+| 分镜 | storyboard_director_graph | 剧本完成后 | 剧本 → 分镜指令 |
+| 审阅 | quality_control_graph | 自动触发 | 内容 → 审阅报告 |
+
+---
+
 **这份设计是否正确？**
 
 - ✅ Skill = Tool（`@tool` 装饰器）
 - ✅ Agent = `create_react_agent()` 返回值（Compiled Graph）
 - ✅ Node = Agent、ToolNode、或普通函数
 - ✅ 只有 Agent 能调用 Tools
+- ✅ 前端架构完整（TipTap + Zustand + React Query）
+- ✅ 剧本医生审阅系统（全局 + 单章双模式）
+- ✅ 前后端 API 对接完整
 - ✅ 符合 LangGraph 官方文档定义
 - ✅ 详细完整，不简化
 

@@ -5,7 +5,7 @@ Agent Registry - 动态 Agent 注册表
 Master Router 通过此注册表了解所有可用 Agents。
 
 Usage:
-    from backend.graph.agents.registry import AgentRegistry
+    from backend.agents.registry import AgentRegistry
 
     # 获取所有可用 Agents
     agents = AgentRegistry.get_all_agents()

@@ -39,6 +39,9 @@
 | `select_plan` | `Story_Planner` | 选择具体方案 |
 | `regenerate_plans` | `Story_Planner` | 重新生成方案（增加随机性） |
 | `random_plan` | `Story_Planner` | AI 随机生成方案 |
+| `start_skeleton_building` | `Skeleton_Builder` | 开始大纲构建（V3.0 新增） |
+| `confirm_skeleton` | `Skeleton_Builder` | 确认大纲（进入下一步） |
+| `regenerate_skeleton` | `Skeleton_Builder` | 重新生成大纲 |
 | `adapt_script` | `Script_Adapter` | 改编剧本 |
 | `create_storyboard` | `Storyboard_Director` | 生成分镜 |
 
@@ -57,28 +60,39 @@
 - **Optimization**: 若用户只说了题材（"要个霸总剧"），自动补全默认 Tone（"甜宠/虐恋"）并询问确认。
 
 ### 2. Story Planning (Level 2-3: 创意规划)
-- **Trigger**: "剧情不够爽", "生成大纲", "换个结局", "这个反派太弱了"
+- **Trigger**: "剧情不够爽", "换个结局", "这个反派太弱了"
 - **Target Agent**: `Story_Planner`
 - **Optimization**: 识别 "局部修改" (Change Ending) vs "整体重构" (Regenerate All)。
 
-### 3. Novel Writing (Module A: 小说创作)
+### 3. Skeleton Building (Level 3: 骨架构建 - V3.0 新增)
+- **Trigger**: "生成大纲", "开始大纲拆解", "构建故事骨架", "生成故事大纲"
+- **Target Agent**: `Skeleton_Builder`
+- **Context Requirements**: 必须已选择方案 (selected_plan)
+- **Quality Control**: 大纲生成后将自动进入 Editor → Refiner 闭环审阅
+- **SDUI Actions**:
+  - `start_skeleton_building`: 开始大纲构建
+  - `confirm_skeleton`: 确认大纲（进入 Module A）
+  - `regenerate_skeleton`: 重新生成大纲
+  - `review_skeleton`: 审阅大纲（调用 Editor）
+
+### 4. Novel Writing (Module A: 小说创作)
 - **Condition**: `current_tab == 'novel_board'`
 - **Trigger**: "生成第一章", "扩写这段", "改得更悲伤点", "续写"
 - **Target Agent**: `Novel_Writer`
 - **Optimization**: 自动挂载 `Analysis_Lab` 进行情绪分析，确保修改符合整体 Tone。
 
-### 4. Asset Governance (Module X: 资产管理 - *Critical*)
+### 5. Asset Governance (Module X: 资产管理 - *Critical*)
 - **Trigger**: "陈默看起来太老了", "添加一个道具", "生成角色图", "把发型改成短发"
 - **Target Agent**: `Asset_Inspector`
 - **Cascade Logic (级联更新)**: 
   - 若用户修改了资产（如 "把陈默发型改了"），必须标记所有引用该资产的分镜节点状态为 `Outdated (需重绘)`。
 
-### 5. Script Adaptation (Module B: 剧本改编)
+### 6. Script Adaptation (Module B: 剧本改编)
 - **Trigger**: "转成剧本", "解说词太干了", "改成演绎模式", "这句台词不对"
 - **Target Agent**: `Script_Adapter`
 - **Context Rule**: 若当前选中的是 `Novel Node`，则意图为 `create_script`；若选中的是 `Script Node`，则意图为 `refine_script`。
 
-### 6. Storyboard & Video (Module C: 视听呈现)
+### 7. Storyboard & Video (Module C: 视听呈现)
 - **Trigger**: "生成分镜", "把S03重绘", "生成视频", "运镜慢一点", "如果是Sora会怎么拍"
 - **Target Agent**: `Storyboard_Director`
 - **Action Slots**:
@@ -87,11 +101,35 @@
     - `generate_video`: 调用视频模型。
 - **Optimization**: 根据 `project_meta.video_model` 自动选择 Prompt 策略 (Grid vs Keyframe)。
 
-### 7. Image Generation (Module C+: 图片生成 - V4.1 新增)
+### 8. Image Generation (Module C+: 图片生成 - V4.1 新增)
 - **Trigger**: "生成分镜图片", "为分镜生成预览图", "生成角色设定图"
 - **Target Agent**: `Image_Generator`
 - **Input**: 分镜列表 (storyboard) 或资产描述
 - **Output**: 图片 URL 列表
+
+### 9. Quality Control (全局质量控制 - V3.0 新增)
+**Editor (审阅官) 和 Refiner (修复师) 是全局通用的质量控制 Agent，可被任何模块调用。**
+
+#### Editor Agent (毒舌审阅官)
+- **Trigger**: "审阅这段内容", "检查质量问题", "给我挑挑毛病", "评分"
+- **Target Agent**: `Editor`
+- **Context Aware**: 根据当前内容和上下文进行6大分类审阅
+- **Applies To**: 大纲、小说、剧本、分镜等任何内容类型
+- **Output**: 审阅报告 (review_report) 包含评分和问题列表
+
+#### Refiner Agent (冷静修复师)  
+- **Trigger**: "修复这些问题", "根据审阅意见修改", "优化内容"
+- **Target Agent**: `Refiner`
+- **Input**: 原始内容 + Editor 审阅报告
+- **Style Consistency**: 修复时保持原文风和角色人设
+- **Applies To**: 任何需要修复的内容类型
+- **Output**: 修复后的内容 + 修改日志
+
+**Note**: Editor/Refiner 通常以闭环形式工作：
+```
+Content → Editor (审阅) → Refiner (修复) → Editor (再审阅) → ...
+```
+达到质量阈值 (score >= 80) 或最大重试次数后结束。
 
 ## Multi-Step Workflow Planning (多步骤工作流规划 - V4.1 核心功能)
 

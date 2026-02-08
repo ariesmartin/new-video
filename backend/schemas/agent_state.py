@@ -171,6 +171,28 @@ class UserConfig(TypedDict, total=False):
     avoid_tags: list[str]  # 排除标签
 
 
+def merge_user_config(existing: UserConfig | None, new: UserConfig | None) -> UserConfig:
+    """
+    合并用户配置
+
+    策略：
+    - 如果 new 有值，更新对应的字段
+    - 保持 existing 中未被覆盖的字段
+    - 确保配置不会丢失
+    """
+    if existing is None:
+        return new if new is not None else UserConfig()
+
+    if new is None:
+        return existing
+
+    # 合并两个字典，new 的值优先
+    result = dict(existing)
+    result.update({k: v for k, v in new.items() if v is not None})
+
+    return UserConfig(**result)
+
+
 class WorkflowStep(TypedDict, total=False):
     """工作流步骤定义 - 用于多步骤工作流规划"""
 
@@ -211,7 +233,8 @@ class AgentState(TypedDict, total=False):
     messages: Annotated[list[BaseMessage], add_messages]
 
     # ===== Level 1: User Configuration =====
-    user_config: UserConfig
+    # 使用 Annotated 和 merge_user_config reducer 确保配置正确合并
+    user_config: Annotated[UserConfig, merge_user_config]
     market_report: dict | None  # Market Analyst 生成的市场分析报告
 
     # ===== Level 2: Story Planning =====
@@ -255,9 +278,14 @@ class AgentState(TypedDict, total=False):
     human_feedback: str  # 用户修改意见
     revision_count: int  # 修改次数 (防止无限循环, max=3)
     quality_score: float  # Editor Agent 评分
+    validation_status: str  # 输入验证状态: "complete" | "incomplete"
 
     # ===== Skill Scores (详细评分) =====
     skill_scores: dict[str, float]  # {"S_Engagement": 85.0, "S_Logic": 90.0, ...}
+
+    # ===== Level 3: Skeleton Building (Quality Control) =====
+    review_report: dict | None  # Editor Agent 审阅报告
+    refine_log: dict | None  # Refiner Agent 修复日志
 
     # ===== Server-Driven UI (SDUI) =====
     # Agent 返回的 UI 交互指令，前端解析后渲染为可交互组件
@@ -368,6 +396,8 @@ def create_initial_state(
         revision_count=0,
         quality_score=0.0,
         skill_scores={},
+        review_report=None,
+        refine_log=None,
         ui_interaction=None,
         use_master_router=False,
         routed_agent=None,

@@ -34,6 +34,7 @@ class MarketAnalysisService:
     ):
         self.router = model_router or get_model_router()
         self.prompt_service = prompt_service or get_prompt_service()
+        # DatabaseService 已修复 event loop 问题，可以直接缓存
         self.db = db_service or get_db_service()
 
     async def run_daily_analysis(self) -> dict[str, Any]:

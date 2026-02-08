@@ -26,6 +26,75 @@ logger = structlog.get_logger(__name__)
 router = APIRouter(prefix="/api/graph", tags=["graph"])
 
 
+# ===== 全局消息格式化函数 =====
+
+
+def format_message_content(content: str) -> str:
+    """将消息内容转换为友好格式，处理 action JSON 和 Master Router JSON"""
+    if not content:
+        return ""
+
+    content_str = str(content).strip()
+
+    # Action 到友好标签的映射（用于用户消息）
+    action_labels = {
+        "start_creation": "🎬 开始创作",
+        "adapt_script": "📜 剧本改编",
+        "create_storyboard": "🎨 分镜制作",
+        "inspect_assets": "👤 资产探查",
+        "random_plan": "🎲 随机方案",
+        "select_genre": "🎯 选择赛道",
+        "start_custom": "✨ 自由创作",
+        "reset_genre": "🔙 重选背景",
+        "select_plan": "📋 选择方案",
+        "regenerate_plans": "🔄 重新生成方案",
+        "fuse_plans": "🔀 融合方案",
+        "custom_fusion": "⚡ 自定义融合",
+        "proceed_to_planning": "🤖 AI 自动选题",
+        "cold_start": "🚀 启动助手",
+        "set_episode_config": "✅ 确认剧集配置",
+        "custom_episode_config": "⚙️ 自定义剧集配置",
+    }
+
+    # 1. 尝试解析 action JSON（用户消息）
+    if content_str.startswith("{") and '"action"' in content_str:
+        try:
+            parsed = json.loads(content_str)
+            action = parsed.get("action") if parsed else None
+            if action and isinstance(action, str):
+                label = action_labels.get(action) or action
+                # 如果有 genre，添加到标签
+                if parsed.get("payload", {}).get("genre"):
+                    genre = parsed["payload"]["genre"]
+                    if genre:
+                        label = f"{label} ({genre})"
+                return label
+        except (json.JSONDecodeError, KeyError, TypeError):
+            pass
+
+    # 2. 尝试解析 Master Router JSON（AI 消息）
+    # 格式: {"thought_process": "...", "target_agent": "...", "ui_feedback": "..."}
+    if content_str.startswith("{") and (
+        '"ui_feedback"' in content_str or '"thought_process"' in content_str
+    ):
+        try:
+            parsed = json.loads(content_str)
+            if parsed and isinstance(parsed, dict):
+                # 优先提取 ui_feedback
+                ui_feedback = parsed.get("ui_feedback")
+                if ui_feedback and isinstance(ui_feedback, str) and ui_feedback.strip():
+                    return ui_feedback.strip()
+
+                # 如果没有 ui_feedback，尝试提取 thought_process
+                thought_process = parsed.get("thought_process")
+                if thought_process and isinstance(thought_process, str) and thought_process.strip():
+                    return thought_process.strip()
+        except (json.JSONDecodeError, TypeError):
+            pass
+
+    return content_str
+
+
 class ActionButton(BaseModel):
     """操作按钮"""
 
@@ -254,70 +323,6 @@ async def chat_init_endpoint(request: ChatInitRequest):
 
         checkpointer, conn = await get_or_create_checkpointer()
         config = {"configurable": {"thread_id": thread_id}}
-
-        def format_message_content(content) -> str:
-            """将消息内容转换为友好格式，处理 action JSON 和 Master Router JSON"""
-            if not content:
-                return ""
-
-            content_str = str(content).strip()
-
-            # Action 到友好标签的映射（用于用户消息）
-            action_labels = {
-                "start_creation": "🎬 开始创作",
-                "adapt_script": "📜 剧本改编",
-                "create_storyboard": "🎨 分镜制作",
-                "inspect_assets": "👤 资产探查",
-                "random_plan": "🎲 随机方案",
-                "select_genre": "🎯 选择赛道",
-                "start_custom": "✨ 自由创作",
-                "reset_genre": "🔙 重选背景",
-                "select_plan": "📋 选择方案",
-                "proceed_to_planning": "🤖 AI 自动选题",
-                "cold_start": "🚀 启动助手",
-            }
-
-            # 1. 尝试解析 action JSON（用户消息）
-            if content_str.startswith("{") and '"action"' in content_str:
-                try:
-                    parsed = json.loads(content_str)
-                    action = parsed.get("action") if parsed else None
-                    if action and isinstance(action, str):
-                        label = action_labels.get(action) or action
-                        # 如果有 genre，添加到标签
-                        if parsed.get("payload", {}).get("genre"):
-                            genre = parsed["payload"]["genre"]
-                            if genre:
-                                label = f"{label} ({genre})"
-                        return label
-                except (json.JSONDecodeError, KeyError, TypeError):
-                    pass
-
-            # 2. 尝试解析 Master Router JSON（AI 消息）
-            # 格式: {"thought_process": "...", "target_agent": "...", "ui_feedback": "..."}
-            if content_str.startswith("{") and (
-                '"ui_feedback"' in content_str or '"thought_process"' in content_str
-            ):
-                try:
-                    parsed = json.loads(content_str)
-                    if parsed and isinstance(parsed, dict):
-                        # 优先提取 ui_feedback
-                        ui_feedback = parsed.get("ui_feedback")
-                        if ui_feedback and isinstance(ui_feedback, str) and ui_feedback.strip():
-                            return ui_feedback.strip()
-
-                        # 如果没有 ui_feedback，尝试提取 thought_process
-                        thought_process = parsed.get("thought_process")
-                        if (
-                            thought_process
-                            and isinstance(thought_process, str)
-                            and thought_process.strip()
-                        ):
-                            return thought_process.strip()
-                except (json.JSONDecodeError, TypeError):
-                    pass
-
-            return content_str
 
         # 从 checkpointer 加载历史记录
         history_messages = []
@@ -634,7 +639,10 @@ async def get_chat_messages(
                             # dict 格式（兼容旧数据）
                             if "role" in msg:
                                 messages.append(
-                                    {"role": msg["role"], "content": msg.get("content", "")}
+                                    {
+                                        "role": msg["role"],
+                                        "content": format_message_content(msg.get("content", "")),
+                                    }
                                 )
                             elif "type" in msg and "data" in msg:
                                 msg_data = msg.get("data", {})
@@ -644,11 +652,15 @@ async def get_chat_messages(
                                     if isinstance(msg_data, dict)
                                     else str(msg_data)
                                 )
-                                messages.append({"role": role, "content": content})
+                                messages.append(
+                                    {"role": role, "content": format_message_content(content)}
+                                )
                         elif hasattr(msg, "type") and hasattr(msg, "content"):
                             # LangChain 消息对象（新格式）
                             role = "user" if msg.type == "human" else "assistant"
-                            messages.append({"role": role, "content": str(msg.content)})
+                            messages.append(
+                                {"role": role, "content": format_message_content(str(msg.content))}
+                            )
 
             return {
                 "thread_id": thread_id,
