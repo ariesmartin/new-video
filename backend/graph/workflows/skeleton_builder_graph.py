@@ -1,34 +1,311 @@
 """
-Skeleton Builder Graph - 5-Node 工作流
+Skeleton Builder Graph - 大纲构建工作流
 
 流程：
 START → validate_input → [conditional] →
-  ├─ [complete] → skeleton_builder → editor → refiner → END
+  ├─ [complete] → skeleton_builder → quality_control (子图) → END
   └─ [incomplete] → request_ending → END
+
+注意：质量控制使用独立的 quality_control_graph 子图
 """
 
-from typing import Dict, Any
+from typing import Dict, Any, List
 from langgraph.graph import StateGraph, START, END
 from langgraph.checkpoint.base import BaseCheckpointSaver
 
 from backend.schemas.agent_state import AgentState, ApprovalStatus, StageType
 from backend.agents.skeleton_builder import skeleton_builder_node
-from backend.agents.quality_control.editor import editor_node
-from backend.agents.quality_control.refiner import refiner_node
+from backend.graph.workflows.quality_control_graph import (
+    build_quality_control_graph,
+    QualityControlState,
+)
 
 import structlog
 
 logger = structlog.get_logger(__name__)
 
 
+# ===== 章节映射计算函数 =====
+
+
+def parse_paywall_range(range_str: str) -> List[int]:
+    """
+    解析付费卡点范围字符串
+
+    Args:
+        range_str: "10-12" 或 "12"
+
+    Returns:
+        [10, 11, 12] 或 [12]
+    """
+    if not range_str:
+        return [12]  # 默认值
+
+    try:
+        if "-" in str(range_str):
+            parts = str(range_str).split("-")
+            start = int(parts[0])
+            end = int(parts[1])
+            return list(range(start, end + 1))
+        else:
+            return [int(range_str)]
+    except (ValueError, IndexError):
+        logger.warning(f"Invalid paywall range format: {range_str}, using default")
+        return [12]
+
+
+def calculate_chapter_mapping(total_episodes: int, paywall_episodes: List[int]) -> Dict[str, Any]:
+    """
+    计算章节到短剧的映射
+
+    映射规则：
+    - 开篇阶段（0-15%集数）: 1章 = 1-1.5集，字数8-9k
+    - 发展阶段（15-75%）: 1章 = 2集，字数10k
+    - 付费卡点章节: 1章 = 3集，字数12k（覆盖所有付费集数）
+    - 高潮阶段（75-90%）: 1章 = 1集，字数8k
+    - 结局阶段（90-100%）: 1章 = 1-2集，字数8-10k
+
+    Args:
+        total_episodes: 短剧总集数
+        paywall_episodes: 付费卡点集数列表（如[10, 11, 12]）
+
+    Returns:
+        {
+            "total_chapters": 61,
+            "paywall_chapter": 12,
+            "estimated_words": 800000,
+            "chapters": [...],
+            "adaptation_ratio": 1.31
+        }
+    """
+    chapters = []
+    current_ep = 1
+    paywall_first = paywall_episodes[0] if paywall_episodes else 12
+    paywall_last = paywall_episodes[-1] if paywall_episodes else 12
+
+    # 计算总字数（1分钟 ≈ 4000字，假设每集2分钟）
+    total_minutes = total_episodes * 2
+    estimated_words = total_minutes * 4000
+
+    logger.info(
+        "Calculating chapter mapping",
+        total_episodes=total_episodes,
+        paywall_first=paywall_first,
+        paywall_last=paywall_last,
+        estimated_words=estimated_words,
+    )
+
+    # 1. 开篇阶段（前15%集数）
+    opening_eps = max(3, int(total_episodes * 0.15))
+    for i in range(opening_eps):
+        # 前3章每章1.5集，之后每章1集
+        if i < 3:
+            eps = 1.5
+            word_count = 9000
+        else:
+            eps = 1.0
+            word_count = 8000
+
+        end_ep = min(int(current_ep + eps - 1), total_episodes)
+        chapters.append(
+            {
+                "chapter_num": len(chapters) + 1,
+                "episode_start": int(current_ep),
+                "episode_end": end_ep,
+                "word_count": word_count,
+                "stage": "opening",
+                "is_paywall": False,
+            }
+        )
+        current_ep += eps
+
+    # 2. 发展阶段（到付费卡点前）
+    while current_ep < paywall_first - 2:
+        chapters.append(
+            {
+                "chapter_num": len(chapters) + 1,
+                "episode_start": int(current_ep),
+                "episode_end": min(int(current_ep + 1), total_episodes),
+                "word_count": 10000,
+                "stage": "development",
+                "is_paywall": False,
+            }
+        )
+        current_ep += 2
+
+    # 3. 付费卡点章节（覆盖所有付费集数）
+    paywall_chapter_idx = len(chapters) + 1
+    chapters.append(
+        {
+            "chapter_num": paywall_chapter_idx,
+            "episode_start": int(current_ep),
+            "episode_end": paywall_last,
+            "word_count": 12000,  # 付费卡点章节加长
+            "stage": "paywall",
+            "is_paywall": True,
+            "paywall_position": "70-80%",  # 卡点在本章的位置
+        }
+    )
+    current_ep = paywall_last + 1
+
+    # 4. 发展阶段（付费卡点后到75%）
+    dev_end = int(total_episodes * 0.75)
+    while current_ep < dev_end:
+        chapters.append(
+            {
+                "chapter_num": len(chapters) + 1,
+                "episode_start": int(current_ep),
+                "episode_end": min(int(current_ep + 1), total_episodes),
+                "word_count": 10000,
+                "stage": "development",
+                "is_paywall": False,
+            }
+        )
+        current_ep += 2
+
+    # 5. 高潮阶段（75-90%）
+    climax_end = int(total_episodes * 0.90)
+    while current_ep < climax_end:
+        chapters.append(
+            {
+                "chapter_num": len(chapters) + 1,
+                "episode_start": int(current_ep),
+                "episode_end": int(current_ep),
+                "word_count": 8000,
+                "stage": "climax",
+                "is_paywall": False,
+            }
+        )
+        current_ep += 1
+
+    # 6. 结局阶段（90-100%）
+    while current_ep <= total_episodes:
+        remaining = total_episodes - current_ep + 1
+        eps = min(remaining, 2)
+        chapters.append(
+            {
+                "chapter_num": len(chapters) + 1,
+                "episode_start": int(current_ep),
+                "episode_end": min(int(current_ep + eps - 1), total_episodes),
+                "word_count": 8000 if eps == 1 else 10000,
+                "stage": "ending",
+                "is_paywall": False,
+            }
+        )
+        current_ep += eps
+
+    result = {
+        "total_chapters": len(chapters),
+        "paywall_chapter": paywall_chapter_idx,
+        "estimated_words": estimated_words,
+        "chapters": chapters,
+        "adaptation_ratio": round(total_episodes / len(chapters), 2) if chapters else 0,
+        "key_points": {
+            "opening_end": max(3, int(len(chapters) * 0.05)),
+            "development_start": max(3, int(len(chapters) * 0.05)) + 1,
+            "development_end": int(len(chapters) * 0.75),
+            "midpoint_chapter": int(len(chapters) * 0.50),
+            "climax_chapter": int(len(chapters) * 0.875),
+            "paywall_chapter": paywall_chapter_idx,
+        },
+    }
+
+    logger.info(
+        "Chapter mapping calculated",
+        total_chapters=result["total_chapters"],
+        paywall_chapter=result["paywall_chapter"],
+        adaptation_ratio=result["adaptation_ratio"],
+    )
+
+    return result
+
+
 # ===== 普通函数 Nodes =====
+
+
+async def quality_control_node(state: AgentState) -> Dict[str, Any]:
+    """
+    质量控制 Node
+
+    调用独立的 quality_control_graph 子图进行审阅和修复
+    支持 full_cycle 模式：审阅 → 修复 → 审阅循环
+    """
+    user_id = state.get("user_id")
+    project_id = state.get("project_id")
+    skeleton_content = state.get("skeleton_content", "")
+    revision_count = state.get("revision_count", 0)
+
+    logger.info(
+        "Executing Quality Control Node",
+        user_id=user_id,
+        content_length=len(skeleton_content),
+        revision_count=revision_count,
+    )
+
+    if not skeleton_content:
+        logger.error("No skeleton content to review")
+        return {
+            "error": "没有可审阅的大纲内容",
+            "quality_score": 0,
+            "review_report": None,
+            "last_successful_node": "quality_control_error",
+        }
+
+    try:
+        # 构建 quality_control_graph 子图
+        qc_graph = build_quality_control_graph()
+
+        # 创建子图状态
+        qc_state = QualityControlState(
+            mode="full_cycle",
+            user_id=user_id,
+            project_id=project_id,
+            input_content=skeleton_content,
+            target_score=80,
+            max_iterations=3 - revision_count,  # 考虑已进行的迭代次数
+            iterations_performed=revision_count,
+            user_config=state.get("user_config", {}),
+        )
+
+        # 执行子图
+        result = await qc_graph.ainvoke(qc_state.__dict__)
+
+        # 提取结果
+        review_report = result.get("review_report")
+        refined_content = result.get("refined_content")
+        final_score = result.get("final_score", 0)
+        iterations = result.get("iterations_performed", 0)
+
+        logger.info(
+            "Quality Control completed",
+            final_score=final_score,
+            iterations=iterations,
+            has_refined_content=bool(refined_content),
+        )
+
+        return {
+            "review_report": review_report,
+            "quality_score": final_score,
+            "refined_content": refined_content,
+            "revision_count": revision_count + iterations,
+            "last_successful_node": "quality_control",
+        }
+
+    except Exception as e:
+        logger.error("Quality Control failed", error=str(e))
+        return {
+            "error": f"质量控制失败: {str(e)}",
+            "quality_score": 0,
+            "review_report": None,
+            "last_successful_node": "quality_control_error",
+        }
 
 
 async def validate_input_node(state: AgentState) -> Dict[str, Any]:
     """
-    输入验证 Node
+    输入验证 Node - 增强版
 
-    检查必要的输入字段是否存在，自动推断配置
+    检查必要的输入字段，并自动计算章节映射
     """
     user_config = state.get("user_config", {})
     selected_plan = state.get("selected_plan", {})
@@ -59,19 +336,44 @@ async def validate_input_node(state: AgentState) -> Dict[str, Any]:
             "last_successful_node": "validate_input",
         }
 
-    # 自动推断配置（如果有需要）
-    inferred_config = {}
-    if not user_config.get("total_episodes"):
-        inferred_config["total_episodes"] = 80  # 默认值
+    # ===== 新增：计算章节映射 =====
+    total_episodes = user_config.get("total_episodes", 80)
+    episode_duration = user_config.get("episode_duration", 2)
+
+    # 获取付费卡点信息
+    paywall_design = selected_plan.get("paywall_design", {})
+    paywall_range = paywall_design.get("episode_range", "10-12")
+    paywall_episodes = parse_paywall_range(paywall_range)
+
+    # 计算章节映射
+    chapter_mapping = calculate_chapter_mapping(total_episodes, paywall_episodes)
+
+    # 构建推断配置
+    inferred_config = {
+        "total_episodes": total_episodes,
+        "episode_duration": episode_duration,
+        "total_drama_minutes": total_episodes * episode_duration,
+        "total_chapters": chapter_mapping["total_chapters"],
+        "paywall_chapter": chapter_mapping["paywall_chapter"],
+        "paywall_episodes": paywall_episodes,
+        "estimated_words": chapter_mapping["estimated_words"],
+        "chapter_map": chapter_mapping["chapters"],
+        "adaptation_ratio": chapter_mapping["adaptation_ratio"],
+        **chapter_mapping["key_points"],  # 展开关键节点
+    }
 
     logger.info(
-        "Input validation passed",
-        inferred_config=inferred_config,
+        "Input validation passed with chapter mapping",
+        total_episodes=total_episodes,
+        total_chapters=inferred_config["total_chapters"],
+        paywall_chapter=inferred_config["paywall_chapter"],
+        estimated_words=inferred_config["estimated_words"],
     )
 
     return {
         "validation_status": "complete",
         "inferred_config": inferred_config,
+        "chapter_mapping": chapter_mapping,  # 供后续节点使用
         "current_stage": StageType.LEVEL_3,
         "last_successful_node": "validate_input",
     }
@@ -158,86 +460,6 @@ def route_after_validation(state: AgentState) -> str:
     else:
         logger.info("Routing to request_ending")
         return "incomplete"
-
-
-def route_after_editor(state: AgentState) -> str:
-    """
-    Editor 后的路由决策
-
-    根据 quality_score 决定是否需要修复
-    """
-    quality_score = state.get("quality_score", 0)
-    revision_count = state.get("revision_count", 0)
-    review_report = state.get("review_report")
-
-    # 如果评分 >= 80，质量通过，直接结束
-    if quality_score >= 80:
-        logger.info(
-            "Quality check passed",
-            quality_score=quality_score,
-            revision_count=revision_count,
-        )
-        return "end"
-
-    # 如果质量为0，说明有系统错误或前置节点失败，无法修复
-    if quality_score == 0:
-        logger.error(
-            "Quality score is 0, system error or previous node failed",
-            quality_score=quality_score,
-        )
-        return "end"
-
-    # 如果已达到最大重试次数，强制结束（即使质量不达标）
-    if revision_count >= 3:
-        logger.warning(
-            "Max revision count reached, forcing end",
-            quality_score=quality_score,
-            revision_count=revision_count,
-        )
-        return "end"
-
-    # 如果没有review_report，说明Editor执行失败，不能进入Refiner
-    if not review_report:
-        logger.error(
-            "No review report available, cannot refine",
-            quality_score=quality_score,
-        )
-        return "end"
-
-    # 否则进入 Refiner 修复
-    logger.info(
-        "Quality check failed, routing to refiner",
-        quality_score=quality_score,
-    )
-    return "refine"
-
-
-def route_after_refiner(state: AgentState) -> str:
-    """
-    Refiner 后的路由决策
-
-    修复后回到 Editor 重新审阅（循环质检）
-    """
-    revision_count = state.get("revision_count", 0)
-    refiner_output = state.get("refiner_output")
-
-    # 增加修改计数
-    new_revision_count = revision_count + 1
-
-    # 如果Refiner没有输出，说明修复失败
-    if not refiner_output:
-        logger.error(
-            "Refiner failed to produce output",
-            revision_count=new_revision_count,
-        )
-        return "review"  # 仍然回到editor，但Editor会看到没有改进
-
-    logger.info(
-        "Refiner completed, routing back to editor",
-        revision_count=new_revision_count,
-    )
-
-    return "review"
 
 
 # ===== 输出格式化 Node =====
@@ -393,61 +615,6 @@ async def handle_action_node(state: AgentState) -> Dict[str, Any]:
         }
 
 
-# ===== 改进的路由函数 =====
-
-
-def route_after_editor_with_formatter(state: AgentState) -> str:
-    """
-    Editor 后的路由决策（增强版）
-
-    根据 quality_score 决定是否需要修复，或者进入输出格式化
-    """
-    quality_score = state.get("quality_score", 0)
-    revision_count = state.get("revision_count", 0)
-    review_report = state.get("review_report")
-
-    # 如果评分 >= 80，质量通过，进入输出格式化
-    if quality_score >= 80:
-        logger.info(
-            "Quality check passed, routing to output formatter",
-            quality_score=quality_score,
-            revision_count=revision_count,
-        )
-        return "format"
-
-    # 如果质量为0，说明有系统错误或前置节点失败，无法修复
-    if quality_score == 0:
-        logger.error(
-            "Quality score is 0, system error or previous node failed",
-            quality_score=quality_score,
-        )
-        return "format"  # 仍然格式化输出，但会显示警告
-
-    # 如果已达到最大重试次数，强制进入格式化
-    if revision_count >= 3:
-        logger.warning(
-            "Max revision count reached, forcing to formatter",
-            quality_score=quality_score,
-            revision_count=revision_count,
-        )
-        return "format"
-
-    # 如果没有review_report，说明Editor执行失败
-    if not review_report:
-        logger.error(
-            "No review report available, cannot refine",
-            quality_score=quality_score,
-        )
-        return "format"
-
-    # 否则进入 Refiner 修复
-    logger.info(
-        "Quality check failed, routing to refiner",
-        quality_score=quality_score,
-    )
-    return "refine"
-
-
 # ===== Graph 构建 =====
 
 
@@ -486,13 +653,10 @@ def build_skeleton_builder_graph(checkpointer: BaseCheckpointSaver | None = None
     # Node 3: Skeleton Builder（Agent）
     workflow.add_node("skeleton_builder", skeleton_builder_node)
 
-    # Node 4: Editor（Agent）
-    workflow.add_node("editor", editor_node)
+    # Node 4: Quality Control（调用独立子图）
+    workflow.add_node("quality_control", quality_control_node)
 
-    # Node 5: Refiner（Agent）
-    workflow.add_node("refiner", refiner_node)
-
-    # Node 6: 输出格式化（添加 SDUI 按钮）
+    # Node 5: 输出格式化（添加 SDUI 按钮）
     workflow.add_node("output_formatter", output_formatter_node)
 
     # ===== 添加 Edges =====
@@ -505,12 +669,23 @@ def build_skeleton_builder_graph(checkpointer: BaseCheckpointSaver | None = None
 
         if action in ["confirm_skeleton", "regenerate_skeleton"]:
             logger.info("Entry routing to handle_action", action=action)
-            return "action"
+            return "handle_action"
         else:
-            logger.info("Entry routing to validate_input")
-            return "validate"
+            # start_skeleton_building 或无 action 的情况，走 validate_input
+            logger.info("Entry routing to validate_input", action=action or "none")
+            return "validate_input"
 
-    workflow.set_entry_point("handle_action")
+    # ✅ 使用条件路由从 START 开始，根据 action 决定走哪条路径
+    workflow.add_conditional_edges(
+        START,
+        route_entry,
+        {
+            "handle_action": "handle_action",
+            "validate_input": "validate_input",
+        },
+    )
+
+    # handle_action 的后续路由
     workflow.add_conditional_edges(
         "handle_action",
         lambda state: "regenerate"
@@ -518,7 +693,7 @@ def build_skeleton_builder_graph(checkpointer: BaseCheckpointSaver | None = None
         else "continue",
         {
             "regenerate": "validate_input",  # 重新生成：回到起点
-            "continue": END,  # 确认或其他：结束
+            "continue": END,  # 确认：结束
         },
     )
 
@@ -535,33 +710,38 @@ def build_skeleton_builder_graph(checkpointer: BaseCheckpointSaver | None = None
     # request_ending → END（等待用户输入）
     workflow.add_edge("request_ending", END)
 
-    # skeleton_builder → editor
-    workflow.add_edge("skeleton_builder", "editor")
+    # skeleton_builder → quality_control（调用子图进行质检）
+    workflow.add_edge("skeleton_builder", "quality_control")
 
-    # editor → [conditional] → output_formatter 或 refiner
+    # quality_control → [conditional] → output_formatter 或 END
+    def route_after_quality_control(state: AgentState) -> str:
+        """
+        Quality Control 后的路由决策
+
+        根据质检结果决定是否进入输出格式化
+        """
+        quality_score = state.get("quality_score", 0)
+        error = state.get("error")
+
+        # 如果有错误，仍然格式化输出但会显示警告
+        if error:
+            logger.error(
+                "Quality control returned error",
+                error=error,
+            )
+            return "format"
+
+        logger.info(
+            "Quality control completed, routing to formatter",
+            quality_score=quality_score,
+        )
+        return "format"
+
     workflow.add_conditional_edges(
-        "editor",
-        route_after_editor_with_formatter,
+        "quality_control",
+        route_after_quality_control,
         {
             "format": "output_formatter",
-            "refine": "refiner",
-        },
-    )
-
-    # refiner → editor（循环质检，增加修改计数）
-    def route_after_refiner_with_count(state: AgentState) -> str:
-        """Refiner 后的路由，增加修改计数"""
-        revision_count = state.get("revision_count", 0)
-        new_count = revision_count + 1
-        logger.info("Routing after refiner", revision_count=new_count)
-        # 返回一个特殊标记，让 editor 知道这是第几次修改
-        return "review"
-
-    workflow.add_conditional_edges(
-        "refiner",
-        route_after_refiner_with_count,
-        {
-            "review": "editor",
         },
     )
 
