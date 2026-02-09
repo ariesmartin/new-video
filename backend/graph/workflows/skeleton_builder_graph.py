@@ -884,12 +884,12 @@ def build_skeleton_builder_graph(checkpointer: BaseCheckpointSaver | None = None
         },
     )
 
-    # validate_input → [conditional] → skeleton_builder 或 request_ending
+    # validate_input → [conditional] → batch_coordinator 或 request_ending
     workflow.add_conditional_edges(
         "validate_input",
         route_after_validation,
         {
-            "complete": "skeleton_builder",
+            "complete": "batch_coordinator",  # 改道到分批协调器
             "incomplete": "request_ending",
         },
     )
@@ -897,8 +897,41 @@ def build_skeleton_builder_graph(checkpointer: BaseCheckpointSaver | None = None
     # request_ending → END（等待用户输入）
     workflow.add_edge("request_ending", END)
 
-    # skeleton_builder → quality_control（调用子图进行质检）
-    workflow.add_edge("skeleton_builder", "quality_control")
+    # batch_coordinator → skeleton_builder（根据分批策略生成）
+    workflow.add_edge("batch_coordinator", "skeleton_builder")
+
+    # skeleton_builder → validate_output（先生成，再验证）
+    workflow.add_edge("skeleton_builder", "validate_output")
+
+    # validate_output → [conditional] → quality_control 或 skeleton_builder(重试)
+    def route_after_validate_output(state: AgentState) -> str:
+        """输出验证后的路由决策"""
+        validation_status = state.get("validation_status", "complete")
+        retry_count = state.get("retry_count", 0)
+        max_retries = 3
+
+        if validation_status == "incomplete" and retry_count < max_retries:
+            logger.warning(
+                "Output validation failed, retrying",
+                retry_count=retry_count + 1,
+                max_retries=max_retries,
+            )
+            state["retry_count"] = retry_count + 1
+            return "retry"
+        elif validation_status == "incomplete":
+            logger.error("Output validation failed after max retries")
+            return "proceed"  # 即使失败也继续，避免死循环
+
+        return "proceed"
+
+    workflow.add_conditional_edges(
+        "validate_output",
+        route_after_validate_output,
+        {
+            "retry": "skeleton_builder",  # 重试生成
+            "proceed": "quality_control",  # 继续到质检
+        },
+    )
 
     # quality_control → [conditional] → output_formatter 或 END
     def route_after_quality_control(state: AgentState) -> str:
