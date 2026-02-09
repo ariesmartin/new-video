@@ -462,6 +462,187 @@ def route_after_validation(state: AgentState) -> str:
         return "incomplete"
 
 
+# ===== 输出验证 Node =====
+
+
+async def validate_output_node(state: AgentState) -> Dict[str, Any]:
+    """
+    输出验证 Node
+
+    验证生成的章节大纲是否完整，检查：
+    1. 章节数量是否达标
+    2. 是否包含付费卡点章节
+    3. JSON是否完整
+    4. 关键字段是否存在
+    """
+    import json
+    import re
+
+    skeleton_content = state.get("skeleton_content", "")
+    chapter_mapping = state.get("chapter_mapping", {})
+    total_chapters_expected = chapter_mapping.get("total_chapters", 60)
+
+    logger.info(
+        "Validating output",
+        content_length=len(skeleton_content),
+        expected_chapters=total_chapters_expected,
+    )
+
+    issues = []
+
+    # 检查1：章节数量
+    chapter_count = len(re.findall(r"### Chapter \d+:", skeleton_content))
+    if chapter_count < total_chapters_expected * 0.7:  # 允许30%容错
+        issues.append(f"章节不完整: 期望{total_chapters_expected}章，实际约{chapter_count}章")
+
+    # 检查2：付费卡点章节
+    has_paywall = "⚠️ 付费卡点章节" in skeleton_content or "付费卡点" in skeleton_content
+    if not has_paywall:
+        issues.append("缺少付费卡点专项设计")
+
+    # 检查3：UI JSON
+    has_ui_json = '"ui_mode"' in skeleton_content and '"novel_skeleton_editor"' in skeleton_content
+    if not has_ui_json:
+        issues.append("缺少UI交互数据")
+
+    # 检查4：关键字段
+    required_sections = ["元数据", "核心设定", "人物体系", "情节架构", "章节大纲"]
+    missing_sections = []
+    for section in required_sections:
+        if section not in skeleton_content:
+            missing_sections.append(section)
+    if missing_sections:
+        issues.append(f"缺少关键部分: {', '.join(missing_sections)}")
+
+    # 检查5：JSON完整性
+    json_complete = True
+    json_matches = re.findall(r"```json\s*([\s\S]*?)\s*```", skeleton_content)
+    for json_str in json_matches:
+        try:
+            json.loads(json_str)
+        except json.JSONDecodeError:
+            json_complete = False
+            issues.append("JSON格式不完整")
+            break
+
+    if issues:
+        logger.warning("Output validation failed", issues=issues)
+        return {
+            "validation_status": "incomplete",
+            "validation_issues": issues,
+            "chapter_count": chapter_count,
+            "needs_retry": True,
+            "last_successful_node": "validate_output",
+        }
+
+    logger.info("Output validation passed", chapter_count=chapter_count)
+    return {
+        "validation_status": "complete",
+        "chapter_count": chapter_count,
+        "last_successful_node": "validate_output",
+    }
+
+
+# ===== 分批生成协调 Node =====
+
+
+async def batch_coordinator_node(state: AgentState) -> Dict[str, Any]:
+    """
+    分批生成协调 Node
+
+    根据章节数决定是否分批生成，以及分批策略
+    """
+    chapter_mapping = state.get("chapter_mapping", {})
+    total_chapters = chapter_mapping.get("total_chapters", 60)
+
+    logger.info(
+        "Coordinating batch generation",
+        total_chapters=total_chapters,
+    )
+
+    # 分批策略
+    if total_chapters <= 30:
+        # 30章以内，一次性生成
+        batches = [{"range": (1, total_chapters), "type": "full", "description": "完整大纲"}]
+    elif total_chapters <= 50:
+        # 50章以内，分2批
+        mid = total_chapters // 2
+        batches = [
+            {"range": (1, mid), "type": "opening", "description": f"第1-{mid}章（开篇+发展）"},
+            {
+                "range": (mid + 1, total_chapters),
+                "type": "ending",
+                "description": f"第{mid + 1}-{total_chapters}章（高潮+结局）",
+            },
+        ]
+    else:
+        # 50章以上，分4批
+        q1 = total_chapters // 4
+        q2 = total_chapters // 2
+        q3 = total_chapters * 3 // 4
+
+        # 找到付费卡点章节，确保它在某一批中
+        paywall_chapter = chapter_mapping.get("paywall_chapter", q2)
+
+        batches = [
+            {
+                "range": (1, min(q1, paywall_chapter - 1)),
+                "type": "opening",
+                "description": f"第1-{min(q1, paywall_chapter - 1)}章（开篇）",
+            },
+        ]
+
+        # 付费卡点章节所在批次
+        if paywall_chapter <= q2:
+            batches.append(
+                {
+                    "range": (batches[-1]["range"][1] + 1, q2),
+                    "type": "paywall",
+                    "description": f"第{batches[-1]['range'][1] + 1}-{q2}章（发展+付费卡点）",
+                }
+            )
+            batches.append(
+                {
+                    "range": (q2 + 1, q3),
+                    "type": "middle",
+                    "description": f"第{q2 + 1}-{q3}章（发展中段）",
+                }
+            )
+        else:
+            batches.append(
+                {
+                    "range": (batches[-1]["range"][1] + 1, min(paywall_chapter - 1, q2)),
+                    "type": "development",
+                    "description": "发展阶段",
+                }
+            )
+            batches.append(
+                {
+                    "range": (batches[-1]["range"][1] + 1, min(paywall_chapter + 5, q3)),
+                    "type": "paywall",
+                    "description": f"第{batches[-1]['range'][1] + 1}-{min(paywall_chapter + 5, q3)}章（付费卡点+后续）",
+                }
+            )
+
+        batches.append(
+            {
+                "range": (batches[-1]["range"][1] + 1, total_chapters),
+                "type": "climax",
+                "description": f"第{batches[-1]['range'][1] + 1}-{total_chapters}章（高潮+结局）",
+            }
+        )
+
+    logger.info("Batch strategy determined", batch_count=len(batches))
+
+    return {
+        "generation_batches": batches,
+        "current_batch_index": 0,
+        "total_batches": len(batches),
+        "accumulated_content": "",  # 累积生成的内容
+        "last_successful_node": "batch_coordinator",
+    }
+
+
 # ===== 输出格式化 Node =====
 
 
@@ -644,19 +825,25 @@ def build_skeleton_builder_graph(checkpointer: BaseCheckpointSaver | None = None
     # Node 0: 动作处理（处理 confirm/regenerate）
     workflow.add_node("handle_action", handle_action_node)
 
-    # Node 1: 输入验证（普通函数）
+    # Node 1: 输入验证（普通函数）- 增强版，包含章节映射计算
     workflow.add_node("validate_input", validate_input_node)
 
     # Node 2: 请求 ending（普通函数，条件分支）
     workflow.add_node("request_ending", request_ending_node)
 
-    # Node 3: Skeleton Builder（Agent）
+    # Node 3: 分批生成协调（新增）
+    workflow.add_node("batch_coordinator", batch_coordinator_node)
+
+    # Node 4: Skeleton Builder（Agent）
     workflow.add_node("skeleton_builder", skeleton_builder_node)
 
-    # Node 4: Quality Control（调用独立子图）
+    # Node 5: 输出验证（新增）
+    workflow.add_node("validate_output", validate_output_node)
+
+    # Node 6: Quality Control（调用独立子图）
     workflow.add_node("quality_control", quality_control_node)
 
-    # Node 5: 输出格式化（添加 SDUI 按钮）
+    # Node 7: 输出格式化（添加 SDUI 按钮）
     workflow.add_node("output_formatter", output_formatter_node)
 
     # ===== 添加 Edges =====
