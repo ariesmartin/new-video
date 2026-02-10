@@ -432,13 +432,19 @@ export function AIAssistantPanel({ projectId: externalProjectId, sceneContext }:
                     }`}
                 >
                   {message.role === 'user' ? (
-                    <p className="text-sm whitespace-pre-wrap">{cleanJsonFromContent(message.content)}</p>
+                    <p className="text-sm whitespace-pre-wrap max-h-[60vh] overflow-y-auto">{cleanJsonFromContent(message.content)}</p>
                   ) : (
-                    <div className="w-full text-sm break-words whitespace-pre-wrap overflow-hidden">
+                    <div className="w-full text-sm break-words whitespace-pre-wrap overflow-hidden max-h-[60vh] overflow-y-auto">
                       <ReactMarkdown
                         remarkPlugins={[remarkGfm]}
                         components={{
-                          p: ScriptRenderer
+                          p: ScriptRenderer,
+                          pre: ({ children }) => (
+                            <pre className="overflow-x-auto max-w-full text-xs bg-black/5 rounded p-2 my-2">{children}</pre>
+                          ),
+                          code: ({ children }) => (
+                            <code className="text-xs bg-black/5 rounded px-1 py-0.5">{children}</code>
+                          )
                         }}
                       >
                         {cleanJsonFromContent(message.content)}
@@ -495,12 +501,18 @@ export function AIAssistantPanel({ projectId: externalProjectId, sceneContext }:
           {/* Streaming Content */}
           {streamingContent && (
             <div className="flex justify-start">
-              <div className="bg-elevated border border-border rounded-2xl rounded-bl-md px-4 py-3 max-w-[90%]">
+              <div className="bg-elevated border border-border rounded-2xl rounded-bl-md px-4 py-3 max-w-[90%] max-h-[60vh] overflow-y-auto">
                 <div className="w-full text-sm break-words whitespace-pre-wrap overflow-hidden">
                   <ReactMarkdown
                     remarkPlugins={[remarkGfm]}
                     components={{
-                      p: ScriptRenderer
+                      p: ScriptRenderer,
+                      pre: ({ children }) => (
+                        <pre className="overflow-x-auto max-w-full text-xs bg-black/5 rounded p-2 my-2">{children}</pre>
+                      ),
+                      code: ({ children }) => (
+                        <code className="text-xs bg-black/5 rounded px-1 py-0.5">{children}</code>
+                      )
                     }}
                   >
                     {cleanJsonFromContent(streamingContent)}
