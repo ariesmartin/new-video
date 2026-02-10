@@ -29,6 +29,34 @@ router = APIRouter(prefix="/api/graph", tags=["graph"])
 # ===== 全局消息格式化函数 =====
 
 
+def content_to_string(content) -> str:
+    """将 content 转换为字符串（处理 list/dict 类型）
+
+    Gemini 模型返回的 content 是 list 类型（多部分响应），
+    直接 str() 会产生 Python repr 字符串导致前端显示异常。
+    """
+    if content is None:
+        return ""
+    if isinstance(content, str):
+        return content
+    if isinstance(content, list):
+        # Gemini 多部分响应：提取所有文本部分
+        text_parts = []
+        for part in content:
+            if isinstance(part, str):
+                text_parts.append(part)
+            elif isinstance(part, dict) and "text" in part:
+                text_parts.append(str(part["text"]))
+            elif hasattr(part, "text"):
+                text_parts.append(str(getattr(part, "text", "")))
+        return "\n".join(text_parts)
+    if isinstance(content, dict):
+        if "text" in content:
+            return str(content["text"])
+        return json.dumps(content, ensure_ascii=False)
+    return str(content)
+
+
 def format_message_content(content: str) -> str:
     """将消息内容转换为友好格式，处理 action JSON 和 Master Router JSON"""
     if not content:
@@ -358,7 +386,7 @@ async def chat_init_endpoint(request: ChatInitRequest):
                     # 处理 LangChain 消息对象
                     if isinstance(msg, (HumanMessage, AIMessage)):
                         role = "user" if isinstance(msg, HumanMessage) else "assistant"
-                        formatted_content = format_message_content(str(msg.content))
+                        formatted_content = format_message_content(content_to_string(msg.content))
 
                         # 从消息的 additional_kwargs 中提取 ui_interaction
                         # 这是最可靠的来源，因为 SDUI 在创建时就嵌入了消息中
@@ -384,10 +412,10 @@ async def chat_init_endpoint(request: ChatInitRequest):
                             msg_type = msg.get("type", "")
                             msg_data = msg.get("data", {})
                             role = "user" if msg_type == "human" else "assistant"
-                            content = (
+                            content = content_to_string(
                                 msg_data.get("content", "")
                                 if isinstance(msg_data, dict)
-                                else str(msg_data)
+                                else msg_data
                             )
                             formatted_content = format_message_content(content)
 
@@ -407,7 +435,9 @@ async def chat_init_endpoint(request: ChatInitRequest):
                         # 简单格式: {"role": "assistant", "content": "..."}
                         elif "role" in msg:
                             role = msg.get("role", "assistant")
-                            formatted_content = format_message_content(str(msg.get("content", "")))
+                            formatted_content = format_message_content(
+                                content_to_string(msg.get("content", ""))
+                            )
                         else:
                             continue  # 无法识别的格式，跳过
                     else:
@@ -665,16 +695,18 @@ async def get_chat_messages(
                                 messages.append(
                                     {
                                         "role": msg["role"],
-                                        "content": format_message_content(msg.get("content", "")),
+                                        "content": format_message_content(
+                                            content_to_string(msg.get("content", ""))
+                                        ),
                                     }
                                 )
                             elif "type" in msg and "data" in msg:
                                 msg_data = msg.get("data", {})
                                 role = "user" if msg.get("type") == "human" else "assistant"
-                                content = (
+                                content = content_to_string(
                                     msg_data.get("content", "")
                                     if isinstance(msg_data, dict)
-                                    else str(msg_data)
+                                    else msg_data
                                 )
                                 messages.append(
                                     {"role": role, "content": format_message_content(content)}
@@ -683,7 +715,12 @@ async def get_chat_messages(
                             # LangChain 消息对象（新格式）
                             role = "user" if msg.type == "human" else "assistant"
                             messages.append(
-                                {"role": role, "content": format_message_content(str(msg.content))}
+                                {
+                                    "role": role,
+                                    "content": format_message_content(
+                                        content_to_string(msg.content)
+                                    ),
+                                }
                             )
 
             return {
@@ -853,28 +890,7 @@ async def chat_sse_endpoint(
             messages = result.get("messages", [])
             ai_content = ""
 
-            def content_to_string(content) -> str:
-                """将 content 转换为字符串（处理 list/dict 类型）"""
-                if content is None:
-                    return ""
-                if isinstance(content, str):
-                    return content
-                if isinstance(content, list):
-                    # Gemini 多部分响应：提取所有文本部分
-                    text_parts = []
-                    for part in content:
-                        if isinstance(part, str):
-                            text_parts.append(part)
-                        elif isinstance(part, dict) and "text" in part:
-                            text_parts.append(str(part["text"]))
-                        elif hasattr(part, "text"):
-                            text_parts.append(str(getattr(part, "text", "")))
-                    return "\n".join(text_parts)
-                if isinstance(content, dict):
-                    if "text" in content:
-                        return str(content["text"])
-                    return json.dumps(content, ensure_ascii=False)
-                return str(content)
+            # content_to_string 已提取到模块级别
 
             if messages:
                 # 使用最后一条 AI 消息（而非最长的消息）
