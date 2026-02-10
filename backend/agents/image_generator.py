@@ -19,7 +19,7 @@ logger = structlog.get_logger(__name__)
 
 def _load_image_generator_prompt() -> str:
     """从文件加载 Image Generator 的 System Prompt"""
-    prompt_path = Path(__file__).parent.parent.parent.parent / "prompts" / "11_Image_Generator.md"
+    prompt_path = Path(__file__).parent.parent / "prompts" / "11_Image_Generator.md"
 
     try:
         with open(prompt_path, "r", encoding="utf-8") as f:

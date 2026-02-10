@@ -61,7 +61,7 @@ export const episodesService = {
    * 更新剧集
    */
   async updateEpisode(projectId: string, episodeId: string, updates: EpisodeUpdate) {
-    const { data, error } = await client.PUT('/api/projects/{project_id}/episodes/{episode_id}', {
+    const { data, error } = await client.PATCH('/api/projects/{project_id}/episodes/{episode_id}', {
       params: {
         path: { 
           project_id: projectId,

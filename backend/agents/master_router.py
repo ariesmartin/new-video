@@ -47,7 +47,7 @@ def _load_master_router_prompt_base() -> str:
     Returns:
         System Prompt 基础字符串
     """
-    prompt_path = Path(__file__).parent.parent.parent / "prompts" / "0_Master_Router.md"
+    prompt_path = Path(__file__).parent.parent / "prompts" / "0_Master_Router.md"
 
     try:
         with open(prompt_path, "r", encoding="utf-8") as f:
@@ -343,6 +343,9 @@ def _get_friendly_action_text(action: str, payload: Dict[str, Any]) -> str:
         "inspect_assets": "👤 资产探查",
         "set_episode_config": "✅ 确认剧集配置",
         "custom_episode_config": "⚙️ 自定义剧集配置",
+        "select_ending": "🎭 选择结局类型",
+        "confirm_skeleton": "✅ 确认大纲",
+        "regenerate_skeleton": "🔄 重新生成大纲",
     }
 
     # 基础标签
@@ -413,6 +416,10 @@ async def master_router_node(state: AgentState) -> Dict[str, Any]:
                     "reset_genre",
                     "set_episode_config",
                     "custom_episode_config",
+                    "select_ending",  # 结局类型选择
+                    "start_skeleton_building",  # 开始大纲构建
+                    "confirm_skeleton",  # 确认大纲
+                    "regenerate_skeleton",  # 重新生成大纲
                 ]
 
                 if action in sdui_actions:
@@ -440,6 +447,10 @@ async def master_router_node(state: AgentState) -> Dict[str, Any]:
             "reset_genre": "story_planner",
             "set_episode_config": "story_planner",  # 剧集配置也路由到 Story Planner
             "custom_episode_config": "story_planner",
+            "select_ending": "skeleton_builder",  # 结局类型选择路由到 Skeleton Builder
+            "start_skeleton_building": "skeleton_builder",  # 开始大纲构建
+            "confirm_skeleton": "skeleton_builder",  # 确认大纲
+            "regenerate_skeleton": "skeleton_builder",  # 重新生成大纲
             "adapt_script": "script_adapter",
             "create_storyboard": "storyboard_director",
             "inspect_assets": "asset_inspector",

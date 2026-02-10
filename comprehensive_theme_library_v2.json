@@ -1,0 +1,2660 @@
+{
+  "metadata": {
+    "version": "2.1.0",
+    "creation_date": "2026-02-07T20:23:30.579947",
+    "sources": [
+      "短剧创作主题库研究报告.txt",
+      "中文短剧AI生成系统主题库研究报告.pdf",
+      "google-deepresearch.html"
+    ],
+    "total_sources": 3,
+    "correction_note": "修正版：确保所有30个TXT元素都被正确整合"
+  },
+  "summary": {
+    "themes_count": 5,
+    "tropes_library_count": 20,
+    "txt_universal_tropes_count": 5,
+    "txt_genre_specific_tropes_count": 25,
+    "total_tropes_count": 50,
+    "hooks_count": 30,
+    "archetypes_count": 19,
+    "examples_count": 25,
+    "combinations_count": 10
+  },
+  "themes": [
+    {
+      "id": 1,
+      "slug": "revenge",
+      "name": "复仇逆袭",
+      "name_en": "Revenge & Counterattack",
+      "description": "精准击中观众的\"共情痛感\"与\"理智爽感\"双重需求，通过压抑-释放的情绪曲线实现强用户粘性",
+      "core_formula": {
+        "setup": {
+          "stage": "Setup（铺垫期）",
+          "episodes": "第1-5集（10-15%）",
+          "task": "悲情渲染与仇恨种子埋设",
+          "elements": [
+            "至亲被害/背叛",
+            "财产被夺",
+            "身份被贬",
+            "当众羞辱",
+            "身体伤害"
+          ],
+          "emotion_goal": "建立\"这不公平\"的强烈认知，形成\"必须复仇\"的心理期待",
+          "avoid": "避免过度渲染血腥暴力；避免受害者形象过于被动"
+        },
+        "rising": {
+          "stage": "Rising（升级期）",
+          "episodes": "第6-30集（30-40%）",
+          "task": "隐忍蓄力与身份/能力提升",
+          "elements": [
+            "隐藏身份（大佬/皇室/天才）",
+            "获取金手指",
+            "建立盟友网络",
+            "收集证据/把柄"
+          ],
+          "emotion_goal": "维持\"期待感\"与\"悬念感\"，让观众对反击时机保持高度关注",
+          "avoid": "避免升级过程过于顺利；避免隐藏身份过早暴露"
+        },
+        "climax": {
+          "stage": "Climax（高潮期）",
+          "episodes": "第31-70集（40-50%）",
+          "task": "层层反击与终极对决",
+          "elements": [
+            "身份揭露",
+            "证据公开",
+            "权力碾压",
+            "当众羞辱反派",
+            "反派互斗/众叛亲离"
+          ],
+          "emotion_goal": "实现\"爽感\"的阶梯式释放，每轮反击比上一轮更彻底",
+          "avoid": "避免反击手段过于残忍；避免反派降智；60集左右设置终极钩子配合付费点"
+        },
+        "resolution": {
+          "stage": "Resolution（解决期）",
+          "episodes": "第71-80+集（10-15%）",
+          "task": "复仇完成与新身份确立",
+          "elements": [
+            "反派最终下场",
+            "情感线收束",
+            "新事业/新地位",
+            "主题升华"
+          ],
+          "emotion_goal": "满足感与余韵感并存，避免过度圆满导致虚假感",
+          "avoid": "避免烂尾；避免强行大团圆"
+        }
+      },
+      "writing_keywords": [
+        "隐忍",
+        "爆发",
+        "身份",
+        "证据",
+        "权谋",
+        "逆袭",
+        "打脸",
+        "清算"
+      ],
+      "visual_keywords": [
+        "服装蜕变（从朴素到华丽）",
+        "眼神转换（从躲闪到锐利）",
+        "气场压制（低角度仰拍+环绕镜头）",
+        "高对比光影（冷色调压抑场景vs暖色调胜利场景）",
+        "慢动作特写（关键反击时刻的0.5倍速呈现）"
+      ],
+      "tropes": [
+        {
+          "name": "隐藏大佬/扮猪吃虎",
+          "category": "身份类",
+          "mechanism": "表面身份与真实身份形成巨大反差",
+          "classic_case": "《此情已逝成追忆》入赘男主",
+          "effectiveness_score": 95,
+          "best_timing": "第10-20集首次暗示，第30-50集正式揭露",
+          "risk_factors": "铺垫不足显得突兀；过早揭露削弱效果"
+        },
+        {
+          "name": "法律复仇/智取型",
+          "category": "冲突类",
+          "mechanism": "以法律手段、商业手段等\"文明方式\"复仇",
+          "classic_case": "《幸得相遇离婚时》",
+          "effectiveness_score": 92,
+          "best_timing": "贯穿全剧，高潮阶段集中释放",
+          "risk_factors": "需专业知识准确性；节奏可能偏慢"
+        },
+        {
+          "name": "身份揭露/当众打脸",
+          "category": "身份类",
+          "mechanism": "在关键场合揭露真实身份，震惊全场，即时反击",
+          "classic_case": "多剧通用",
+          "effectiveness_score": 90,
+          "best_timing": "配合羞辱场景即时反击",
+          "risk_factors": "频率过高导致麻木；需有身份层级预留"
+        },
+        {
+          "name": "虐恋羁绊/追妻火葬场",
+          "category": "情感类",
+          "mechanism": "复仇对象曾是恋人，复仇过程中情感纠葛",
+          "classic_case": "《幸得相遇离婚时》",
+          "effectiveness_score": 88,
+          "best_timing": "中段发展，高潮阶段测试",
+          "risk_factors": "避免情感喧宾夺主；需有独立成长线"
+        },
+        {
+          "name": "自我价值认同",
+          "category": "主题类",
+          "mechanism": "复仇不仅是打脸他人，更是证明自我价值",
+          "classic_case": "《好一个乖乖女》",
+          "effectiveness_score": 85,
+          "best_timing": "Resolution阶段升华",
+          "risk_factors": "避免说教感；需有具体行动支撑"
+        }
+      ],
+      "viral_examples": [
+        {
+          "title": "好一个乖乖女",
+          "why_it_works": "双强人设，女主从乖乖女到觉醒复仇的转变精准戳中当代女性的情绪痛点，每集都有爽点，台词传播度高"
+        },
+        {
+          "title": "乔迁新禧",
+          "why_it_works": "结合拆迁现实题材，重生逆袭的设定让观众获得强烈的情绪代偿，剧情贴近生活，爽感密集"
+        },
+        {
+          "title": "精神病院归来:闺蜜同盟",
+          "why_it_works": "双女主复仇，不搞雌竞，联手反杀的设定打破传统复仇剧的套路，女性互助的情节引发共鸣"
+        },
+        {
+          "title": "烬梦欢",
+          "why_it_works": "重生弥补遗憾的设定，女主从恶女转变为善良聪慧的形象，既有复仇线又有成长线，情感饱满"
+        },
+        {
+          "title": "穿书富家妯娌",
+          "why_it_works": "闺蜜双穿的设定新颖，不斗宅斗斗事业，用现代思维整顿豪门，沙雕又好嗑，符合年轻观众的喜好"
+        }
+      ]
+    },
+    {
+      "id": 2,
+      "slug": "romance",
+      "name": "甜宠恋爱",
+      "name_en": "Sweet Romance",
+      "description": "满足观众对\"理想爱情\"的想象，通过高密度的甜蜜互动建立情感代入",
+      "core_formula": {
+        "setup": {
+          "stage": "Setup（相遇期）",
+          "episodes": "第1-8集",
+          "task": "快速建立男女主相遇场景，制造\"命中注定\"感知",
+          "elements": [
+            "职业差异（霸总+职员/明星+助理）",
+            "意外事件（撞车、泼咖啡、误会）",
+            "一见钟情信号"
+          ],
+          "emotion_goal": "建立\"这两人有戏\"的期待，轻甜蜜感",
+          "avoid": "避免相遇过于刻意；避免女主过于被动，需有独立人格"
+        },
+        "rising": {
+          "stage": "Rising（升温期）",
+          "episodes": "第9-35集",
+          "task": "建立关系纽带，累积甜蜜互动",
+          "elements": [
+            "契约婚姻/假扮情侣",
+            "同居场景",
+            "护短行为",
+            "吃醋情节",
+            "双向暗恋信号"
+          ],
+          "emotion_goal": "\"糖分\"阶梯式上升，观众持续\"嗑糖\"满足",
+          "avoid": "避免工业糖精感，互动需有情感逻辑；避免进展过快"
+        },
+        "climax": {
+          "stage": "Climax（考验期）",
+          "episodes": "第36-65集",
+          "task": "制造重大考验，验证感情深度",
+          "elements": [
+            "重大误会（第三者/秘密揭露）",
+            "外部阻力（家庭反对/事业冲突）",
+            "生死考验",
+            "追妻/追夫火葬场"
+          ],
+          "emotion_goal": "\"虐后更甜\"的情绪波动，强化感情珍贵感",
+          "avoid": "避免误会过于狗血降智；避免虐度过度偏离甜宠定位"
+        },
+        "resolution": {
+          "stage": "Resolution（圆满期）",
+          "episodes": "第66-80+集",
+          "task": "消除最后障碍，确认关系，甜蜜收尾",
+          "elements": [
+            "求婚/婚礼",
+            "公开关系",
+            "共同事业",
+            "彩蛋甜蜜"
+          ],
+          "emotion_goal": "圆满满足感与余韵感",
+          "avoid": "避免仓促收尾；避免过度圆满导致虚假感"
+        }
+      },
+      "writing_keywords": [
+        "心动",
+        "宿命",
+        "双向",
+        "治愈",
+        "高糖",
+        "轻虐",
+        "占有欲",
+        "安全感"
+      ],
+      "visual_keywords": [
+        "暖色调（橙/粉/金为主）",
+        "柔光滤镜（especially夜景与亲密场景）",
+        "亲密特写（手部接触、眼神交汇、呼吸proximity）",
+        "浪漫场景（夕阳、雪景、花海、烟花）",
+        "舒缓节奏（长镜头、慢动作）"
+      ],
+      "tropes": [
+        {
+          "name": "契约婚姻/假戏真做",
+          "category": "关系类",
+          "mechanism": "利益驱动的虚假婚姻，最终真情相爱",
+          "effectiveness_score": 94,
+          "best_timing": "第2-4集建立契约",
+          "risk_factors": "契约动机需充分；情感转变需有具体事件支撑"
+        },
+        {
+          "name": "追妻/追夫火葬场",
+          "category": "情感节奏类",
+          "mechanism": "一方曾经忽视对方，醒悟后疯狂挽回",
+          "effectiveness_score": 93,
+          "best_timing": "第8-15集开始挽回",
+          "risk_factors": "前期需有足够\"虐\"铺垫；挽回需有\"实质性改变\""
+        },
+        {
+          "name": "双向暗恋",
+          "category": "情感节奏类",
+          "mechanism": "双方互相喜欢却都不知情，甜蜜误会",
+          "effectiveness_score": 90,
+          "best_timing": "贯穿全剧，第6-10集情感萌芽",
+          "risk_factors": "需设计\"差点告白\"节点维持张力"
+        },
+        {
+          "name": "职业禁忌",
+          "category": "设定类",
+          "mechanism": "上下级/医患/师生等权力差异关系",
+          "effectiveness_score": 90,
+          "best_timing": "设定阶段确立",
+          "risk_factors": "需处理伦理边界；避免权力滥用美化"
+        },
+        {
+          "name": "护短狂魔",
+          "category": "互动类",
+          "mechanism": "一方无条件维护另一方，安全感爆棚",
+          "effectiveness_score": 88,
+          "best_timing": "升温期高频出现",
+          "risk_factors": "避免过度保护导致女主工具化"
+        }
+      ],
+      "viral_examples": [
+        {
+          "title": "盛夏芬德拉",
+          "why_it_works": "尊重式爱情的设定，男主克制守护，女主主动成长，打破传统霸总套路，电影级质感提升观感"
+        },
+        {
+          "title": "闪婚后，裴先生又又撒娇了",
+          "why_it_works": "反差萌人设，男主高冷外表下的撒娇精形象戳中观众喜好，互动甜度爆表"
+        },
+        {
+          "title": "夏天，海浪与你",
+          "why_it_works": "治愈系甜宠，海边小镇的浪漫场景，日常陪伴的细腻情节，引发观众对理想爱情的向往"
+        },
+        {
+          "title": "深情诱引",
+          "why_it_works": "冲突叠加模式，协议婚姻的设定，强冲突的剧情节奏，有反差的立体人设，情感共鸣强"
+        },
+        {
+          "title": "咬清梨",
+          "why_it_works": "经典甜宠框架的结构化创新，分集节奏极致压缩，咬梨互动成为情感锚点，强化观众记忆点"
+        }
+      ]
+    },
+    {
+      "id": 3,
+      "slug": "suspense",
+      "name": "悬疑推理",
+      "name_en": "Mystery & Suspense",
+      "description": "2024-2025年呈现精品化升级趋势，从早期的\"悬疑+爱情\"混合模式，向更纯粹的推理叙事和社会派深度拓展",
+      "core_formula": {
+        "setup": {
+          "stage": "Setup（谜面期）",
+          "episodes": "第1-6集",
+          "task": "抛出核心谜团，建立信息差",
+          "elements": [
+            "离奇案件/神秘事件",
+            "关键符号/道具",
+            "多视角信息碎片",
+            "不可靠叙述者"
+          ],
+          "emotion_goal": "\"发生了什么\"的好奇与\"为什么发生\"的探究",
+          "avoid": "避免谜面过于复杂；避免信息过于隐晦"
+        },
+        "rising": {
+          "stage": "Rising（调查期）",
+          "episodes": "第7-30集",
+          "task": "多线推进调查，铺设红鲱鱼误导",
+          "elements": [
+            "新嫌疑人出现",
+            "旧线索被推翻",
+            "人物关系网展开",
+            "隐藏动机揭露"
+          ],
+          "emotion_goal": "\"接近真相\"的错觉与\"另有隐情\"的警觉交替",
+          "avoid": "避免误导过于明显；避免线索过于分散"
+        },
+        "climax": {
+          "stage": "Climax（反转期）",
+          "episodes": "第31-60集",
+          "task": "核心谜题解答，关键反转释放",
+          "elements": [
+            "核心证据揭露",
+            "真凶身份反转",
+            "动机深层解读",
+            "人物黑化/救赎"
+          ],
+          "emotion_goal": "\"原来如此\"的顿悟与\"竟是这样\"的震惊",
+          "avoid": "避免反转过于突兀；避免为反转而反转"
+        },
+        "resolution": {
+          "stage": "Resolution（揭底期）",
+          "episodes": "第61-80+集",
+          "task": "完整解答核心谜题，保留解读空间",
+          "elements": [
+            "伏笔全面回收",
+            "主题升华",
+            "开放式结局/彩蛋"
+          ],
+          "emotion_goal": "逻辑满足感与情感余韵并存",
+          "avoid": "避免强行解释；避免过度留白"
+        }
+      },
+      "writing_keywords": [
+        "谜团",
+        "线索",
+        "反转",
+        "人性",
+        "闭环",
+        "留白",
+        "符号",
+        "对照"
+      ],
+      "visual_keywords": [
+        "冷色调（蓝/绿/灰为主）",
+        "阴影层次（明暗对比强化神秘感）",
+        "手持镜头（增强临场感与不安定感）",
+        "快速剪辑（信息密集呈现）",
+        "固定长镜头（关键场景的凝视张力）"
+      ],
+      "tropes": [
+        {
+          "name": "符号隐喻系统",
+          "category": "叙事结构类",
+          "mechanism": "核心符号多次出现，意义随叙事动态转变",
+          "effectiveness_score": 93,
+          "technical_difficulty": "符号设计需与主题深度关联",
+          "benchmark": "《隐秘的角落》笛卡尔坐标系"
+        },
+        {
+          "name": "多螺旋叙事",
+          "category": "叙事结构类",
+          "mechanism": "多线交织，线索动态融合与消失",
+          "effectiveness_score": 90,
+          "technical_difficulty": "需精密的时间线规划",
+          "benchmark": "《隐秘的角落》三线并进的螺旋结构"
+        },
+        {
+          "name": "不可靠叙述者",
+          "category": "人物设定类",
+          "mechanism": "主角视角存在隐瞒或误导，真相逐层揭露",
+          "effectiveness_score": 88,
+          "technical_difficulty": "需平衡\"误导\"与\"公平\"",
+          "benchmark": "《隐秘的角落》朱朝阳的日记"
+        },
+        {
+          "name": "伏笔回收网络",
+          "category": "悬念设计类",
+          "mechanism": "前期细节在后期关键作用",
+          "effectiveness_score": 87,
+          "technical_difficulty": "需全局规划能力",
+          "benchmark": "优秀悬疑剧标配"
+        },
+        {
+          "name": "身份错位多层",
+          "category": "悬念设计类",
+          "mechanism": "凶手/受害者/侦探身份的意外转换",
+          "effectiveness_score": 90,
+          "technical_difficulty": "需前期性格/行为铺垫",
+          "benchmark": "\"全员恶人\"设计"
+        }
+      ],
+      "viral_examples": [
+        {
+          "title": "沙尘暴",
+          "why_it_works": "群像气质突出，聚焦人性复杂，通过西北县城的犯罪故事探讨社会问题，豆瓣评分8.1，引发深度讨论"
+        },
+        {
+          "title": "天书黎明",
+          "why_it_works": "医术+悬疑的独特视角，东汉背景下中医智慧与江湖阴谋交织，叙事革新，节奏紧凑"
+        },
+        {
+          "title": "彼岸灯塔",
+          "why_it_works": "双女主设定打破悬疑剧性别模式，女性角色成为破局者，人设颠覆，剧情反转不断"
+        },
+        {
+          "title": "人之初",
+          "why_it_works": "以基因证据为切入点，探讨血缘与人性的哲学命题，引发观众对人性善恶本质的深度讨论"
+        },
+        {
+          "title": "黄雀",
+          "why_it_works": "案件主线+角色前史的双线结构，串联起铁路反扒警察与盗窃团伙的博弈，展现90年代广州的社会图景，有深度有温度"
+        }
+      ]
+    },
+    {
+      "id": 4,
+      "slug": "transmigration",
+      "name": "穿越重生",
+      "name_en": "Transmigration & Rebirth",
+      "description": "2025年新兴趋势中\"马甲、古风权谋、古风言情、奇幻脑洞\"等题材增势迅猛，核心优势在于\"金手指\"设定带来的碾压爽感",
+      "core_formula": {
+        "setup": {
+          "stage": "Setup（死亡/穿越期）",
+          "episodes": "第1-5集",
+          "task": "快速完成\"死亡-穿越-觉醒\"流程",
+          "elements": [
+            "现代死亡场景",
+            "穿越触发机制",
+            "新身份认知",
+            "金手指获取"
+          ],
+          "emotion_goal": "\"重获新生\"的希望感与\"未知世界\"的好奇感",
+          "avoid": "避免穿越过程冗长；避免金手指过于强大"
+        },
+        "rising": {
+          "stage": "Rising（适应期）",
+          "episodes": "第6-25集",
+          "task": "探索新世界规则，初步运用金手指",
+          "elements": [
+            "世界观信息获取",
+            "关键人物结识",
+            "首次金手指运用",
+            "初步冲突应对"
+          ],
+          "emotion_goal": "\"开挂\"的爽感与\"探索\"的乐趣",
+          "avoid": "避免信息灌输过于密集；避免金手指运用过于顺利"
+        },
+        "climax": {
+          "stage": "Climax（改变期）",
+          "episodes": "第26-60集",
+          "task": "主动运用现代知识/金手指，大幅改变命运",
+          "elements": [
+            "现代知识降维打击",
+            "关键历史事件干预",
+            "原主恩怨清算",
+            "多角关系处理"
+          ],
+          "emotion_goal": "\"改变历史\"的掌控感与\"知识变现\"的满足感",
+          "avoid": "避免改变过于轻易；避免现代知识运用过于突兀"
+        },
+        "resolution": {
+          "stage": "Resolution（归位/定居期）",
+          "episodes": "第61-80+集",
+          "task": "处理归留抉择，确认情感归宿",
+          "elements": [
+            "回归现代的机会与抉择",
+            "新世界情感羁绊",
+            "双重身份整合"
+          ],
+          "emotion_goal": "归属感与圆满感",
+          "avoid": "避免归留抉择过于轻易；避免情感线处理仓促"
+        }
+      },
+      "writing_keywords": [
+        "重生",
+        "系统",
+        "金手指",
+        "逆袭",
+        "改变",
+        "抉择",
+        "融合",
+        "归属"
+      ],
+      "visual_keywords": [
+        "古今对比（现代服装vs古装、现代场景vs古代场景）",
+        "特效转场（穿越瞬间的时空扭曲、系统界面的全息呈现）",
+        "服饰蜕变（从原主服装到主角风格渐变）",
+        "场景奇观（利用现代知识创造的古代\"奇迹\"）",
+        "符号道具（穿越信物、系统载体）"
+      ],
+      "tropes": [
+        {
+          "name": "系统绑定/任务驱动",
+          "category": "设定类",
+          "mechanism": "系统发布任务，完成后获得奖励",
+          "effectiveness_score": 94,
+          "best_timing": "第1-3集完成绑定",
+          "risk_factors": "系统规则需清晰一致；奖励梯度需合理设计"
+        },
+        {
+          "name": "读心术/心声外泄",
+          "category": "设定类",
+          "mechanism": "能读取他人想法，或心声被他人听到",
+          "effectiveness_score": 91,
+          "best_timing": "第2-4集激活",
+          "risk_factors": "信息量需控制；心声与言行反差需有喜剧/戏剧效果"
+        },
+        {
+          "name": "全家偷听心声",
+          "category": "设定变体",
+          "mechanism": "心声被家人听到，引发系列喜剧效果",
+          "effectiveness_score": 89,
+          "best_timing": "设定即触发",
+          "risk_factors": "需设计\"心声-言行\"的喜剧反差"
+        },
+        {
+          "name": "现代知识降维",
+          "category": "能力类",
+          "mechanism": "运用现代知识在古代/异世界形成碾压",
+          "effectiveness_score": 88,
+          "best_timing": "贯穿全剧",
+          "risk_factors": "需具体化知识应用场景；需有适配转化"
+        },
+        {
+          "name": "重生复仇",
+          "category": "冲突类",
+          "mechanism": "死后回到过去，有机会改变悲剧",
+          "effectiveness_score": 90,
+          "best_timing": "贯穿全剧",
+          "risk_factors": "改变幅度需有合理限制；蝴蝶效应需考虑"
+        }
+      ],
+      "viral_examples": [
+        {
+          "title": "我真没想重生啊",
+          "why_it_works": "社会精英重生为高三毕业生，重拾青春弥补遗憾，创业与情感双线并行，IP号召力强劲，引发观众的青春共鸣"
+        },
+        {
+          "title": "重生90:富豪榜我排第一，牛排第二",
+          "why_it_works": "女主用现代畜牧科学体系逆袭，结合奶业题材，设定新颖，打破传统穿越剧套路，有现实意义"
+        },
+        {
+          "title": "十八岁太奶奶驾到",
+          "why_it_works": "科学院院士灵魂重生到18岁重孙女身上，高概念+双降维的人设逻辑，反差萌强烈，剧情紧凑"
+        },
+        {
+          "title": "乡下真千金竟是老祖宗",
+          "why_it_works": "乡村少女是家族活祖宗的设定新颖，用现代思维整顿封建家规，抖音直播曝光家族丑闻，符合年轻观众喜好"
+        },
+        {
+          "title": "小小厨娘不好惹",
+          "why_it_works": "现代烹饪技能穿越古代，美食+甜宠的设定，剧情轻松有趣，爽感密集，引发观众的美食向往"
+        }
+      ]
+    },
+    {
+      "id": 5,
+      "slug": "family_urban",
+      "name": "家庭伦理/都市现实",
+      "name_en": "Family Ethics & Urban Reality",
+      "description": "2025年呈现明显增长，核心竞争力在于\"真实感\"与\"共鸣感\"，贴近观众日常生活经验",
+      "core_formula": {
+        "setup": {
+          "stage": "Setup（矛盾潜伏期）",
+          "episodes": "第1-10集",
+          "task": "铺陈家庭/职场关系网络，埋下矛盾种子",
+          "elements": [
+            "代际观念差异",
+            "财产分配隐患",
+            "婚姻关系张力",
+            "职场权力结构"
+          ],
+          "emotion_goal": "\"这不就是我\"的代入感与\"迟早要出事\"的预感",
+          "avoid": "避免矛盾铺设过于刻意；避免人物过于脸谱化"
+        },
+        "rising": {
+          "stage": "Rising（冲突爆发期）",
+          "episodes": "第11-40集",
+          "task": "矛盾公开化，冲突逐步升级",
+          "elements": [
+            "遗产争夺",
+            "赡养纠纷",
+            "婚姻危机",
+            "职场PUA",
+            "背叛揭露"
+          ],
+          "emotion_goal": "愤怒、委屈、焦虑等情绪的共鸣与释放",
+          "avoid": "避免冲突过于狗血；避免人物行为脱离现实逻辑"
+        },
+        "climax": {
+          "stage": "Climax（危机顶点期）",
+          "episodes": "第41-65集",
+          "task": "冲突达到顶点，核心关系面临破裂",
+          "elements": [
+            "离婚/断绝关系",
+            "失业/事业崩塌",
+            "健康危机",
+            "自我认同崩溃"
+          ],
+          "emotion_goal": "\"至暗时刻\"的压抑与\"必须改变\"的觉醒",
+          "avoid": "避免危机过于极端；避免人物反应过于戏剧化"
+        },
+        "resolution": {
+          "stage": "Resolution（和解/重建期）",
+          "episodes": "第66-80+集",
+          "task": "完成个人成长，重建核心关系",
+          "elements": [
+            "自我和解",
+            "关键关系修复",
+            "新事业/生活方式确立",
+            "代际理解"
+          ],
+          "emotion_goal": "治愈感与希望感",
+          "avoid": "避免和解过于轻易；避免强行大团圆"
+        }
+      },
+      "writing_keywords": [
+        "烟火气",
+        "真实感",
+        "共鸣",
+        "治愈",
+        "和解",
+        "成长",
+        "边界",
+        "选择"
+      ],
+      "visual_keywords": [
+        "生活化场景（老旧小区、菜市场、社区医院）",
+        "自然光（避免过度打光）",
+        "纪实风格（手持镜头、长镜头）",
+        "细腻表演（微表情、日常动作）",
+        "色彩温和（避免高饱和对比）"
+      ],
+      "tropes": [
+        {
+          "name": "职场PUA/反PUA",
+          "category": "社会议题类",
+          "mechanism": "职场权力滥用与反抗，高度共鸣",
+          "effectiveness_score": 90,
+          "social_resonance": "极高",
+          "benchmark": "《杜小慧》"
+        },
+        {
+          "name": "婆媳矛盾/和解",
+          "category": "关系类",
+          "mechanism": "代际与婚姻关系的权力博弈",
+          "effectiveness_score": 88,
+          "social_resonance": "高",
+          "benchmark": "多部家庭伦理剧"
+        },
+        {
+          "name": "重组家庭张力",
+          "category": "关系类",
+          "mechanism": "继父母/继子女关系的复杂动态",
+          "effectiveness_score": 85,
+          "social_resonance": "中高",
+          "benchmark": "现代家庭题材"
+        },
+        {
+          "name": "全职妈妈逆袭",
+          "category": "人物弧光类",
+          "mechanism": "家庭角色到社会角色的转型",
+          "effectiveness_score": 80,
+          "social_resonance": "高",
+          "benchmark": "女性成长题材"
+        },
+        {
+          "name": "代际和解",
+          "category": "情感治愈类",
+          "mechanism": "父母与子女的最终理解",
+          "effectiveness_score": 86,
+          "social_resonance": "高",
+          "benchmark": "温情向结局"
+        }
+      ],
+      "viral_examples": [
+        {
+          "title": "幸得相遇离婚时",
+          "why_it_works": "开篇5秒呈现核心冲突，女主离婚后职场逆袭与情感救赎双线并行，红果平台最高热度值达9298万，30天总播放量达28亿"
+        },
+        {
+          "title": "家里家外",
+          "why_it_works": "重组家庭的日常叙事，生活流改写微短剧创作法则，真实的烟火人生引发观众共鸣，上线12小时全网话题量破亿"
+        },
+        {
+          "title": "朝阳似我",
+          "why_it_works": "以咨询行业为切口，职场新人与顶头上司互相欣赏到暗生情愫，治愈彼此共同成长，职场情节真实，引发都市青年共鸣"
+        },
+        {
+          "title": "盛夏芬德拉",
+          "why_it_works": "尊重式爱情的设定，电影级质感，打破传统霸总套路，传递对女性自我成长的尊重，20亿播放量证明温情题材的市场价值"
+        },
+        {
+          "title": "职场新人日志",
+          "why_it_works": "聚焦职场新人的成长，现实题材占比突破40%，贴近都市青年的职场困境，引发强烈共鸣"
+        }
+      ]
+    }
+  ],
+  "tropes_library": {
+    "identity": [
+      {
+        "name": "隐藏大佬/扮猪吃虎",
+        "name_en": "Hidden Tycoon",
+        "category": "identity",
+        "mechanism": "表面身份与真实身份形成巨大反差",
+        "variations": [
+          "商业大佬型",
+          "武学宗师型",
+          "皇室血脉型",
+          "天才学霸型"
+        ],
+        "best_timing": "第10-20集首次暗示，第30-50集正式揭露",
+        "success_rate": 92,
+        "risk_factors": "铺垫不足显得突兀；过早揭露削弱效果"
+      },
+      {
+        "name": "秘密皇室/流落血脉",
+        "name_en": "Secret Royalty",
+        "category": "identity",
+        "mechanism": "主角实为皇室/贵族血脉，因变故流落民间",
+        "variations": [
+          "幼年失散型",
+          "主动隐姓埋名型",
+          "被篡夺身份型"
+        ],
+        "best_timing": "第20-40集揭露",
+        "success_rate": 88,
+        "risk_factors": "皇室设定需世界观支撑；揭露后剧情方向需重新设计"
+      },
+      {
+        "name": "失忆恢复/身份觉醒",
+        "name_en": "Amnesia Recovery",
+        "category": "identity",
+        "mechanism": "主角因失忆忘记真实身份，逐步恢复记忆",
+        "variations": [
+          "完全失忆型",
+          "选择性失忆型",
+          "身份替换型"
+        ],
+        "best_timing": "贯穿全剧，关键节点恢复",
+        "success_rate": 85,
+        "risk_factors": "失忆梗易显老套；恢复过程需有情感重量"
+      },
+      {
+        "name": "双重身份/卧底潜伏",
+        "name_en": "Double Identity",
+        "category": "identity",
+        "mechanism": "主角同时维持两个截然不同的身份",
+        "variations": [
+          "卧底型",
+          "间谍型",
+          "双面人生型",
+          "网络与现实型"
+        ],
+        "best_timing": "根据剧情需要灵活安排",
+        "success_rate": 83,
+        "risk_factors": "身份切换需有合理场景；长期维持需消耗叙事资源"
+      },
+      {
+        "name": "系统绑定/金手指觉醒",
+        "name_en": "System Binding",
+        "category": "identity",
+        "mechanism": "主角获得超自然系统辅助，获得特殊能力",
+        "variations": [
+          "任务系统型",
+          "属性面板型",
+          "签到奖励型",
+          "直播系统型"
+        ],
+        "best_timing": "第1-3集完成绑定",
+        "success_rate": 90,
+        "risk_factors": "系统规则需清晰一致；奖励梯度需合理设计"
+      }
+    ],
+    "relationship": [
+      {
+        "name": "契约婚姻/假戏真做",
+        "category": "relationship",
+        "mechanism": "利益驱动的虚假婚姻，最终真情相爱",
+        "emotional_tension": "真假情感的界限模糊，心动与契约的冲突",
+        "variations": [
+          "家族联姻型",
+          "债务抵偿型",
+          "挡箭牌型",
+          "协议恋爱型"
+        ],
+        "effectiveness_score": 94,
+        "best_timing": "第2-4集建立契约"
+      },
+      {
+        "name": "冤家变情人/敌对到恋人",
+        "category": "relationship",
+        "mechanism": "从对立冲突到相互理解，最终相爱",
+        "emotional_tension": "认知颠覆与情感反转的双重冲击",
+        "variations": [
+          "职场对手型",
+          "家族世仇型",
+          "误会敌对型",
+          "竞争关系型"
+        ],
+        "effectiveness_score": 91,
+        "best_timing": "第1-2集建立对立，第6-10集情感萌芽"
+      },
+      {
+        "name": "青梅竹马/久别重逢",
+        "category": "relationship",
+        "mechanism": "童年羁绊，成年后再度相遇",
+        "emotional_tension": "时间沉淀的情感厚度，\"原来是你\"的宿命感",
+        "variations": [
+          "单向暗恋型",
+          "双向暗恋型",
+          "一方遗忘型",
+          "身份悬殊型"
+        ],
+        "effectiveness_score": 89,
+        "best_timing": "第3-5集揭露身份"
+      },
+      {
+        "name": "三角恋/追妻火葬场",
+        "category": "relationship",
+        "mechanism": "第三方介入或一方醒悟后的疯狂挽回",
+        "emotional_tension": "失去后的珍惜，竞争中的紧迫感",
+        "variations": [
+          "白月光回归型",
+          "误会分手型",
+          "婚内觉醒型",
+          "替身转正型"
+        ],
+        "effectiveness_score": 88,
+        "best_timing": "第8-15集开始挽回"
+      },
+      {
+        "name": "替身文学/白月光情结",
+        "category": "relationship",
+        "mechanism": "一方因相似外貌被当作替代品，最终获得真心",
+        "emotional_tension": "自我认同危机与真爱确认的挣扎",
+        "variations": [
+          "主动替身型",
+          "被动替身型",
+          "白月光复活型",
+          "替身逆袭型"
+        ],
+        "effectiveness_score": 85,
+        "best_timing": "第15-25集替身揭露"
+      }
+    ],
+    "conflict": [
+      {
+        "name": "打脸反杀/当众羞辱",
+        "category": "conflict",
+        "mechanism": "反派嚣张挑衅，主角以实力/身份碾压回击",
+        "satisfaction_source": "压抑后的即时释放，社会认同的获得",
+        "effectiveness_score": 93,
+        "taboos": "避免过度暴力；避免反派过于弱智"
+      },
+      {
+        "name": "复仇计划/精密布局",
+        "category": "conflict",
+        "mechanism": "主角长期策划，逐步实施复仇",
+        "satisfaction_source": "掌控感与智力优越感",
+        "effectiveness_score": 90,
+        "taboos": "避免手段过于残忍；避免伤及无辜"
+      },
+      {
+        "name": "背叛揭露/信任崩塌",
+        "category": "conflict",
+        "mechanism": "亲密关系的背叛被揭露，关系重组",
+        "satisfaction_source": "情感冲击与认知颠覆",
+        "effectiveness_score": 87,
+        "taboos": "避免为背叛而背叛，需有动机支撑"
+      },
+      {
+        "name": "救赎牺牲/代价付出",
+        "category": "conflict",
+        "mechanism": "为拯救他人/理想而主动牺牲",
+        "satisfaction_source": "崇高感与情感重量",
+        "effectiveness_score": 85,
+        "taboos": "避免牺牲过于轻易，需有情感铺垫"
+      },
+      {
+        "name": "误会冲突/追悔莫及",
+        "category": "conflict",
+        "mechanism": "因误会产生的冲突，真相大白后的悔恨",
+        "satisfaction_source": "戏剧张力与情感波动",
+        "effectiveness_score": 82,
+        "taboos": "避免误会过于狗血降智"
+      }
+    ],
+    "setting": [
+      {
+        "name": "时间循环/重复当日",
+        "category": "setting",
+        "mechanism": "主角被困在同一天，不断重复直至突破",
+        "innovation_space": "每次循环的微小差异累积，多种可能性探索",
+        "effectiveness_score": 88,
+        "execution_difficulty": "循环机制需清晰；突破条件需合理"
+      },
+      {
+        "name": "灵魂互换/身体错位",
+        "category": "setting",
+        "mechanism": "两人灵魂互换，体验对方人生",
+        "innovation_space": "身份错位的喜剧效果与认知深化",
+        "effectiveness_score": 86,
+        "execution_difficulty": "演员表演需区分两个灵魂；换身规则需一致"
+      },
+      {
+        "name": "重生穿越/命运改写",
+        "category": "setting",
+        "mechanism": "死后回到过去，有机会改变历史",
+        "innovation_space": "\"已知未来\"的信息优势与改变代价",
+        "effectiveness_score": 90,
+        "execution_difficulty": "改变幅度需有合理限制；蝴蝶效应需考虑"
+      },
+      {
+        "name": "读心术/心声外泄",
+        "category": "setting",
+        "mechanism": "能读取他人想法，或心声被他人听到",
+        "innovation_space": "信息不对等的喜剧与戏剧效果",
+        "effectiveness_score": 89,
+        "execution_difficulty": "读心范围/条件需明确；隐私边界需处理"
+      },
+      {
+        "name": "预知未来/改变历史",
+        "category": "setting",
+        "mechanism": "知晓未来事件，主动干预改变",
+        "innovation_space": "命运与自由意志的哲学探讨",
+        "effectiveness_score": 84,
+        "execution_difficulty": "预知精度需有局限；改变失败需有设计"
+      }
+    ]
+  },
+  "txt_universal_tropes": [
+    {
+      "name": "身份揭露",
+      "category": "identity",
+      "description": "主角的真实身份在关键时刻被揭露，震惊全场，反转剧情局势",
+      "effectiveness_score": 92
+    },
+    {
+      "name": "契约婚姻",
+      "category": "relationship",
+      "description": "主角因家族压力、债务、签证等原因，与对方签订婚姻契约，在相处中假戏真做，产生真实的情感",
+      "effectiveness_score": 90
+    },
+    {
+      "name": "当众打脸",
+      "category": "conflict",
+      "description": "主角在公开场合，用事实或实力反击反派的嘲讽和构陷，让反派颜面扫地，获得爽感",
+      "effectiveness_score": 95
+    },
+    {
+      "name": "系统金手指",
+      "category": "setup",
+      "description": "主角获得系统帮助，通过完成任务获得奖励，实现快速逆袭",
+      "effectiveness_score": 88
+    },
+    {
+      "name": "时间循环",
+      "category": "setup",
+      "description": "主角被困在时间循环中，不断重复同一天，在循环中寻找突破的方法，同时改变自己和他人的命运",
+      "effectiveness_score": 82
+    }
+  ],
+  "txt_genre_specific_tropes": [
+    {
+      "theme_id": 1,
+      "theme_name": "复仇逆袭",
+      "elements": [
+        {
+          "name": "白切黑伪装",
+          "description": "主角表面柔弱、逆来顺受，实则内心强大、筹谋已久，在关键时刻撕下伪装，展现真实实力",
+          "effectiveness_score": 95,
+          "usage_timing": "第5-10集首次展现伪装下的实力",
+          "examples": [
+            "《好一个乖乖女》鹿鸣野",
+            "《穿书富家妯娌》女主"
+          ]
+        },
+        {
+          "name": "身份揭露",
+          "description": "主角隐藏的真实身份（如豪门千金、顶级大佬）在关键时刻被揭露，震惊全场，反转局势",
+          "effectiveness_score": 92,
+          "usage_timing": "第15-20集的关键剧情节点",
+          "examples": [
+            "《好一个乖乖女》鹿鸣野真实身份揭露",
+            "《乡下真千金竟是老祖宗》林小满身份曝光"
+          ]
+        },
+        {
+          "name": "当众打脸",
+          "description": "主角在公开场合，用事实或实力反击反派的嘲讽和构陷，让反派颜面扫地",
+          "effectiveness_score": 98,
+          "usage_timing": "每5-8集设置一次小打脸，高潮集数设置大打脸",
+          "examples": [
+            "《好一个乖乖女》女主在画展上反击继母",
+            "《乔迁新禧》男主拆迁款到账打脸前岳家"
+          ]
+        },
+        {
+          "name": "复仇同盟",
+          "description": "主角与有共同敌人的角色结成同盟，联手对抗反派，增强复仇的力量",
+          "effectiveness_score": 88,
+          "usage_timing": "第10-12集结成同盟",
+          "examples": [
+            "《精神病院归来:闺蜜同盟》疯批美人+冷艳律师",
+            "《穿书富家妯娌》闺蜜双穿成豪门妯娌联手"
+          ]
+        },
+        {
+          "name": "前世遗憾弥补",
+          "description": "重生类复仇题材中，主角带着前世的记忆，弥补过去的遗憾，避免重蹈覆辙",
+          "effectiveness_score": 90,
+          "usage_timing": "第1集就展现前世的遗憾，后续逐步弥补",
+          "examples": [
+            "《烬梦欢》女主重生后改变命运",
+            "《请和我的老公结婚》姜智媛重生后预防胃癌"
+          ]
+        }
+      ]
+    },
+    {
+      "theme_id": 2,
+      "theme_name": "甜宠恋爱",
+      "elements": [
+        {
+          "name": "契约婚姻",
+          "description": "主角因家族压力、债务、签证等原因，与对方签订婚姻契约，在相处中假戏真做",
+          "effectiveness_score": 93,
+          "usage_timing": "第1-2集建立契约关系",
+          "examples": [
+            "《深情诱引》协议婚姻",
+            "《闪婚老伴是豪门》闪婚契约"
+          ]
+        },
+        {
+          "name": "反差萌人设",
+          "description": "主角表面与真实性格有强烈反差，如表面高冷实则撒娇粘人，表面强势实则温柔细腻",
+          "effectiveness_score": 96,
+          "usage_timing": "第1集就展现反差萌的细节",
+          "examples": [
+            "《闪婚后，裴先生又又撒娇了》男主高冷外表下的撒娇精",
+            "《夫人她专治不服2》男主外冷内热宠妻无度"
+          ]
+        },
+        {
+          "name": "双向救赎",
+          "description": "两人都有各自的心理创伤或人生困境，在相处中互相治愈，共同成长",
+          "effectiveness_score": 90,
+          "usage_timing": "第10-15集展现彼此的创伤，开始救赎过程",
+          "examples": [
+            "《盛夏芬德拉》男主克制守护，女主主动成长",
+            "《朝阳似我》职场新人与上司互相治愈"
+          ]
+        },
+        {
+          "name": "暗恋成真",
+          "description": "主角多年暗恋对方，因意外契机两人产生交集，最终暗恋成真",
+          "effectiveness_score": 88,
+          "usage_timing": "第1集展现暗恋的过往，第5-8集产生交集",
+          "examples": [
+            "《咬清梨》多年暗恋后意外关系",
+            "《坠入春夜》暗恋后的情感逆袭"
+          ]
+        },
+        {
+          "name": "治愈系陪伴",
+          "description": "主角在对方的陪伴下，走出人生低谷，重新找到生活的意义",
+          "effectiveness_score": 85,
+          "usage_timing": "第3-5集开始展现陪伴的情节",
+          "examples": [
+            "《夏天，海浪与你》海边小镇的浪漫陪伴",
+            "《她超好哄》学生与总裁的治愈陪伴"
+          ]
+        }
+      ]
+    },
+    {
+      "theme_id": 3,
+      "theme_name": "悬疑推理",
+      "elements": [
+        {
+          "name": "罗生门叙事",
+          "description": "多个视角反复改写真相，让观众跟着人物一起“犯错”，参与感强烈",
+          "effectiveness_score": 92,
+          "usage_timing": "第5-10集开始展现多视角叙事",
+          "examples": [
+            "《沙尘暴》西北县城的犯罪故事多视角叙事",
+            "《命悬一生》一人多面的身份切换叙事"
+          ]
+        },
+        {
+          "name": "多重身份",
+          "description": "主角或反派有多个身份，身份切换让冲突更强，反转更顺",
+          "effectiveness_score": 90,
+          "usage_timing": "第10-15集揭露多重身份",
+          "examples": [
+            "《命悬一生》黄轩一人多面的身份",
+            "《彼岸灯塔》双女主的身份秘密"
+          ]
+        },
+        {
+          "name": "无绝对善恶",
+          "description": "角色没有绝对的善恶，每个人都有自己的动机和苦衷，展现人性的复杂",
+          "effectiveness_score": 88,
+          "usage_timing": "第15-20集展现角色的复杂动机",
+          "examples": [
+            "《沙尘暴》群像人物的复杂人性",
+            "《人之初》探讨血缘与人性的哲学命题"
+          ]
+        },
+        {
+          "name": "医术解谜",
+          "description": "结合医学知识解开神秘案件，用专业技能推动剧情",
+          "effectiveness_score": 85,
+          "usage_timing": "第1集就展现医术解谜的设定",
+          "examples": [
+            "《天书黎明》中医智慧与江湖阴谋交织",
+            "《以法之名》法医视角展现连环奇案"
+          ]
+        },
+        {
+          "name": "社会议题聚焦",
+          "description": "通过案件探讨社会问题，如职场性别歧视、城乡差距等，引发观众思考",
+          "effectiveness_score": 95,
+          "usage_timing": "第5-10集开始融入社会议题",
+          "examples": [
+            "《乌云之上》女性相关案件聚焦职场性别歧视",
+            "《黄雀》铁路反扒警察与盗窃团伙的博弈展现社会图景"
+          ]
+        }
+      ]
+    },
+    {
+      "theme_id": 4,
+      "theme_name": "穿越重生",
+      "elements": [
+        {
+          "name": "金手指技能",
+          "description": "主角带着现代的专业技能（如医学、烹饪、商业）或特殊异能在古代或异世界立足",
+          "effectiveness_score": 93,
+          "usage_timing": "第1集就展现金手指技能",
+          "examples": [
+            "《我家王妃怀里藏着万能空间》女主带着万能空间穿越",
+            "《小小厨娘不好惹》现代烹饪技能穿越古代"
+          ]
+        },
+        {
+          "name": "信息差逆袭",
+          "description": "主角利用前世的记忆或现代的知识，预知未来的事件，提前布局，实现逆袭",
+          "effectiveness_score": 95,
+          "usage_timing": "第3-5集开始展现信息差逆袭的情节",
+          "examples": [
+            "《我真没想重生啊》陈汉升凭借超前认知创业",
+            "《重生90:富豪榜我排第一，牛排第二》女主用现代畜牧科学体系逆袭"
+          ]
+        },
+        {
+          "name": "弥补前世遗憾",
+          "description": "主角回到过去，弥补前世的遗憾，如拯救亲人、挽回爱情、改变错误的选择",
+          "effectiveness_score": 90,
+          "usage_timing": "第1集展现前世的遗憾，后续逐步弥补",
+          "examples": [
+            "《请和我的老公结婚》姜智媛重生后预防胃癌，反击渣男闺蜜",
+            "《烬梦欢》女主重生后改变恶女命运"
+          ]
+        },
+        {
+          "name": "种田跃升",
+          "description": "主角从一无所有开始，利用现代知识经商致富，帮助家人或自己跃升阶层",
+          "effectiveness_score": 88,
+          "usage_timing": "第5-10集开始展现种田跃升的情节",
+          "examples": [
+            "《如意满堂》首富穿越后经商致富",
+            "《饥荒年嫁首辅，锦鲤娇妻超旺夫》女主帮助丈夫科考成功"
+          ]
+        },
+        {
+          "name": "身份错位",
+          "description": "主角穿越后身份错位，如真千金归来、灵魂互换，在新身份中适应并逆袭",
+          "effectiveness_score": 85,
+          "usage_timing": "第1集就展现身份错位的设定",
+          "examples": [
+            "《乡下真千金竟是老祖宗》林小满是家族失踪百年的活祖宗",
+            "《十八岁太奶奶驾到》科学院院士灵魂重生到重孙女身上"
+          ]
+        }
+      ]
+    },
+    {
+      "theme_id": 5,
+      "theme_name": "家庭伦理/都市现实",
+      "elements": [
+        {
+          "name": "职场逆袭",
+          "description": "主角在职场中遭遇打压，凭借自身能力和努力，逆袭成为职场精英",
+          "effectiveness_score": 92,
+          "usage_timing": "第5-10集开始展现职场逆袭的情节",
+          "examples": [
+            "《朝阳似我》职场新人阮朝阳与顶头上司共同成长",
+            "《幸得相遇离婚时》女主离婚后职场逆袭"
+          ]
+        },
+        {
+          "name": "家庭伦理冲突",
+          "description": "主角面临家庭矛盾（如婆媳矛盾、原生家庭打压），通过智慧解决矛盾，实现家庭和解",
+          "effectiveness_score": 88,
+          "usage_timing": "第1集就展现家庭伦理冲突",
+          "examples": [
+            "《家里家外》重组家庭的日常矛盾与和解",
+            "《回到70年代，霸道婆婆带我飞》穿越女主与重生婆婆的同盟"
+          ]
+        },
+        {
+          "name": "情感救赎",
+          "description": "主角在情感中遭遇背叛，在新的情感关系中获得救赎，重新找到自我",
+          "effectiveness_score": 90,
+          "usage_timing": "第10-15集开始展现情感救赎的情节",
+          "examples": [
+            "《幸得相遇离婚时》女主离婚后遇到真爱",
+            "《晚夏微澜》女主在情感纠葛中自我成长"
+          ]
+        },
+        {
+          "name": "现实题材聚焦",
+          "description": "聚焦都市青年的现实困境（如北漂、打工、职场压力），引发观众共鸣",
+          "effectiveness_score": 95,
+          "usage_timing": "第1集就展现现实题材的设定",
+          "examples": [
+            "《职场新人日志》聚焦职场新人的成长",
+            "《夏天，海浪与你》海边小镇的治愈生活，缓解都市压力"
+          ]
+        },
+        {
+          "name": "反套路人设",
+          "description": "主角人设打破传统套路，如冷静理性的女主、尊重女性的男主",
+          "effectiveness_score": 93,
+          "usage_timing": "第1集就展现反套路人设",
+          "examples": [
+            "《好一个乖乖女》女主白切黑的反套路人设",
+            "《盛夏芬德拉》男主克制守护的反套路霸总"
+          ]
+        }
+      ]
+    }
+  ],
+  "hooks_library": {
+    "situation": [
+      {
+        "id": "SH-001",
+        "name": "极限羞辱型",
+        "core_formula": "主角正在遭受[极端羞辱]，但[隐藏实力/即将反击]",
+        "variables": {
+          "humiliation_type": [
+            "被当众退婚",
+            "被开除",
+            "被嘲笑",
+            "被泼咖啡",
+            "被迫下跪"
+          ],
+          "hidden_element": [
+            "真实身份",
+            "隐藏实力",
+            "即将反击",
+            "神秘后台"
+          ]
+        },
+        "effectiveness_score": 95,
+        "applicable_genres": [
+          "revenge",
+          "urban"
+        ]
+      },
+      {
+        "id": "SH-002",
+        "name": "生死一线型",
+        "core_formula": "主角面临[生死危机]，[神秘转机]突然出现",
+        "variables": {
+          "crisis_type": [
+            "车祸",
+            "坠楼",
+            "病危",
+            "绑架",
+            "火灾"
+          ],
+          "turning_point": [
+            "神秘救援",
+            "异能觉醒",
+            "系统激活",
+            "身份揭露"
+          ]
+        },
+        "effectiveness_score": 92,
+        "applicable_genres": [
+          "suspense",
+          "transmigration"
+        ]
+      },
+      {
+        "id": "SH-003",
+        "name": "误会冲突型",
+        "core_formula": "[捉奸/错认]现场，真相[即将揭晓/截然相反]",
+        "variables": {
+          "misunderstanding_type": [
+            "出轨捉奸",
+            "身份错认",
+            "证据误解",
+            "对话断章"
+          ],
+          "reveal_way": [
+            "当场反转",
+            "下集揭露",
+            "观众先知"
+          ]
+        },
+        "effectiveness_score": 90,
+        "applicable_genres": [
+          "romance",
+          "family"
+        ]
+      },
+      {
+        "id": "SH-004",
+        "name": "契约现场型",
+        "core_formula": "[签字/婚礼]关键时刻，[意外变数]突然介入",
+        "variables": {
+          "contract_type": [
+            "离婚协议",
+            "卖身契",
+            "婚约",
+            "合同"
+          ],
+          "variable_type": [
+            "身份揭露",
+            "证据出现",
+            "人物闯入",
+            "电话打断"
+          ]
+        },
+        "effectiveness_score": 88,
+        "applicable_genres": [
+          "romance",
+          "business"
+        ]
+      },
+      {
+        "id": "SH-005",
+        "name": "重逢对峙型",
+        "core_formula": "[仇人/前任]意外重逢，[情绪爆发/隐藏身份]",
+        "variables": {
+          "reunion_scene": [
+            "职场",
+            "宴会",
+            "街头",
+            "医院"
+          ],
+          "emotion_type": [
+            "愤怒",
+            "尴尬",
+            "冷漠",
+            "假装不识"
+          ]
+        },
+        "effectiveness_score": 87,
+        "applicable_genres": [
+          "revenge",
+          "romance"
+        ]
+      },
+      {
+        "id": "SH-006",
+        "name": "身份错位型",
+        "core_formula": "[卑微身份]正在服务[高贵身份]，真实关系[即将揭露]",
+        "variables": {
+          "service_scene": [
+            "端茶倒水",
+            "开车门",
+            "做保姆"
+          ],
+          "real_relationship": [
+            "夫妻",
+            "父子",
+            "旧识",
+            "债主"
+          ]
+        },
+        "effectiveness_score": 89,
+        "applicable_genres": [
+          "revenge",
+          "romance"
+        ]
+      },
+      {
+        "id": "SH-007",
+        "name": "证据揭露型",
+        "core_formula": "[关键证据]突然出现，[人物命运]即将改变",
+        "variables": {
+          "evidence_type": [
+            "DNA报告",
+            "视频录像",
+            "遗嘱",
+            "合同",
+            "聊天记录"
+          ],
+          "impact_scope": [
+            "身份确认",
+            "罪名洗清",
+            "财产归属"
+          ]
+        },
+        "effectiveness_score": 86,
+        "applicable_genres": [
+          "suspense",
+          "family"
+        ]
+      },
+      {
+        "id": "SH-008",
+        "name": "能力觉醒型",
+        "core_formula": "[平凡时刻]，[超自然能力]突然显现",
+        "variables": {
+          "trigger_scene": [
+            "受辱",
+            "危险",
+            "情绪波动"
+          ],
+          "ability_type": [
+            "读心术",
+            "预知",
+            "武力",
+            "医术",
+            "系统"
+          ]
+        },
+        "effectiveness_score": 88,
+        "applicable_genres": [
+          "transmigration",
+          "fantasy"
+        ]
+      },
+      {
+        "id": "SH-009",
+        "name": "关系逆转型",
+        "core_formula": "[弱势方]突然掌控[强势方]的把柄/命运",
+        "variables": {
+          "leverage_type": [
+            "秘密",
+            "犯罪证据",
+            "身世真相"
+          ],
+          "reversal_scene": [
+            "谈判",
+            "威胁",
+            "交易"
+          ]
+        },
+        "effectiveness_score": 85,
+        "applicable_genres": [
+          "business",
+          "revenge"
+        ]
+      },
+      {
+        "id": "SH-010",
+        "name": "时间压力型",
+        "core_formula": "[倒计时]内必须完成[不可能任务]，否则[严重后果]",
+        "variables": {
+          "countdown_type": [
+            "手术时间",
+            "炸弹倒计时",
+            "最后期限"
+          ],
+          "task_difficulty": [
+            "资源匮乏",
+            "信息不足",
+            "敌人阻挠"
+          ]
+        },
+        "effectiveness_score": 84,
+        "applicable_genres": [
+          "suspense",
+          "action"
+        ]
+      }
+    ],
+    "question": [
+      {
+        "id": "QH-001",
+        "name": "直接提问型",
+        "core_formula": "\"[震撼问题]，答案[即将揭晓/出乎意料]\"",
+        "variables": {
+          "question_type": [
+            "身份质问",
+            "情感质问",
+            "真相质问"
+          ],
+          "reveal_timing": [
+            "当场",
+            "下集",
+            "逐步"
+          ]
+        },
+        "effectiveness_score": 90,
+        "applicable_genres": [
+          "all"
+        ]
+      },
+      {
+        "id": "QH-002",
+        "name": "反常识陈述型",
+        "core_formula": "\"[违背常识的事实]，原因[令人震惊]\"",
+        "variables": {
+          "fact_type": [
+            "全球首富端洗脚水",
+            "乞丐拥有豪宅",
+            "废物考了满分"
+          ],
+          "reason_category": [
+            "隐藏身份",
+            "系统加持",
+            "被人陷害"
+          ]
+        },
+        "effectiveness_score": 92,
+        "applicable_genres": [
+          "revenge",
+          "transmigration"
+        ]
+      },
+      {
+        "id": "QH-003",
+        "name": "预言警示型",
+        "core_formula": "\"[时间限制]后，[惊人结果]将会发生\"",
+        "variables": {
+          "time_type": [
+            "三分钟后",
+            "今晚",
+            "一个月后"
+          ],
+          "result_type": [
+            "你会跪下来求我",
+            "真相大白",
+            "身败名裂"
+          ]
+        },
+        "effectiveness_score": 88,
+        "applicable_genres": [
+          "suspense",
+          "revenge"
+        ]
+      },
+      {
+        "id": "QH-004",
+        "name": "信息缺口型",
+        "core_formula": "\"[关键信息]被[人物]发现，反应[暗示重大]\"",
+        "variables": {
+          "info_type": [
+            "短信",
+            "照片",
+            "文件",
+            "对话"
+          ],
+          "discovery_scene": [
+            "偶然看到",
+            "刻意寻找",
+            "被人透露"
+          ],
+          "reaction_type": [
+            "脸色大变",
+            "沉默不语",
+            "立刻行动"
+          ]
+        },
+        "effectiveness_score": 89,
+        "applicable_genres": [
+          "suspense",
+          "family"
+        ]
+      },
+      {
+        "id": "QH-005",
+        "name": "身份悬念型",
+        "core_formula": "\"那个[被轻视的身份]，其实是[惊人真相]\"",
+        "variables": {
+          "surface_identity": [
+            "实习生",
+            "保姆",
+            "司机",
+            "乞丐"
+          ],
+          "real_identity": [
+            "总裁",
+            "特工",
+            "天才",
+            "皇室"
+          ]
+        },
+        "effectiveness_score": 91,
+        "applicable_genres": [
+          "revenge",
+          "romance"
+        ]
+      },
+      {
+        "id": "QH-006",
+        "name": "选择困境型",
+        "core_formula": "\"[两难选择]，无论选哪个都[代价沉重]\"",
+        "variables": {
+          "choice_type": [
+            "救爱人还是救亲人",
+            "说出真相还是保持沉默",
+            "复仇还是原谅"
+          ],
+          "cost_type": [
+            "失去生命",
+            "失去爱情",
+            "失去自我"
+          ]
+        },
+        "effectiveness_score": 85,
+        "applicable_genres": [
+          "suspense",
+          "romance"
+        ]
+      },
+      {
+        "id": "QH-007",
+        "name": "数字冲击型",
+        "core_formula": "\"[具体数字]的[事物]，背后藏着[惊人秘密]\"",
+        "variables": {
+          "number_type": [
+            "三年",
+            "第七天",
+            "第100次"
+          ],
+          "thing_type": [
+            "等待",
+            "死亡",
+            "循环",
+            "背叛"
+          ]
+        },
+        "effectiveness_score": 86,
+        "applicable_genres": [
+          "suspense",
+          "revenge"
+        ]
+      },
+      {
+        "id": "QH-008",
+        "name": "否定预期型",
+        "core_formula": "\"所有人都以为[普遍认知]，但真相[截然相反]\"",
+        "variables": {
+          "common_belief": [
+            "他是废物",
+            "她出轨了",
+            "公司破产了"
+          ],
+          "truth_reversal": [
+            "他是隐藏大佬",
+            "她在收集证据",
+            "公司即将上市"
+          ]
+        },
+        "effectiveness_score": 87,
+        "applicable_genres": [
+          "all"
+        ]
+      },
+      {
+        "id": "QH-009",
+        "name": "神秘引用型",
+        "core_formula": "\"[神秘话语/预言]，正在[一步步应验]\"",
+        "variables": {
+          "quote_source": [
+            "遗嘱",
+            "日记",
+            "预言",
+            "梦境"
+          ],
+          "fulfillment_way": [
+            "符号对应",
+            "事件吻合",
+            "人物出现"
+          ]
+        },
+        "effectiveness_score": 84,
+        "applicable_genres": [
+          "suspense",
+          "fantasy"
+        ]
+      },
+      {
+        "id": "QH-010",
+        "name": "未完成型",
+        "core_formula": "\"[关键动作]即将[完成/发生]，画面[突然中断]\"",
+        "variables": {
+          "action_type": [
+            "签字",
+            "亲吻",
+            "开枪",
+            "揭露"
+          ],
+          "interrupt_way": [
+            "黑屏",
+            "转场",
+            "下集预告"
+          ]
+        },
+        "effectiveness_score": 88,
+        "applicable_genres": [
+          "all"
+        ]
+      }
+    ],
+    "visual": [
+      {
+        "id": "VH-001",
+        "name": "奇观展示型",
+        "core_mechanism": "呈现超出日常经验的震撼场景",
+        "visual_elements": [
+          "豪华场景（mansion/游艇/私人飞机）",
+          "特殊能力（特效呈现）",
+          "大规模场面（人群/灾难）"
+        ],
+        "effectiveness_score": 90,
+        "applicable_genres": [
+          "revenge",
+          "transmigration"
+        ]
+      },
+      {
+        "id": "VH-002",
+        "name": "强烈对比型",
+        "core_mechanism": "同一画面的前后/内外反差",
+        "visual_elements": [
+          "贫富对比（破衣vs华服）",
+          "身份对比（卑微姿态vs高贵身份）",
+          "情绪对比（笑容vs眼泪）"
+        ],
+        "effectiveness_score": 92,
+        "applicable_genres": [
+          "revenge",
+          "romance"
+        ]
+      },
+      {
+        "id": "VH-003",
+        "name": "神秘场景型",
+        "core_mechanism": "未知空间/人物/物件引发好奇",
+        "visual_elements": [
+          "未知空间（密室/异世界/未来都市）",
+          "神秘人物（背影/面具/剪影）",
+          "悬念物件（古老盒子/神秘信件）"
+        ],
+        "effectiveness_score": 88,
+        "applicable_genres": [
+          "suspense",
+          "fantasy"
+        ]
+      },
+      {
+        "id": "VH-004",
+        "name": "情绪特写型",
+        "core_mechanism": "放大面部表情传递强烈情绪",
+        "visual_elements": [
+          "眼泪特写（滑落瞬间）",
+          "眼神变化（从柔弱到锐利）",
+          "表情凝固（震惊/愤怒/狂喜）"
+        ],
+        "effectiveness_score": 89,
+        "applicable_genres": [
+          "all"
+        ]
+      },
+      {
+        "id": "VH-005",
+        "name": "动作冲击型",
+        "core_mechanism": "具有暴力美学的身体动作",
+        "visual_elements": [
+          "扇巴掌（慢动作+音效）",
+          "下跪（强迫/自愿）",
+          "摔东西（瓷器碎裂）",
+          "强吻（突然/强迫）"
+        ],
+        "effectiveness_score": 87,
+        "applicable_genres": [
+          "revenge",
+          "romance"
+        ]
+      },
+      {
+        "id": "VH-006",
+        "name": "色彩冲击型",
+        "core_mechanism": "非常规色彩组合制造视觉冲击",
+        "visual_elements": [
+          "高饱和对比（红与黑）",
+          "单色调变化（黑白到彩色）",
+          "色彩象征（血色/金色）"
+        ],
+        "effectiveness_score": 85,
+        "applicable_genres": [
+          "all"
+        ]
+      },
+      {
+        "id": "VH-007",
+        "name": "速度变化型",
+        "core_mechanism": "快/慢动作对比制造节奏张力",
+        "visual_elements": [
+          "慢动作（关键瞬间延长）",
+          "快切（信息密集轰炸）",
+          "定格（决定性时刻）"
+        ],
+        "effectiveness_score": 86,
+        "applicable_genres": [
+          "action",
+          "suspense"
+        ]
+      },
+      {
+        "id": "VH-008",
+        "name": "空间错位型",
+        "core_mechanism": "非常规空间关系制造不安/新奇",
+        "visual_elements": [
+          "倒置画面",
+          "镜面反射",
+          "画中画",
+          "无人机视角"
+        ],
+        "effectiveness_score": 84,
+        "applicable_genres": [
+          "suspense",
+          "fantasy"
+        ]
+      },
+      {
+        "id": "VH-009",
+        "name": "符号隐喻型",
+        "core_mechanism": "核心符号的视觉化呈现",
+        "visual_elements": [
+          "反复出现的物件",
+          "标志性色彩",
+          "特定构图"
+        ],
+        "effectiveness_score": 83,
+        "applicable_genres": [
+          "suspense",
+          "literary"
+        ]
+      },
+      {
+        "id": "VH-010",
+        "name": "身体奇观型",
+        "core_mechanism": "身体的非常规状态呈现",
+        "visual_elements": [
+          "伤痕特写",
+          "变身过程",
+          "衰老/年轻化",
+          "身体悬浮/穿透"
+        ],
+        "effectiveness_score": 85,
+        "applicable_genres": [
+          "fantasy",
+          "suspense"
+        ]
+      }
+    ]
+  },
+  "archetypes": {
+    "protagonist": [
+      {
+        "id": "RA-001",
+        "name": "隐忍复仇者",
+        "name_en": "Revenge Protagonist - Enduring Type",
+        "genre": "revenge",
+        "surface_traits": [
+          "柔弱",
+          "低调",
+          "被欺负",
+          "沉默寡言",
+          "逆来顺受"
+        ],
+        "true_traits": [
+          "强大",
+          "智慧",
+          "隐忍",
+          "精于计算",
+          "内心坚韧"
+        ],
+        "surface_goal": "生存、保护身边人、维持现状",
+        "deep_desire": "复仇、证明自我价值、夺回失去的一切",
+        "fatal_flaw": "情感羁绊可能干扰复仇计划；过度隐忍导致机会丧失",
+        "character_arc": "从被动承受到主动反击，从隐藏自我到公开身份，从复仇工具到完整人格",
+        "dialogue_style_before": "简短、隐忍、双关（表面顺从，实则讽刺）",
+        "dialogue_style_after": "霸气、犀利、直接、带有掌控感",
+        "visual_markers": [
+          "服装从朴素到华丽",
+          "眼神从躲闪到锐利",
+          "气场从收敛到压迫"
+        ],
+        "classic_references": [
+          "《幸得相遇离婚时》女主",
+          "《好一个乖乖女》女主"
+        ]
+      },
+      {
+        "id": "RA-002",
+        "name": "黑莲花女主",
+        "name_en": "Revenge Protagonist - Scheming Type",
+        "genre": "revenge",
+        "core_traits": "表面清纯无害，实则心机深沉；主动布局，步步为营；善于利用他人",
+        "difference_from_enduring": "更主动、更具攻击性；不等待时机，而是创造时机",
+        "moral_gray_area": "为达目的可能使用非常手段；观众对其道德评判存在分歧",
+        "classic_references": [
+          "《黑莲花上位手册》女主（因价值观争议被下架）"
+        ]
+      },
+      {
+        "id": "SA-001",
+        "name": "纯真女主",
+        "name_en": "Sweet Protagonist - Innocent Type",
+        "genre": "romance",
+        "core_traits": "善良、乐观、有些小迷糊、专业能力强但情感迟钝",
+        "emotional_pattern": "慢热型，从误解到了解到深爱",
+        "character_arc": "从情感被动到主动争取，从自我怀疑到自信确认",
+        "dialogue_style": "内心OS丰富、吐槽式幽默、情感爆发时直接真诚",
+        "classic_references": [
+          "《心动还请告诉我》林晓"
+        ]
+      },
+      {
+        "id": "SA-002",
+        "name": "霸总男主",
+        "name_en": "Sweet Protagonist - Dominant Type",
+        "genre": "romance",
+        "core_traits": "外表冷酷、掌控欲强、能力卓越、对女主专属温柔",
+        "emotional_pattern": "一见钟情或日久生情，认定后专一执着",
+        "classic_behaviors": [
+          "暗中保护",
+          "吃醋但不承认",
+          "为女主打破原则",
+          "公开护短"
+        ],
+        "dialogue_style": "命令式关心、反差萌（对旁人冷酷，对女主温柔）、情话直白",
+        "visual_markers": [
+          "西装革履",
+          "手表/袖扣等细节",
+          "居高临下的视角"
+        ]
+      },
+      {
+        "id": "MA-001",
+        "name": "天才侦探",
+        "name_en": "Mystery Protagonist - Genius Type",
+        "genre": "suspense",
+        "core_traits": "观察力敏锐、逻辑推理能力强、知识渊博、社交能力可能欠缺",
+        "core_motivation": "解开谜团的智力满足；正义感；个人创伤驱动",
+        "classic_abilities": [
+          "微表情识别",
+          "犯罪心理侧写",
+          "证据关联分析"
+        ],
+        "classic_references": [
+          "《隐秘的角落》张东升（反派视角的天才）"
+        ]
+      },
+      {
+        "id": "MA-002",
+        "name": "冷面刑警",
+        "name_en": "Mystery Protagonist - Professional Type",
+        "genre": "suspense",
+        "core_traits": "专业能力强、情感克制、有原则、可能有过往创伤",
+        "core_motivation": "职业责任；特定案件的执念；自我救赎",
+        "classic_conflicts": "程序正义与结果正义的冲突；上级压力与个人判断"
+      },
+      {
+        "id": "TA-001",
+        "name": "金手指女主",
+        "name_en": "Transmigration Protagonist - Cheat Type",
+        "genre": "transmigration",
+        "core_traits": "现代思维、知识优势、系统辅助、主动进取",
+        "core_motivation": "改变原主悲剧命运；实现自我价值；寻找归属",
+        "classic_abilities": [
+          "现代知识降维打击",
+          "系统任务奖励",
+          "预知未来信息"
+        ],
+        "character_arc": "从依赖金手指到自主成长，从改变他人到改变自己",
+        "classic_references": [
+          "《全家偷听我心声》女主"
+        ]
+      },
+      {
+        "id": 1,
+        "archetype_key": "revenge_protagonist",
+        "name": "复仇女主",
+        "name_en": "Revenge Protagonist",
+        "role": "protagonist",
+        "core_traits": {
+          "surface": [
+            "柔弱、低调、被欺负、逆来顺受"
+          ],
+          "true": [
+            "强大、智慧、隐忍、有计划、有底线"
+          ]
+        },
+        "motivation": {
+          "surface_goal": "复仇，让反派得到应有的惩罚",
+          "deep_desire": "自我救赎，摆脱过去的阴影，实现自我价值",
+          "fatal_flaw": "过于执着于复仇，忽略身边的人，容易被复仇冲昏头脑"
+        },
+        "character_arc": "从压抑隐忍到觉醒反抗，从执着复仇到自我救赎，最终实现自我成长和人生圆满",
+        "dialogue_style": {
+          "before_reveal": "隐忍、简短、不与人争执，语气平淡，很少表达自己的想法",
+          "after_reveal": "霸气、犀利、逻辑清晰，用事实和实力说话，语气坚定，有力量"
+        },
+        "visual_markers": [
+          "服装从朴素到精致，眼神从怯懦到坚定，气场从弱小到强大，细节动作从拘谨到从容"
+        ],
+        "classic_examples": [
+          "《好一个乖乖女》鹿鸣野",
+          "《请和我的老公结婚》姜智媛",
+          "《烬梦欢》女主"
+        ],
+        "relationship_dynamics": {
+          "with_antagonist": "仇人关系，前期被反派欺压，后期反击反派，最终让反派得到惩罚",
+          "with_love_interest": "从互相利用到互相理解，最终成为彼此的救赎，共同成长"
+        }
+      },
+      {
+        "id": 4,
+        "archetype_key": "suspense_detective",
+        "name": "悬疑侦探",
+        "name_en": "Suspense Detective",
+        "role": "protagonist",
+        "core_traits": {
+          "surface": [
+            "冷静、理性、话少、观察力强"
+          ],
+          "true": [
+            "有正义感、重感情、有过去的创伤、执着于真相"
+          ]
+        },
+        "motivation": {
+          "surface_goal": "找到案件的真相，让凶手得到应有的惩罚",
+          "deep_desire": "弥补过去的遗憾，实现自我救赎，维护社会的公平正义",
+          "fatal_flaw": "过于执着于真相，忽略自己的安全，容易陷入自我怀疑"
+        },
+        "character_arc": "从冷漠理性到重感情，从执着真相到自我救赎，最终实现自我成长，维护正义",
+        "dialogue_style": "简短、逻辑清晰、一针见血，很少表达自己的情感，用事实和证据说话",
+        "visual_markers": [
+          "服装简洁实用，眼神锐利，动作干练，喜欢观察细节"
+        ],
+        "classic_examples": [
+          "《沙尘暴》男主",
+          "《天书黎明》符生",
+          "《彼岸灯塔》女主"
+        ],
+        "relationship_dynamics": {
+          "with_antagonist": "对立关系，寻找证据揭露反派的罪行",
+          "with_partner": "从互相不信任到互相配合，最终成为默契的搭档"
+        }
+      },
+      {
+        "id": 5,
+        "archetype_key": "rebirth_entrepreneur",
+        "name": "重生创业者",
+        "name_en": "Rebirth Entrepreneur",
+        "role": "protagonist",
+        "core_traits": {
+          "surface": [
+            "普通、平凡、不起眼"
+          ],
+          "true": [
+            "有远见、有智慧、有计划、有商业头脑"
+          ]
+        },
+        "motivation": {
+          "surface_goal": "创业致富，改变自己和家人的命运",
+          "deep_desire": "弥补过去的遗憾，实现自我价值，让家人过上好日子",
+          "fatal_flaw": "过于急躁，容易冒进，忽略了身边的风险"
+        },
+        "character_arc": "从平凡普通到成功创业，从迷茫无助到自信坚定，最终实现自我成长和人生圆满",
+        "dialogue_style": {
+          "前期": "低调、谨慎，后期自信、从容，有说服力，善于表达自己的想法",
+          "after_success": "自信、从容，有说服力，善于表达自己的想法"
+        },
+        "visual_markers": [
+          "服装从朴素到商务，眼神从迷茫到坚定，气场从弱小到强大"
+        ],
+        "classic_examples": [
+          "《我真没想重生啊》陈汉升",
+          "《重生90:富豪榜我排第一，牛排第二》女主",
+          "《如意满堂》男主"
+        ],
+        "relationship_dynamics": {
+          "with_family": "从被家人忽视到成为家人的依靠，帮助家人改变命运",
+          "with_antagonist": "从被反派打压到反击反派，最终让反派得到惩罚"
+        }
+      }
+    ],
+    "antagonist": [
+      {
+        "name": "傲慢型反派",
+        "name_en": "Arrogant",
+        "core_traits": "目中无人、仗势欺人、自我感觉良好",
+        "behavior_pattern": "公开羞辱主角、炫耀优势、拒绝认错",
+        "defeat_reason": "低估主角；傲慢导致决策失误",
+        "audience_reaction": "期待其被打脸；败北时获得爽感"
+      },
+      {
+        "name": "阴险型反派",
+        "name_en": "Scheming",
+        "core_traits": "笑里藏刀、借刀杀人、机关算尽",
+        "behavior_pattern": "暗中布局、挑拨离间、利用他人",
+        "defeat_reason": "过度算计反被算计；众叛亲离",
+        "audience_reaction": "愤怒其手段；佩服其智商"
+      },
+      {
+        "name": "愚蠢型反派",
+        "name_en": "Foolish",
+        "core_traits": "又坏又蠢、搬石砸脚、盲目跟风",
+        "behavior_pattern": "无脑挑衅、重复失败、被人利用",
+        "defeat_reason": "智商不足；缺乏自知之明",
+        "audience_reaction": "嘲笑其愚蠢；缺乏真实威胁感"
+      },
+      {
+        "id": 3,
+        "archetype_key": "villainous_stepmother",
+        "name": "恶毒继母",
+        "name_en": "Villainous Stepmother",
+        "role": "antagonist",
+        "core_traits": {
+          "surface": [
+            "温柔、贤惠、关心家人"
+          ],
+          "true": [
+            "自私、阴险、恶毒、控制欲强、贪婪"
+          ]
+        },
+        "motivation": {
+          "surface_goal": "为了自己的孩子或利益，争夺家族的资源",
+          "deep_desire": "获得安全感，证明自己的价值，控制家族的一切",
+          "fatal_flaw": "过于贪婪，聪明反被聪明误，忽略了主角的成长"
+        },
+        "character_arc": "从伪装善良到暴露恶毒，最终被主角反击，得到应有的惩罚",
+        "dialogue_style": "表面温柔，语气亲切，实则话里有话，暗藏杀机，喜欢用道德绑架主角",
+        "visual_markers": [
+          "服装精致但浮夸，眼神虚伪，笑容假惺惺，动作做作"
+        ],
+        "classic_examples": [
+          "《好一个乖乖女》继母",
+          "《乡下真千金竟是老祖宗》继母",
+          "《烬梦欢》嫡母"
+        ],
+        "relationship_dynamics": {
+          "with_protagonist": "敌对关系，欺压主角，争夺资源，最终被主角反击",
+          "with_family": "控制家人，利用家人的信任，为自己谋取利益"
+        }
+      }
+    ],
+    "supporting": [
+      {
+        "function": "神助攻",
+        "name": "闺蜜/兄弟",
+        "core_function": "情感支持、信息传递、危机救助",
+        "classic_scenes": "女主失恋时陪伴、关键时刻递消息"
+      },
+      {
+        "function": "信息源",
+        "name": "忠诚助理/老仆",
+        "core_function": "提供关键情报、执行秘密任务",
+        "classic_scenes": "调查背景、传递信件、掩护身份"
+      },
+      {
+        "function": "冲突催化剂",
+        "name": "挑拨离间者/绿茶",
+        "core_function": "制造误会、加剧矛盾、测试感情",
+        "classic_scenes": "故意传错话、假装亲密、公开挑衅"
+      },
+      {
+        "function": "情感对照",
+        "name": "悲情牺牲者",
+        "core_function": "强化主角动机、引发观众同情",
+        "classic_scenes": "为保护主角而死、揭示隐藏真相"
+      },
+      {
+        "function": "喜剧调剂",
+        "name": "可爱萌宠/话痨",
+        "core_function": "缓解紧张、提供笑点、情感连接",
+        "classic_scenes": "关键时刻的意外帮助、日常互动"
+      }
+    ]
+  },
+  "market_insights": {
+    "market_data_2024_2025": {
+      "market_size": {
+        "2024": "504.4亿元",
+        "2025_forecast": "634亿元",
+        "growth": "+25.7%"
+      },
+      "user_scale": {
+        "2024": "6.62亿",
+        "2025_forecast": "6.96亿",
+        "growth": "+5.1%"
+      },
+      "free_model_share": {
+        "2024": "45%",
+        "2025_forecast": "55%",
+        "change": "+10pct"
+      },
+      "avg_release_duration": {
+        "2024": "10天",
+        "2025_forecast": "7天",
+        "change": "-30%"
+      },
+      "high_heat_works": {
+        "2024": "18部",
+        "2025_forecast": "12部",
+        "change": "-33%"
+      }
+    },
+    "key_trends": [
+      {
+        "trend": "免费模式主导",
+        "description": "2025年免费短剧以66.3%的市场占比成为绝对主流，头部平台月活突破2.36亿",
+        "impact": "从\"单一钩子\"升级为\"高密度钩子矩阵\"，构建\"强逻辑情节递进体系\""
+      },
+      {
+        "trend": "精品化与多元化并行",
+        "description": "\"照着爆款模板批量产出\"导致短期同质化严重，但拉长观察周期可见题材显著多元化",
+        "impact": "2025年Q1，红果平台30亿播放量短剧涵盖\"现言、萌宝、修仙、反赌\"等不同元素"
+      },
+      {
+        "trend": "头部效应加剧",
+        "description": "2025年热力值5000万以上的短剧仅12部，且集中在麦芽、河马、阅文、山海、番茄等头部平台",
+        "impact": "中小团队生存压力增大"
+      }
+    ],
+    "platform_strategies": [
+      {
+        "platform": "抖音",
+        "core_audience": "18-30岁，一二线城市",
+        "genre_preference": "女性成长+悬疑、强钩子引流",
+        "content_features": "快节奏、高概念、视觉奇观",
+        "representative_hits": [
+          "《双面权臣暗恋我》",
+          "《穿书富家妯娌》"
+        ]
+      },
+      {
+        "platform": "快手",
+        "core_audience": "25-40岁，下沉市场",
+        "genre_preference": "家庭伦理+温情、接地气叙事",
+        "content_features": "生活流、真实感、情感共鸣",
+        "representative_hits": [
+          "《东北爱情故事》",
+          "《闪婚老伴是豪门》"
+        ]
+      },
+      {
+        "platform": "红果",
+        "core_audience": "全年龄段，免费用户为主",
+        "genre_preference": "全品类覆盖，长停留时长设计",
+        "content_features": "高密度钩子、强逻辑递进、季播化运营",
+        "representative_hits": [
+          "《幸得相遇离婚时》",
+          "《云渺》系列"
+        ]
+      }
+    ],
+    "trending_combinations": [
+      {
+        "name": "虐恋后追妻火葬场",
+        "genres": [
+          "revenge",
+          "romance"
+        ],
+        "core_structure": "女主因复仇/误会离开→男主意识到错误→展开追妻→双向救赎",
+        "representative_case": "《幸得相遇离婚时》",
+        "heat_score": 95,
+        "innovation_score": 70,
+        "risk_level": "低",
+        "execution_points": "复仇阶段需有足够\"痛感\"积累；追妻阶段需有\"诚意展示\""
+      },
+      {
+        "name": "探案搭档生情",
+        "genres": [
+          "suspense",
+          "romance"
+        ],
+        "core_structure": "男女主因案件合作→互相试探→信任建立→情感升温→案件与情感双重揭秘",
+        "representative_case": "《救命！我老公茶香四溢》",
+        "heat_score": 88,
+        "innovation_score": 85,
+        "risk_level": "中",
+        "execution_points": "案件复杂度需与情感发展节奏匹配；反派设计需有\"情感关联\""
+      },
+      {
+        "name": "古代开店致富",
+        "genres": [
+          "transmigration",
+          "business"
+        ],
+        "core_structure": "现代商业思维穿越→发现市场空白→建立商业帝国→改变历史/选择留下",
+        "representative_case": "《如意满堂》《饥荒年嫁首辅》",
+        "heat_score": 90,
+        "innovation_score": 80,
+        "risk_level": "低",
+        "execution_points": "需设置\"知识落地障碍\"；情感线需与商业线交织"
+      },
+      {
+        "name": "逆袭顶流明星",
+        "genres": [
+          "rebirth",
+          "entertainment"
+        ],
+        "core_structure": "前世被陷害陨落→重生回到关键节点→利用预知优势→事业爱情双丰收",
+        "representative_case": "《千金谋》",
+        "heat_score": 85,
+        "innovation_score": 75,
+        "risk_level": "中",
+        "execution_points": "需有\"专业细节\"支撑逆袭合理性；舆论战设计需符合现实逻辑"
+      },
+      {
+        "name": "金手指修仙路",
+        "genres": [
+          "system",
+          "cultivation"
+        ],
+        "core_structure": "凡人获得修仙系统→任务驱动升级→门派斗争→飞升成仙",
+        "representative_case": "《云渺1：我修仙多年强亿点怎么了》",
+        "heat_score": 92,
+        "innovation_score": 78,
+        "risk_level": "低",
+        "execution_points": "系统设计\"失效时刻\"；单元案件降低观看门槛"
+      },
+      {
+        "name": "职场开挂逆袭",
+        "genres": [
+          "mind_reading",
+          "workplace"
+        ],
+        "core_structure": "获得读心能力→职场博弈优势→揭露阴谋→晋升成长",
+        "representative_case": "《杜小慧》",
+        "heat_score": 90,
+        "innovation_score": 82,
+        "risk_level": "中",
+        "execution_points": "读心范围需有限制；避免信息过载"
+      },
+      {
+        "name": "身份错位爱情",
+        "genres": [
+          "contract_marriage",
+          "identity_swap"
+        ],
+        "core_structure": "契约关系+身份错位双重张力→真相揭露→情感确认",
+        "representative_case": "多部融合剧",
+        "heat_score": 88,
+        "innovation_score": 80,
+        "risk_level": "中",
+        "execution_points": "双重悬念需精密配合；揭露时机需分层设计"
+      },
+      {
+        "name": "无限流拯救爱人",
+        "genres": [
+          "time_loop",
+          "redemption"
+        ],
+        "core_structure": "被困时间循环→寻找拯救爱人的方法→牺牲与成长",
+        "representative_case": "待开发",
+        "heat_score": 87,
+        "innovation_score": 88,
+        "risk_level": "高",
+        "execution_points": "循环机制需清晰；情感重量需逐步累积"
+      },
+      {
+        "name": "身体错位喜剧",
+        "genres": [
+          "body_swap",
+          "enemies_to_lovers"
+        ],
+        "core_structure": "与死对头灵魂互换→被迫体验对方生活→理解与生情",
+        "representative_case": "待开发",
+        "heat_score": 86,
+        "innovation_score": 85,
+        "risk_level": "中",
+        "execution_points": "喜剧效果与情感发展需平衡；换身规则需一致"
+      },
+      {
+        "name": "大女主朝堂路",
+        "genres": [
+          "ancient_power",
+          "female_growth"
+        ],
+        "core_structure": "女性进入权力中心→权谋博弈→改革制度→确立地位",
+        "representative_case": "《黑莲花上位手册》（已下架）",
+        "heat_score": 93,
+        "innovation_score": 75,
+        "risk_level": "高",
+        "execution_points": "需规避\"以暴制暴\"风险；权谋细节需专业"
+      }
+    ]
+  },
+  "writing_guide": {
+    "sensory_vocabulary": {
+      "conflict_scene": {
+        "visual": [
+          "青筋暴起",
+          "眼神锐利",
+          "破碎的玻璃",
+          "飞溅的液体",
+          "扭曲的表情"
+        ],
+        "auditory": [
+          "沉重的呼吸",
+          "瓷器碎裂",
+          "心跳加速",
+          "怒吼",
+          "耳光脆响"
+        ],
+        "tactile": [
+          "掌心出汗",
+          "肌肉紧绷",
+          "灼热感",
+          "刺痛",
+          "颤抖"
+        ],
+        "olfactory": [
+          "火药味",
+          "血腥味",
+          "汗味",
+          "焦糊味"
+        ],
+        "gustatory": [
+          "铁锈味",
+          "苦涩",
+          "血腥味"
+        ]
+      },
+      "romantic_scene": {
+        "visual": [
+          "柔和光晕",
+          "眼神交汇",
+          "花瓣飘落",
+          "夕阳余晖",
+          "亲密距离"
+        ],
+        "auditory": [
+          "心跳声",
+          "轻笑",
+          "低语",
+          "音乐",
+          "呼吸声"
+        ],
+        "tactile": [
+          "柔软",
+          "温暖",
+          "电流感",
+          "颤抖",
+          "拥抱的紧实"
+        ],
+        "olfactory": [
+          "花香",
+          "香水味",
+          "阳光的味道",
+          "对方的气息"
+        ],
+        "gustatory": [
+          "甜蜜",
+          "微醺",
+          "巧克力的苦甜"
+        ]
+      },
+      "suspense_scene": {
+        "visual": [
+          "阴影层次",
+          "闪烁的灯光",
+          "模糊的轮廓",
+          "监视视角",
+          "封闭空间"
+        ],
+        "auditory": [
+          "寂静中的异响",
+          "脚步声",
+          "心跳",
+          "钟表滴答",
+          "突然的电话铃"
+        ],
+        "tactile": [
+          "冷汗",
+          "毛骨悚然",
+          "黏腻",
+          "冰冷",
+          "僵硬"
+        ],
+        "olfactory": [
+          "霉味",
+          "陈旧空气",
+          "消毒水味",
+          "未知的危险气息"
+        ],
+        "gustatory": [
+          "金属味",
+          "干涩",
+          "紧张导致的口渴"
+        ]
+      },
+      "daily_scene": {
+        "visual": [
+          "阳光",
+          "整洁/凌乱的空间",
+          "日常物品",
+          "自然表情",
+          "生活细节"
+        ],
+        "auditory": [
+          "喧嚣",
+          "家常对话",
+          "电视声",
+          "厨房声响",
+          "窗外噪音"
+        ],
+        "tactile": [
+          "温暖",
+          "舒适",
+          "疲惫",
+          "放松",
+          "熟悉的触感"
+        ],
+        "olfactory": [
+          "家常饭菜香",
+          "阳光晒过的被子",
+          "咖啡香"
+        ],
+        "gustatory": [
+          "家常味",
+          "平淡",
+          "满足",
+          "怀念"
+        ]
+      }
+    },
+    "pacing_templates": {
+      "opening": {
+        "stage": "开局（前3集）",
+        "scene_count": "3-5个场景",
+        "pace": "快节奏，信息密集",
+        "hook_requirements": "前3秒必须抛出钩子，10秒建立冲突，30秒推进剧情",
+        "reversal_density": "每集1-2个",
+        "emotion_goal": "即时吸引，建立期待"
+      },
+      "middle": {
+        "stage": "中段（付费点前）",
+        "scene_count": "每集2-3个场景",
+        "pace": "中快节奏，持续张力",
+        "hook_requirements": "每集结尾必有悬念钩子",
+        "reversal_density": "每集2-3个反转",
+        "emotion_goal": "维持追剧动力，铺垫付费点"
+      },
+      "climax": {
+        "stage": "高潮（付费点）",
+        "scene_count": "集中爆发",
+        "pace": "极快节奏，情绪峰值",
+        "hook_requirements": "最大情绪强度+身份揭露+关系质变",
+        "reversal_density": "连续反转",
+        "emotion_goal": "付费转化，社交传播"
+      },
+      "ending": {
+        "stage": "结局（后3集）",
+        "scene_count": "2-3个场景",
+        "pace": "舒缓节奏，情感释放",
+        "hook_requirements": "闭环解答+长尾话题",
+        "reversal_density": "1-2个关键反转",
+        "emotion_goal": "满足感，余韵，续集期待"
+      }
+    },
+    "key_data_reference": "免费短剧要求\"15秒有冲突或反转，30秒推进剧情，最后10秒给出悬念\"的工业标准；付费短剧需在第9-10集设置\"卡点钩子\"，将最大反击留至付费点后"
+  },
+  "visual_guide": {
+    "revenge": {
+      "shot_style": "高对比、低角度、手持",
+      "color_scheme": "冷色调（蓝/灰/暗绿），高饱和",
+      "shot_selection": "特写（情绪）、低角度（强势）、全景（压迫）",
+      "editing_pace": "快速剪辑、跳切",
+      "special_techniques": "慢动作特写关键反击；服装蜕变可视化"
+    },
+    "romance": {
+      "shot_style": "柔光、中景、稳定",
+      "color_scheme": "暖色调（橙/粉/金），中高饱和",
+      "shot_selection": "中景（互动）、特写（亲密）、全景（浪漫场景）",
+      "editing_pace": "舒缓节奏，延长时间感知",
+      "special_techniques": "柔光滤镜；亲密特写；浪漫场景仪式感"
+    },
+    "suspense": {
+      "shot_style": "阴影层次、手持+固定",
+      "color_scheme": "蓝绿色调，低饱和",
+      "shot_selection": "特写（微表情）、全景（孤立感）、固定长镜头（凝视）",
+      "editing_pace": "跳切加速紧张，固定长镜头营造压抑",
+      "special_techniques": "符号隐喻；非线性时间呈现；不可靠视角"
+    },
+    "transmigration": {
+      "shot_style": "古今对比、特效转场",
+      "color_scheme": "现代冷色调vs古代暖色调，穿越时刻高饱和",
+      "shot_selection": "大场面（奇观）、细节（知识运用）、特写（身份认知）",
+      "editing_pace": "现代快节奏vs古代舒缓节奏",
+      "special_techniques": "特效转场（时空扭曲）；服饰混搭；场景奇观"
+    },
+    "family_urban": {
+      "shot_style": "自然光、纪实风格",
+      "color_scheme": "温和色调，自然饱和",
+      "shot_selection": "中景（日常互动）、特写（情感细节）、全景（生活空间）",
+      "editing_pace": "舒缓节奏，保留生活质感",
+      "special_techniques": "手持镜头增强真实感；细腻表演捕捉；烟火气场景"
+    }
+  }
+}

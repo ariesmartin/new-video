@@ -1,15 +1,33 @@
 import { client } from '../client';
 import type { components } from '@/types/api';
 
-// 使用生成的类型
 type ModelProviderCreate = components['schemas']['ModelProviderCreate'];
 type ModelProviderUpdate = components['schemas']['ModelProviderUpdate'];
-type ProviderResponseData = components['schemas']['ProviderResponseData'];
-type MappingResponseData = components['schemas']['MappingResponseData'];
 type ModelTestRequest = components['schemas']['ModelTestRequest'];
 type ModelTestResponse = components['schemas']['ModelTestResponse'];
 type ModelMappingCreate = components['schemas']['ModelMappingCreate'];
 type ModelMappingUpdate = components['schemas']['ModelMappingUpdate'];
+
+interface ProviderResponseData {
+  providerId: string;
+  name: string;
+  type: string;
+  status: string;
+  [key: string]: unknown;
+}
+
+interface MappingResponseData {
+  mappingId: string;
+  taskType: string;
+  providerId: string;
+  modelId: string;
+  id?: string;
+  task_type?: string;
+  provider_id?: string;
+  model_name?: string;
+  created_at?: string;
+  [key: string]: unknown;
+}
 
 // TaskCategory 到 TaskType 的映射（从后端动态获取）
 type CategoryToTaskTypeMapping = Record<string, string>;
@@ -61,7 +79,7 @@ export const modelsService = {
     
     if (error) throw new Error(getErrorMessage(error));
     
-    return data?.data || [];
+    return (data?.data || []) as unknown as ProviderResponseData[];
   },
 
   async createProvider(provider: ModelProviderCreate & { is_active?: boolean }): Promise<ProviderResponseData> {
@@ -77,7 +95,7 @@ export const modelsService = {
     if (error) throw new Error(getErrorMessage(error));
     if (!data?.data) throw new Error('No data returned');
     
-    return data.data;
+    return data.data as unknown as ProviderResponseData;
   },
 
   async updateProvider(id: string, updates: ModelProviderUpdate): Promise<ProviderResponseData> {
@@ -91,7 +109,7 @@ export const modelsService = {
     if (error) throw new Error(getErrorMessage(error));
     if (!data?.data) throw new Error('No data returned');
     
-    return data.data;
+    return data.data as unknown as ProviderResponseData;
   },
 
   async deleteProvider(id: string): Promise<void> {
@@ -142,7 +160,7 @@ export const modelsService = {
     
     if (error) throw new Error(getErrorMessage(error));
     
-    return data?.data || [];
+    return (data?.data || []) as unknown as MappingResponseData[];
   },
 
   async createMapping(
@@ -168,7 +186,7 @@ export const modelsService = {
     if (error) throw new Error(getErrorMessage(error));
     if (!data?.data) throw new Error('No data returned');
 
-    return data.data;
+    return data.data as unknown as MappingResponseData;
   },
 
   async updateMapping(
@@ -191,7 +209,7 @@ export const modelsService = {
     if (error) throw new Error(getErrorMessage(error));
     if (!data?.data) throw new Error('No data returned');
     
-    return data.data;
+    return data.data as unknown as MappingResponseData;
   },
 
   async deleteMapping(mappingId: string): Promise<void> {
@@ -211,7 +229,11 @@ export const modelsService = {
     
     if (error) throw new Error(getErrorMessage(error));
     
-    return data?.data || [];
+    const result = data?.data || [];
+    return result.map((item: { value?: string; label?: string }) => ({
+      value: item.value || '',
+      label: item.label || '',
+    }));
   },
 
   // 获取 category 到 task_type 的映射

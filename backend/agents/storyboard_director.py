@@ -21,9 +21,7 @@ logger = structlog.get_logger(__name__)
 
 def _load_storyboard_director_prompt() -> str:
     """从文件加载 Storyboard Director 的 System Prompt"""
-    prompt_path = (
-        Path(__file__).parent.parent.parent.parent / "prompts" / "6_Storyboard_Director.md"
-    )
+    prompt_path = Path(__file__).parent.parent / "prompts" / "6_Storyboard_Director.md"
 
     try:
         with open(prompt_path, "r", encoding="utf-8") as f:

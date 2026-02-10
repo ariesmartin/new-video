@@ -14,6 +14,8 @@ interface UseAIChatInitReturn {
   threadId: string | null;
   initChat: (projectId: string) => Promise<void>;
   resetChat: (projectId: string) => Promise<void>;
+  isGenerating: boolean;
+  generatingNode: string | null;
 }
 
 /**
@@ -26,12 +28,14 @@ interface UseAIChatInitReturn {
  */
 export function useAIChatInit(options: UseAIChatInitOptions): UseAIChatInitReturn {
   const { projectId, onError } = options;
-  
+
   const [messages, setMessages] = useState<Message[]>([]);
   const [isLoading, setIsLoading] = useState(false);
   const [isInitialized, setIsInitialized] = useState(false);
   const [threadId, setThreadId] = useState<string | null>(null);
-  
+  const [isGenerating, setIsGenerating] = useState(false);
+  const [generatingNode, setGeneratingNode] = useState<string | null>(null);
+
   const isCancelledRef = useRef(false);
   const hasInitializedRef = useRef(false);
   const onErrorRef = useRef(onError);
@@ -55,10 +59,14 @@ export function useAIChatInit(options: UseAIChatInitOptions): UseAIChatInitRetur
         is_cold_start: response.is_cold_start,
         message_count: response.messages.length,
         thread_id: response.thread_id,
+        is_generating: response.is_generating,
+        generating_node: response.generating_node,
       });
 
       setMessages(response.messages);
       setThreadId(response.thread_id);
+      setIsGenerating(response.is_generating || false);
+      setGeneratingNode(response.generating_node || null);
       setIsInitialized(true);
       hasInitializedRef.current = true;
     } catch (error) {
@@ -102,6 +110,38 @@ export function useAIChatInit(options: UseAIChatInitOptions): UseAIChatInitRetur
     };
   }, [projectId]);
 
+  // 当检测到后端正在生成时，自动轮询检查生成状态
+  useEffect(() => {
+    if (!isGenerating || !projectId) return;
+
+    console.log('[useAIChatInit] Auto-polling for generation status...');
+
+    // 每隔3秒轮询检查生成状态
+    const interval = setInterval(async () => {
+      if (isCancelledRef.current) return;
+
+      try {
+        const response = await chatService.initChat(projectId);
+
+        if (isCancelledRef.current) return;
+
+        // 如果生成完成（is_generating 变为 false）
+        if (!response.is_generating && isGenerating) {
+          console.log('[useAIChatInit] Generation completed, updating messages');
+          setMessages(response.messages);
+          setIsGenerating(false);
+          setGeneratingNode(null);
+        }
+      } catch (error) {
+        console.error('[useAIChatInit] Polling error:', error);
+      }
+    }, 3000);
+
+    return () => {
+      clearInterval(interval);
+    };
+  }, [isGenerating, projectId, isGenerating]);
+
   return {
     messages,
     setMessages,
@@ -110,5 +150,7 @@ export function useAIChatInit(options: UseAIChatInitOptions): UseAIChatInitRetur
     threadId,
     initChat,
     resetChat,
+    isGenerating,
+    generatingNode,
   };
 }

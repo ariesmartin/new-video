@@ -174,3 +174,254 @@ tool_node = ToolNode(
 3. create_react_agent 返回 Compiled Graph，既是 Agent 也是 Node
 4. 在 LangGraph 中，Skill 就是 Tool，使用 @tool 装饰器
 5. Tool 只能被 Agent 调用（通过 create_react_agent 或 ToolNode）
+---
+🆕 5. 模块构建规范（新增模块时必须遵守）
+### 5.1 模块架构原则
+```
+┌─────────────────────────────────────────────────────────────────────┐
+│                    标准模块架构（3层结构）                            │
+├─────────────────────────────────────────────────────────────────────┤
+│                                                                     │
+│  Layer 1: API Gateway 层（数据网关）                                │
+│  ├─ 读取输入：从 DB/Request 获取                                     │
+│  ├─ 调用 Graph：Stateless，纯内存传递                               │
+│  ├─ 写入输出：保存到 DB                                              │
+│  └─ Checkpoint：长流程（>2分钟）必须启用                             │
+│                                                                     │
+│  Layer 2: Graph 执行层（无状态）                                     │
+│  ├─ 纯内存传递（State/Messages）                                    │
+│  ├─ 不访问数据库                                                     │
+│  ├─ 可测试、可重试                                                   │
+│  └─ 可独立使用（通过参数传入所有数据）                               │
+│                                                                     │
+│  Layer 3: Agent 执行层                                              │
+│  ├─ create_react_agent 创建                                         │
+│  ├─ 通过 Tools 访问外部服务                                          │
+│  └─ 自主决策 + Tool 调用                                             │
+│                                                                     │
+└─────────────────────────────────────────────────────────────────────┘
+```
+### 5.2 Checkpoint 策略（强制）
+| 模块类型 | 执行时间 | Checkpoint | 原因 |
+|---------|---------|------------|------|
+| 市场分析 | <30s | 可选 | 短流程，可重现 |
+| 故事策划 | <60s | 推荐 | 中等流程，有LLM调用 |
+| **大纲构建** | **2-8分钟** | **必须** | **长流程，多LLM调用，有循环** |
+| 剧本创作 | 5-15分钟 | 必须 | 超长流程，必须恢复能力 |
+| 分镜生成 | 3-10分钟 | 必须 | 长流程，图片生成成本高 |
+**Checkpoint 启用代码模板**：
+```python
+# api/{module_name}.py
+from backend.graph.checkpointer import get_checkpointer
+
+@router.post("/generate")
+async def generate_something(request: Request):
+    # 1. 读取输入（Gateway职责）
+    db = get_db_service()
+    input_data = await db.get_input_data(request.projectId)
+    
+    # 2. 长流程必须启用 checkpoint
+    async with get_checkpointer() as checkpointer:
+        result = await run_module_graph(
+            user_id=input_data.user_id,
+            project_id=request.projectId,
+            input_data=input_data,
+            checkpointer=checkpointer,  # ✅ 必须传入
+        )
+    
+    # 3. 写入输出（Gateway职责）
+    await db.save_result(request.projectId, result)
+    return result
+```
+### 5.3 数据流规范（强制）
+**✅ 正确做法**（Gateway模式）：
+```python
+# api/skeleton_builder.py - 正确示例
+async def generate_outline(request):
+    # Gateway职责：读取输入
+    db = get_db_service()
+    selected_plan = await db.get_plan(request.planId)
+    user_config = await db.get_user_config(request.projectId)
+    
+    # 调用Graph：纯内存传递
+    result = await run_skeleton_builder(
+        selected_plan=selected_plan,  # 显式传参
+        user_config=user_config,       # 显式传参
+        checkpointer=checkpointer,     # 启用持久化
+    )
+    
+    # Gateway职责：写入输出
+    await db.save_outline(request.projectId, result)
+```
+**❌ 错误做法**（Graph内部访问DB）：
+```python
+# 不要在Graph内部访问数据库！
+async def skeleton_builder_node(state):
+    # ❌ 错误：Node内部访问DB
+    db = get_db_service()
+    user_config = await db.get_user_config(state["project_id"])
+    
+    # 正确：从state获取
+    user_config = state.get("user_config")
+```
+### 5.4 模块独立使用规范
+**所有模块必须支持两种调用方式**：
+```python
+# backend/graph/workflows/{module}_graph.py
+
+# 方式1：独立使用（API/脚本调用）
+async def run_module(
+    user_id: str,
+    project_id: str,
+    input_data: Dict[str, Any],
+    checkpointer: Optional[BaseCheckpointSaver] = None,
+) -> Dict[str, Any]:
+    """
+    独立运行模块
+    
+    所有输入通过参数传入，函数内部不访问DB
+    """
+    graph = build_module_graph(checkpointer=checkpointer)
+    state = create_initial_state(user_id, project_id)
+    state["input_data"] = input_data
+    
+    if checkpointer:
+        config = {"configurable": {"thread_id": f"{module_name}_{project_id}"}}
+        return await graph.ainvoke(state, config=config)
+    else:
+        return await graph.ainvoke(state)
+
+# 方式2：集成使用（作为main_graph的节点）
+async def module_node(state: AgentState) -> Dict[str, Any]:
+    """
+    作为main_graph的节点使用
+    
+    从state提取数据，调用独立函数
+    """
+    # 从state提取（main_graph已传递）
+    input_data = state.get("input_data")
+    
+    # 调用独立函数（复用逻辑）
+    result = await run_module(
+        user_id=state["user_id"],
+        project_id=state["project_id"],
+        input_data=input_data,
+        # checkpointer由main_graph管理
+    )
+    
+    # 合并结果到state
+    return {
+        **state,
+        "module_output": result["output"],
+        "last_successful_node": "module_name",
+    }
+```
+### 5.5 Node返回规范（强制）
+**所有Node必须返回完整的state更新**：
+```python
+# ✅ 正确：返回完整更新
+async def my_node(state: AgentState) -> Dict[str, Any]:
+    output = process(state["input"])
+    return {
+        "output": output,                           # 新数据
+        "last_successful_node": "my_node",          # 节点标记
+        # 可选：其他状态更新
+    }
+
+# ❌ 错误：只返回部分数据
+async def my_node(state: AgentState) -> Dict[str, Any]:
+    output = process(state["input"])
+    return {"output": output}  # ❌ 缺少last_successful_node
+```
+### 5.6 新增模块检查清单
+添加新模块时，必须验证：
+- [ ] 模块是否定义了`run_{module}`独立函数
+- [ ] 长流程（>2分钟）是否启用了checkpoint
+- [ ] Graph内部是否不访问数据库
+- [ ] API层是否正确作为Gateway（读写DB）
+- [ ] Node是否返回`last_successful_node`
+- [ ] 是否支持从main_graph调用（提供{module}_node函数）
+- [ ] 是否通过测试（包含checkpoint恢复测试）
+---
+❌ 常见误区纠正
+误区 1："Node = Agent"
+错误：
+async def my_node(state: AgentState) -> Dict:
+    """这是一个 Node，也就是一个 Agent"""  # ❌ 错误！
+正确：
+async def my_node(state: AgentState) -> Dict:
+    """这是一个普通的 Node，不是 Agent
+    Agent 必须具有 Tool 调用能力
+    """
+    return {"result": "fixed_logic"}
+# Agent 应该使用 create_react_agent
+agent = create_react_agent(model, tools)  # ✅ 这是 Agent
+误区 2："Skill 与 Tool 是不同的"
+错误：认为 Skill 和 Tool 是两个不同的层。
+正确：
+# 在 LangGraph 中，Skill 就是 Tool
+@tool
+def my_skill():
+    """这既是 Tool，也是 Skill"""
+    pass
+# 作为 Tool 使用
+agent = create_react_agent(model, tools=[my_skill])
+误区 3："普通函数可以调用 Skill"
+错误：
+async def my_node(state):
+    result = await my_skill()  # ❌ 普通 Node 不应该直接调用 Skill
+    prompt = f"结果：{result}"
+    return model.invoke(prompt)
+正确：
+# Skill 应该作为 Tool 被 Agent 调用
+agent = create_react_agent(model, tools=[my_skill])
+# Agent 会自动决定何时调用 my_skill
+误区 4："Graph内部可以访问数据库"
+错误：
+async def my_node(state):
+    db = get_db_service()  # ❌ Node内部不应直接访问DB
+    data = await db.get_data(state["project_id"])
+正确：
+# API层（Gateway）访问DB，传入Graph
+async def api_endpoint(request):
+    db = get_db_service()
+    data = await db.get_data(request.project_id)  # ✅ Gateway职责
+    result = await run_graph(data=data)  # 传入Graph
+误区 5："长流程不需要checkpoint"
+错误：
+# 大纲生成2-8分钟，不启用checkpoint
+result = await run_skeleton_builder(...)  # ❌ 崩溃后全部丢失
+正确：
+async with get_checkpointer() as checkpointer:
+    result = await run_skeleton_builder(..., checkpointer=checkpointer)  # ✅
+---
+📋 官方最佳实践总结
+1. 什么时候使用普通 Node？
+- 执行固定逻辑（不需要 LLM 决策）
+- 数据转换、格式化
+- 简单的状态更新
+def format_messages(state):
+    """普通 Node：格式化消息"""
+    messages = state["messages"]
+    formatted = "\n".join([m.content for m in messages])
+    return {"formatted_text": formatted}
+2. 什么时候使用 Agent？
+- 需要 LLM 推理
+- 需要 Tool 调用能力
+- 需要自主决策
+agent = create_react_agent(model, tools)
+3. 什么时候使用 ToolNode？
+- 需要精细控制 Tool 执行
+- 需要自定义错误处理
+- 需要与 Agent 分离 Tool 执行
+tool_node = ToolNode(
+    tools=[search_database],
+    handle_tool_errors=custom_handler
+)
+4. 什么时候启用 Checkpoint？
+- 执行时间 > 2 分钟
+- 有多个 LLM 调用
+- 需要故障恢复能力
+- 有循环迭代（如审阅-修复循环）
+async with get_checkpointer() as checkpointer:
+    result = await run_graph(checkpointer=checkpointer)

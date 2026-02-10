@@ -220,6 +220,83 @@ def calculate_chapter_mapping(total_episodes: int, paywall_episodes: List[int]) 
     return result
 
 
+# ===== 一致性验证辅助函数 =====
+
+
+def extract_main_characters(skeleton_framework: str) -> List[str]:
+    """
+    从骨架中提取主要人物名称
+
+    简单实现：提取"基础档案"部分中姓名后的名字
+    """
+    import re
+
+    characters = []
+
+    # 匹配 "**姓名**: {名字}" 格式
+    name_pattern = r"\*\*姓名\*\*:\s*([^\n]+)"
+    matches = re.findall(name_pattern, skeleton_framework)
+
+    for match in matches:
+        # 清理并提取名字
+        name = match.strip().split("(")[0].strip()  # 去掉括号内的备注
+        if name and len(name) > 1:  # 过滤掉太短的匹配
+            characters.append(name)
+
+    return characters
+
+
+def check_beat_consistency(batch_range: str, content: str, beat_sheet: Dict) -> Dict[str, Any]:
+    """
+    检查章节内容是否符合骨架规划的节拍
+
+    Args:
+        batch_range: 当前批次范围，如 "1-13"
+        content: 当前批次的详细内容
+        beat_sheet: 骨架中的节拍表
+
+    Returns:
+        {"valid": True/False, "issue": "问题描述"}
+    """
+    import re
+
+    # 解析批次范围
+    try:
+        start_ch = int(batch_range.split("-")[0])
+        end_ch = int(batch_range.split("-")[1])
+    except (IndexError, ValueError):
+        return {"valid": True, "issue": ""}  # 无法解析，跳过检查
+
+    # 检查每个章节是否有对应的内容
+    for ch_num in range(start_ch, end_ch + 1):
+        chapter_header = f"### Chapter {ch_num}:"
+        if chapter_header not in content:
+            return {
+                "valid": False,
+                "issue": f"Chapter {ch_num} 未在详细内容中找到",
+            }
+
+    # 检查核心要素是否存在（至少检查前3章）
+    check_chapters = min(3, end_ch - start_ch + 1)
+    for i in range(check_chapters):
+        ch_num = start_ch + i
+        ch_pattern = rf"### Chapter {ch_num}:.*?\n"
+        ch_match = re.search(ch_pattern, content, re.DOTALL)
+
+        if ch_match:
+            ch_content = ch_match.group(0)
+            # 检查是否包含必要的要素
+            required_elements = ["核心任务", "核心冲突"]
+            for element in required_elements:
+                if element not in ch_content[:500]:  # 只检查章节开头部分
+                    return {
+                        "valid": False,
+                        "issue": f"Chapter {ch_num} 缺少必要要素: {element}",
+                    }
+
+    return {"valid": True, "issue": ""}
+
+
 # ===== 普通函数 Nodes =====
 
 
@@ -310,10 +387,14 @@ async def validate_input_node(state: AgentState) -> Dict[str, Any]:
     user_config = state.get("user_config", {})
     selected_plan = state.get("selected_plan", {})
 
+    # 详细日志：帮助调试
+    ending_type = user_config.get("ending_type") if isinstance(user_config, dict) else None
     logger.info(
         "Validating input",
         has_user_config=bool(user_config),
         has_selected_plan=bool(selected_plan),
+        ending_type=ending_type,
+        user_config_keys=list(user_config.keys()) if isinstance(user_config, dict) else [],
     )
 
     # 检查必要的字段
@@ -322,7 +403,7 @@ async def validate_input_node(state: AgentState) -> Dict[str, Any]:
     if not selected_plan:
         missing_fields.append("selected_plan")
 
-    if not user_config.get("ending_type"):
+    if not ending_type:
         missing_fields.append("ending_type")
 
     if missing_fields:
@@ -437,6 +518,86 @@ async def request_ending_node(state: AgentState) -> Dict[str, Any]:
     }
 
 
+async def handle_ending_selection_node(state: AgentState) -> Dict[str, Any]:
+    """
+    处理结局选择 Node
+
+    当用户点击 HE/BE/OE 按钮后，处理选择并更新 user_config
+    同时计算 chapter_mapping（完成 validate_input_node 的工作）
+    """
+    from langchain_core.messages import AIMessage
+
+    routed_params = state.get("routed_parameters", {})
+    ending = routed_params.get("ending", "HE")
+
+    logger.info("Handling ending selection", ending=ending)
+
+    # 获取当前 user_config 并更新 ending_type
+    user_config = state.get("user_config", {})
+    if isinstance(user_config, dict):
+        user_config = user_config.copy()
+    else:
+        user_config = {}
+
+    user_config["ending_type"] = ending
+
+    # 结局类型名称映射
+    ending_names = {
+        "HE": "圆满结局 (Happy Ending)",
+        "BE": "悲剧结局 (Bad Ending)",
+        "OE": "开放式结局 (Open Ending)",
+    }
+    ending_name = ending_names.get(ending, ending)
+
+    message = AIMessage(
+        content=f"✅ 已选择结局类型：**{ending_name}**\n\n正在生成大纲...",
+    )
+
+    # ===== 计算章节映射（与 validate_input_node 相同逻辑）=====
+    selected_plan = state.get("selected_plan") or {}
+    total_episodes = user_config.get("total_episodes", 80)
+    episode_duration = user_config.get("episode_duration", 2)
+
+    # 获取付费卡点信息
+    paywall_design = selected_plan.get("paywall_design") or {}
+    paywall_range = paywall_design.get("episode_range", "10-12")
+    paywall_episodes = parse_paywall_range(paywall_range)
+
+    # 计算章节映射
+    chapter_mapping = calculate_chapter_mapping(total_episodes, paywall_episodes)
+
+    # 构建推断配置
+    inferred_config = {
+        "total_episodes": total_episodes,
+        "episode_duration": episode_duration,
+        "total_drama_minutes": total_episodes * episode_duration,
+        "total_chapters": chapter_mapping["total_chapters"],
+        "paywall_chapter": chapter_mapping["paywall_chapter"],
+        "paywall_episodes": paywall_episodes,
+        "estimated_words": chapter_mapping["estimated_words"],
+        "chapter_map": chapter_mapping["chapters"],
+        "adaptation_ratio": chapter_mapping["adaptation_ratio"],
+        **chapter_mapping["key_points"],  # 展开关键节点
+    }
+
+    logger.info(
+        "Handle ending selection completed with chapter mapping",
+        ending_type=ending,
+        total_chapters=inferred_config["total_chapters"],
+        paywall_chapter=inferred_config["paywall_chapter"],
+    )
+
+    return {
+        "messages": [message],
+        "user_config": user_config,
+        "validation_status": "complete",  # 设置为 complete，直接进入 batch_coordinator
+        "inferred_config": inferred_config,
+        "chapter_mapping": chapter_mapping,
+        "current_stage": StageType.LEVEL_3,
+        "last_successful_node": "handle_ending_selection",
+    }
+
+
 # ===== 路由函数 =====
 
 
@@ -467,13 +628,11 @@ def route_after_validation(state: AgentState) -> str:
 
 async def validate_output_node(state: AgentState) -> Dict[str, Any]:
     """
-    输出验证 Node
+    输出验证 Node - 分批生成版
 
-    验证生成的章节大纲是否完整，检查：
-    1. 章节数量是否达标
-    2. 是否包含付费卡点章节
-    3. JSON是否完整
-    4. 关键字段是否存在
+    支持分批验证：
+    - 如果还有未完成的批次，只做基本检查
+    - 如果是最后一批或全部完成，做完整检查
     """
     import json
     import re
@@ -482,26 +641,222 @@ async def validate_output_node(state: AgentState) -> Dict[str, Any]:
     chapter_mapping = state.get("chapter_mapping", {})
     total_chapters_expected = chapter_mapping.get("total_chapters", 60)
 
+    # ===== 分批生成状态 =====
+    batch_completed = state.get("batch_completed", False)
+    current_batch_index = state.get("current_batch_index", 0)
+    total_batches = state.get("total_batches", 1)
+    current_batch_range = state.get("current_batch_range", "")
+    accumulated_content = state.get("accumulated_content", "")
+
+    # 判断是否是最后一批
+    is_final_batch = current_batch_index >= total_batches
+
     logger.info(
         "Validating output",
         content_length=len(skeleton_content),
         expected_chapters=total_chapters_expected,
+        batch_index=f"{current_batch_index}/{total_batches}",
+        is_final_batch=is_final_batch,
+        batch_completed=batch_completed,
     )
 
     issues = []
 
+    # ===== 分批验证逻辑 =====
+    if not is_final_batch:
+        # 还有未完成的批次，只做基本检查
+        # 检查当前批次是否有输出内容
+        if not skeleton_content or len(skeleton_content) < 500:
+            issues.append(f"批次 {current_batch_index} 输出内容过短或为空")
+
+        # 检查是否有章节格式
+        chapter_count = len(re.findall(r"### Chapter \d+:", skeleton_content))
+        if chapter_count == 0:
+            issues.append(f"批次 {current_batch_index} 未生成任何章节")
+
+        if issues:
+            current_retry = state.get("retry_count", 0)
+            new_retry_count = current_retry + 1
+            logger.warning(
+                "Batch validation failed",
+                issues=issues,
+                batch_index=current_batch_index,
+                retry_count=new_retry_count,
+            )
+            return {
+                "validation_status": "incomplete",
+                "validation_issues": issues,
+                "chapter_count": chapter_count,
+                "needs_retry": True,
+                "retry_count": new_retry_count,
+                "last_successful_node": "validate_output",
+            }
+
+        # 批次验证通过，准备暂停等待用户继续
+        logger.info(
+            "Batch validation passed, pausing for user to continue",
+            batch_index=current_batch_index,
+            chapter_count=chapter_count,
+        )
+
+        # 检查是否是第0批（骨架批次）
+        is_skeleton_batch = current_batch_index == 0
+
+        if is_skeleton_batch:
+            # 第0批（骨架批次）：自动生成并立即进入下一批，不暂停
+            logger.info(
+                "Skeleton batch completed, auto-continuing to next batch",
+                batch_index=current_batch_index,
+                chapter_count=chapter_count,
+            )
+
+            return {
+                "validation_status": "batch_complete",
+                "chapter_count": chapter_count,
+                "last_successful_node": "validate_output",
+                "needs_next_batch": True,  # 自动继续
+                "auto_continue": True,  # 标记自动继续，不显示按钮
+            }
+
+        # 第1批及以后：构建 SDUI 交互块，让用户选择
+        from backend.schemas.common import (
+            UIInteractionBlock,
+            UIInteractionBlockType,
+            ActionButton,
+        )
+
+        next_batch_num = current_batch_index + 1
+        total_batch_num = total_batches
+        has_more_batches = current_batch_index < total_batches
+
+        # 计算当前批次的结束章节号
+        try:
+            batch_end = (
+                int(current_batch_range.split("-")[1])
+                if "-" in current_batch_range
+                else chapter_count
+            )
+        except (IndexError, ValueError):
+            batch_end = chapter_count
+
+        buttons = []
+
+        # 1. 确认大纲并开始写小说（最后一批才可用）
+        if not has_more_batches:
+            buttons.append(
+                ActionButton(
+                    label="✅ 确认大纲并开始写小说",
+                    action="confirm_skeleton",
+                    payload={
+                        "current_batch": current_batch_index,
+                        "total_batches": total_batches,
+                        "generated_chapters": chapter_count,
+                        "note": "大纲全部生成完成，开始创作",
+                    },
+                    style="primary",
+                    icon="FileText",
+                )
+            )
+
+        # 2. 编辑已生成章节（最后一批才可用）
+        if not has_more_batches:
+            buttons.append(
+                ActionButton(
+                    label="✏️ 编辑章节",
+                    action="edit_chapter",
+                    payload={
+                        "available_chapters": list(range(1, batch_end + 1)),
+                        "current_batch": current_batch_index,
+                    },
+                    style="ghost",
+                    icon="Edit",
+                )
+            )
+
+        # 3. 继续生成下一批（如果有下一批）
+        if has_more_batches:
+            buttons.append(
+                ActionButton(
+                    label=f"▶️ 继续生成 (批次 {next_batch_num}/{total_batch_num})",
+                    action="continue_skeleton_generation",
+                    payload={
+                        "current_batch": current_batch_index,
+                        "total_batches": total_batches,
+                        "chapter_count": chapter_count,
+                    },
+                    style="primary",
+                    icon="Play",
+                )
+            )
+
+        # 4. 重新生成当前批次
+        buttons.append(
+            ActionButton(
+                label="🔄 重新生成当前批次",
+                action="regenerate_skeleton",
+                payload={
+                    "current_batch": current_batch_index,
+                    "variation_seed": current_batch_index * 1000,
+                },
+                style="secondary",
+                icon="RefreshCw",
+            )
+        )
+
+        # 5. 审阅完整大纲（只在最后一批显示）
+        if not has_more_batches:
+            buttons.append(
+                ActionButton(
+                    label="🔍 审阅完整大纲",
+                    action="review_skeleton",
+                    payload={
+                        "total_batches": total_batches,
+                        "total_chapters": chapter_count,
+                    },
+                    style="secondary",
+                    icon="Search",
+                )
+            )
+
+        action_ui = UIInteractionBlock(
+            block_type=UIInteractionBlockType.ACTION_GROUP,
+            title=f"大纲生成进度 ({current_batch_index}/{total_batches})",
+            description=f"已完成第 {current_batch_index} 批章节生成（共 {chapter_count} 章）。"
+            + (
+                "大纲全部生成完成！您可以确认并开始创作，或进行审阅和编辑。"
+                if not has_more_batches
+                else "您可以选择继续生成下一批，或重新生成当前批次。"
+            ),
+            buttons=buttons,
+            dismissible=False,
+        )
+
+        return {
+            "validation_status": "batch_complete",
+            "chapter_count": chapter_count,
+            "last_successful_node": "validate_output",
+            "needs_next_batch": has_more_batches,
+            "ui_interaction": action_ui.dict(),
+        }
+
+    # ===== 最终验证（所有批次完成后）=====
+    # 使用累积内容进行完整验证
+    content_to_validate = accumulated_content if accumulated_content else skeleton_content
+
     # 检查1：章节数量
-    chapter_count = len(re.findall(r"### Chapter \d+:", skeleton_content))
+    chapter_count = len(re.findall(r"### Chapter \d+:", content_to_validate))
     if chapter_count < total_chapters_expected * 0.7:  # 允许30%容错
         issues.append(f"章节不完整: 期望{total_chapters_expected}章，实际约{chapter_count}章")
 
     # 检查2：付费卡点章节
-    has_paywall = "⚠️ 付费卡点章节" in skeleton_content or "付费卡点" in skeleton_content
+    has_paywall = "⚠️ 付费卡点章节" in content_to_validate or "付费卡点" in content_to_validate
     if not has_paywall:
         issues.append("缺少付费卡点专项设计")
 
     # 检查3：UI JSON
-    has_ui_json = '"ui_mode"' in skeleton_content and '"novel_skeleton_editor"' in skeleton_content
+    has_ui_json = (
+        '"ui_mode"' in content_to_validate and '"novel_skeleton_editor"' in content_to_validate
+    )
     if not has_ui_json:
         issues.append("缺少UI交互数据")
 
@@ -509,36 +864,65 @@ async def validate_output_node(state: AgentState) -> Dict[str, Any]:
     required_sections = ["元数据", "核心设定", "人物体系", "情节架构", "章节大纲"]
     missing_sections = []
     for section in required_sections:
-        if section not in skeleton_content:
+        if section not in content_to_validate:
             missing_sections.append(section)
     if missing_sections:
         issues.append(f"缺少关键部分: {', '.join(missing_sections)}")
 
-    # 检查5：JSON完整性
-    json_complete = True
-    json_matches = re.findall(r"```json\s*([\s\S]*?)\s*```", skeleton_content)
-    for json_str in json_matches:
-        try:
-            json.loads(json_str)
-        except json.JSONDecodeError:
-            json_complete = False
-            issues.append("JSON格式不完整")
-            break
+        # 检查5：JSON完整性
+        json_complete = True
+        json_matches = re.findall(r"```json\s*([\s\S]*?)\s*```", content_to_validate)
+        for json_str in json_matches:
+            try:
+                json.loads(json_str)
+            except json.JSONDecodeError:
+                json_complete = False
+                issues.append("JSON格式不完整")
+                break
 
-    if issues:
-        logger.warning("Output validation failed", issues=issues)
-        return {
-            "validation_status": "incomplete",
-            "validation_issues": issues,
-            "chapter_count": chapter_count,
-            "needs_retry": True,
-            "last_successful_node": "validate_output",
-        }
+        # 检查6：人物设定一致性（从骨架中提取的人物必须在后续章节中出现）
+        if current_batch_index > 0:  # 不是骨架批次
+            # 提取骨架中定义的主要人物
+            skeleton_framework = state.get("skeleton_framework", "")
+            if skeleton_framework:
+                # 检查主要人物是否在详细章节中被提及
+                main_characters = extract_main_characters(skeleton_framework)
+                for char in main_characters:
+                    if char not in content_to_validate:
+                        issues.append(f"人物一致性: 主角'{char}'在当前批次章节中未出现")
+
+        # 检查7：节拍一致性（章节是否符合骨架规划的节拍）
+        if current_batch_index > 0:
+            # 获取当前章节的节拍类型（基于章节号推断）
+            beat_check = check_beat_consistency(
+                current_batch_range, content_to_validate, state.get("beat_sheet", {})
+            )
+            if not beat_check["valid"]:
+                issues.append(f"节拍一致性: {beat_check['issue']}")
+
+        if issues:
+            current_retry = state.get("retry_count", 0)
+            new_retry_count = current_retry + 1
+            logger.warning(
+                "Final output validation failed",
+                issues=issues,
+                current_retry=current_retry,
+                new_retry_count=new_retry_count,
+            )
+            return {
+                "validation_status": "incomplete",
+                "validation_issues": issues,
+                "chapter_count": chapter_count,
+                "needs_retry": True,
+                "retry_count": new_retry_count,
+                "last_successful_node": "validate_output",
+            }
 
     logger.info("Output validation passed", chapter_count=chapter_count)
     return {
         "validation_status": "complete",
         "chapter_count": chapter_count,
+        "skeleton_content": content_to_validate,  # 使用累积的完整内容
         "last_successful_node": "validate_output",
     }
 
@@ -639,6 +1023,8 @@ async def batch_coordinator_node(state: AgentState) -> Dict[str, Any]:
         "current_batch_index": 0,
         "total_batches": len(batches),
         "accumulated_content": "",  # 累积生成的内容
+        "batch_completed": False,
+        "auto_batch_mode": True,  # 默认自动分批模式（可配置为 False 实现手动分批）
         "last_successful_node": "batch_coordinator",
     }
 
@@ -825,6 +1211,9 @@ def build_skeleton_builder_graph(checkpointer: BaseCheckpointSaver | None = None
     # Node 0: 动作处理（处理 confirm/regenerate）
     workflow.add_node("handle_action", handle_action_node)
 
+    # Node 0.5: 处理结局选择（处理 select_ending）
+    workflow.add_node("handle_ending_selection", handle_ending_selection_node)
+
     # Node 1: 输入验证（普通函数）- 增强版，包含章节映射计算
     workflow.add_node("validate_input", validate_input_node)
 
@@ -848,15 +1237,37 @@ def build_skeleton_builder_graph(checkpointer: BaseCheckpointSaver | None = None
 
     # ===== 添加 Edges =====
 
-    # START → [conditional] → handle_action 或 validate_input
+    # START → [conditional] → handle_action 或 validate_input 或 skeleton_builder
     def route_entry(state: AgentState) -> str:
-        """入口路由：检测是否是动作请求"""
+        """
+        入口路由：检测动作请求类型
+
+        - confirm_skeleton/regenerate_skeleton: 处理确认/重新生成
+        - select_ending: 处理结局选择
+        - continue_skeleton_generation: ✅ 继续下一批生成（从 Checkpoint 恢复）
+        - 其他: 正常流程（validate_input）
+        """
         routed_params = state.get("routed_parameters", {})
         action = routed_params.get("action", "")
 
         if action in ["confirm_skeleton", "regenerate_skeleton"]:
             logger.info("Entry routing to handle_action", action=action)
             return "handle_action"
+        elif action == "select_ending":
+            # select_ending 需要先处理结局选择，然后走 validate_input
+            logger.info("Entry routing to handle_ending_selection", action=action)
+            return "handle_ending"
+        elif action == "continue_skeleton_generation":
+            # ✅ 新增：继续分批生成（用户从 Checkpoint 恢复）
+            current_batch = state.get("current_batch_index", 0)
+            total_batches = state.get("total_batches", 1)
+            logger.info(
+                "Entry routing to continue batch generation",
+                action=action,
+                current_batch=current_batch,
+                total_batches=total_batches,
+            )
+            return "continue_generation"
         else:
             # start_skeleton_building 或无 action 的情况，走 validate_input
             logger.info("Entry routing to validate_input", action=action or "none")
@@ -868,9 +1279,14 @@ def build_skeleton_builder_graph(checkpointer: BaseCheckpointSaver | None = None
         route_entry,
         {
             "handle_action": "handle_action",
+            "handle_ending": "handle_ending_selection",
+            "continue_generation": "skeleton_builder",  # ✅ 新增：继续分批生成
             "validate_input": "validate_input",
         },
     )
+
+    # handle_ending_selection 直接路由到 batch_coordinator（已完成验证和章节映射计算）
+    workflow.add_edge("handle_ending_selection", "batch_coordinator")
 
     # handle_action 的后续路由
     workflow.add_conditional_edges(
@@ -903,20 +1319,65 @@ def build_skeleton_builder_graph(checkpointer: BaseCheckpointSaver | None = None
     # skeleton_builder → validate_output（先生成，再验证）
     workflow.add_edge("skeleton_builder", "validate_output")
 
-    # validate_output → [conditional] → quality_control 或 skeleton_builder(重试)
+    # validate_output → [conditional] → quality_control 或 skeleton_builder(重试/暂停/完成)
     def route_after_validate_output(state: AgentState) -> str:
-        """输出验证后的路由决策"""
+        """
+        输出验证后的路由决策 - 支持分批生成与暂停恢复
+
+        路由逻辑：
+        - batch_complete + auto_continue: 自动继续（骨架批次）→ auto_continue
+        - batch_complete + 还有下一批: 暂停，等待用户点击继续 → END (with SDUI)
+        - batch_complete + 最后一批: 进入质检 → quality_control
+        - incomplete + retry_count < 3: 验证失败，重试 → skeleton_builder
+        - incomplete + retry_count >= 3: 重试次数用尽，强制继续 → quality_control
+        - complete: 全部完成 → quality_control
+        """
         validation_status = state.get("validation_status", "complete")
         retry_count = state.get("retry_count", 0)
         max_retries = 3
 
+        # ✅ 分批生成路由 - 当前批次完成
+        if validation_status == "batch_complete":
+            current_batch = state.get("current_batch_index", 0)
+            total_batches = state.get("total_batches", 1)
+            auto_continue = state.get("auto_continue", False)
+
+            # 检查是否还有下一批
+            if current_batch < total_batches:
+                # 检查是否是骨架批次且标记了自动继续
+                if auto_continue and current_batch == 0:
+                    logger.info(
+                        "Skeleton batch complete, auto-continuing to next batch",
+                        current_batch=current_batch,
+                        next_batch=current_batch + 1,
+                    )
+                    # 自动继续，不暂停
+                    return "auto_continue"
+
+                logger.info(
+                    "Batch complete, pausing for user to continue",
+                    current_batch=current_batch,
+                    total_batches=total_batches,
+                    next_batch=current_batch + 1,
+                )
+                # 暂停，等待用户点击"继续生成"
+                return "pause"
+            else:
+                # 所有批次完成，进入质检
+                logger.info(
+                    "All batches complete, proceeding to quality control",
+                    total_batches=total_batches,
+                )
+                return "proceed"
+
         if validation_status == "incomplete" and retry_count < max_retries:
             logger.warning(
                 "Output validation failed, retrying",
-                retry_count=retry_count + 1,
+                retry_count=retry_count,
                 max_retries=max_retries,
             )
-            state["retry_count"] = retry_count + 1
+            # ✅ 修复：不在路由函数中修改 state（无效操作）
+            # retry_count 已在 validate_output_node 返回时更新
             return "retry"
         elif validation_status == "incomplete":
             logger.error("Output validation failed after max retries")
@@ -928,6 +1389,8 @@ def build_skeleton_builder_graph(checkpointer: BaseCheckpointSaver | None = None
         "validate_output",
         route_after_validate_output,
         {
+            "pause": END,  # ✅ 暂停，等待用户继续（状态已保存到 Checkpoint）
+            "auto_continue": "skeleton_builder",  # ✅ 骨架批次自动继续下一批
             "retry": "skeleton_builder",  # 重试生成
             "proceed": "quality_control",  # 继续到质检
         },

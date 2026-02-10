@@ -60,7 +60,7 @@ export const scenesService = {
    * 更新场景
    */
   async updateScene(episodeId: string, sceneId: string, updates: SceneUpdate) {
-    const { data, error } = await client.PUT('/api/episodes/{episode_id}/scenes/{scene_id}', {
+    const { data, error } = await client.PATCH('/api/episodes/{episode_id}/scenes/{scene_id}', {
       params: {
         path: { 
           episode_id: episodeId,

@@ -439,3 +439,218 @@ h4 { font-size: clamp(14px, 1.5vw, 16px); font-weight: 500; }
   transition-duration: var(--duration-slow);
   transition-timing-function: var(--ease-default);
 }
+
+/* ===== TipTap 编辑器样式 ===== */
+.ProseMirror {
+  outline: none;
+  min-height: 400px;
+  padding: 1rem 0;
+}
+
+.ProseMirror p {
+  margin-bottom: 0.75rem;
+  line-height: 1.8;
+}
+
+.ProseMirror p.is-editor-empty:first-child::before {
+  content: attr(data-placeholder);
+  float: left;
+  color: hsl(var(--text-tertiary));
+  pointer-events: none;
+  height: 0;
+}
+
+/* 标题样式 */
+.ProseMirror h1 {
+  font-size: 1.75rem;
+  font-weight: 700;
+  margin: 1.5rem 0 1rem;
+  color: hsl(var(--text-primary));
+}
+
+.ProseMirror h2 {
+  font-size: 1.5rem;
+  font-weight: 600;
+  margin: 1.25rem 0 0.75rem;
+  color: hsl(var(--text-primary));
+}
+
+.ProseMirror h3 {
+  font-size: 1.25rem;
+  font-weight: 600;
+  margin: 1rem 0 0.5rem;
+  color: hsl(var(--text-primary));
+}
+
+/* 列表样式 */
+.ProseMirror ul {
+  list-style-type: disc;
+  padding-left: 1.5rem;
+  margin-bottom: 0.75rem;
+}
+
+.ProseMirror ol {
+  list-style-type: decimal;
+  padding-left: 1.5rem;
+  margin-bottom: 0.75rem;
+}
+
+.ProseMirror li {
+  margin-bottom: 0.25rem;
+}
+
+/* 任务列表 */
+.ProseMirror ul[data-type="taskList"] {
+  list-style: none;
+  padding-left: 0;
+}
+
+.ProseMirror ul[data-type="taskList"] li {
+  display: flex;
+  align-items: flex-start;
+  gap: 0.5rem;
+}
+
+.ProseMirror ul[data-type="taskList"] li > label {
+  flex-shrink: 0;
+  margin-top: 0.25rem;
+}
+
+.ProseMirror ul[data-type="taskList"] li > div {
+  flex: 1;
+}
+
+/* 引用样式 */
+.ProseMirror blockquote {
+  border-left: 3px solid hsl(var(--primary));
+  padding-left: 1rem;
+  margin: 1rem 0;
+  color: hsl(var(--text-secondary));
+  font-style: italic;
+}
+
+/* 代码样式 */
+.ProseMirror code {
+  background-color: hsl(var(--elevated));
+  padding: 0.2rem 0.4rem;
+  border-radius: 0.25rem;
+  font-family: var(--font-mono);
+  font-size: 0.9em;
+}
+
+.ProseMirror pre {
+  background-color: hsl(var(--elevated));
+  padding: 1rem;
+  border-radius: 0.5rem;
+  overflow-x: auto;
+  margin: 1rem 0;
+}
+
+.ProseMirror pre code {
+  background: none;
+  padding: 0;
+}
+
+/* 高亮样式 */
+.ProseMirror mark {
+  background-color: hsl(var(--accent) / 0.3);
+  padding: 0.1rem 0.2rem;
+  border-radius: 0.2rem;
+}
+
+/* ===== 小说专用节点样式 ===== */
+
+/* 场景节点 */
+.novel-scene {
+  border: 1px solid hsl(var(--border));
+  border-radius: 0.5rem;
+  padding: 1rem;
+  margin: 1rem 0;
+  background-color: hsl(var(--surface));
+}
+
+.novel-scene .scene-header {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  padding-bottom: 0.75rem;
+  margin-bottom: 0.75rem;
+  border-bottom: 1px solid hsl(var(--border));
+}
+
+.novel-scene .scene-number {
+  font-weight: 600;
+  color: hsl(var(--primary));
+  font-size: 0.875rem;
+}
+
+.novel-scene .scene-location {
+  color: hsl(var(--text-secondary));
+  font-size: 0.875rem;
+}
+
+.novel-scene .scene-time {
+  color: hsl(var(--text-tertiary));
+  font-size: 0.75rem;
+  margin-left: auto;
+}
+
+.novel-scene .scene-content {
+  color: hsl(var(--text-primary));
+  line-height: 1.8;
+}
+
+/* 对话节点 */
+.novel-dialogue {
+  margin: 1rem 0;
+  padding: 1rem;
+  background-color: hsl(var(--elevated));
+  border-radius: 0.5rem;
+  border-left: 3px solid hsl(var(--secondary));
+}
+
+.novel-dialogue .dialogue-character {
+  font-weight: 600;
+  color: hsl(var(--secondary));
+  margin-bottom: 0.25rem;
+}
+
+.novel-dialogue .dialogue-emotion {
+  font-size: 0.75rem;
+  color: hsl(var(--text-tertiary));
+  margin-left: 0.5rem;
+}
+
+.novel-dialogue .dialogue-content {
+  color: hsl(var(--text-primary));
+  line-height: 1.8;
+  margin-top: 0.5rem;
+}
+
+.novel-dialogue .dialogue-action {
+  font-size: 0.875rem;
+  color: hsl(var(--text-secondary));
+  font-style: italic;
+  margin-top: 0.5rem;
+  padding-left: 1rem;
+}
+
+/* 角色标记 */
+.novel-character-mark {
+  background-color: hsl(var(--primary) / 0.15);
+  color: hsl(var(--primary));
+  padding: 0.1rem 0.4rem;
+  border-radius: 0.25rem;
+  font-weight: 500;
+  cursor: pointer;
+  transition: background-color 0.2s;
+}
+
+.novel-character-mark:hover {
+  background-color: hsl(var(--primary) / 0.25);
+}
+
+/* 编辑器焦点状态 */
+.ProseMirror-focused {
+  outline: none;
+}

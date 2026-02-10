@@ -161,7 +161,7 @@ export const useAppStore = create<AppStore>()(
       name: 'storyboard-app-storage',
       version: 1,
       partialize: (state: AppStore) => ({ theme: state.theme, user: state.user }),
-      onRehydrateStorage: () => (state, error) => {
+      onRehydrateStorage: () => (_state, error) => {
         if (error) {
           console.error('[useAppStore] Failed to rehydrate storage:', error);
           localStorage.removeItem('storyboard-app-storage');
@@ -434,7 +434,7 @@ export const useModelStore = create<ModelStore>((set) => ({
       };
       const newProvider = await modelsService.createProvider(providerWithDefault);
       set((state: ModelStore) => ({
-        providers: [...state.providers, newProvider as ModelProvider],
+        providers: [...state.providers, newProvider as unknown as ModelProvider],
         isLoading: false,
       }));
     } catch (error) {
@@ -447,7 +447,7 @@ export const useModelStore = create<ModelStore>((set) => ({
       const updatedProvider = await modelsService.updateProvider(id, updates);
       set((state: ModelStore) => ({
         providers: state.providers.map((p) =>
-          p.id === id ? (updatedProvider as ModelProvider) : p
+          p.id === id ? (updatedProvider as unknown as ModelProvider) : p
         ),
       }));
     } catch (error) {
@@ -534,24 +534,27 @@ export const useModelStore = create<ModelStore>((set) => ({
       };
 
       // 使用最新的 mapping（按创建时间倒序，取第一个）
-      const sortedMappings = [...mappings].sort((a, b) =>
-        new Date(b.created_at || 0).getTime() - new Date(a.created_at || 0).getTime()
-      );
+      const sortedMappings = [...mappings].sort((a, b) => {
+        const dateA = (a as any).created_at ? new Date((a as any).created_at).getTime() : 0;
+        const dateB = (b as any).created_at ? new Date((b as any).created_at).getTime() : 0;
+        return dateB - dateA;
+      });
 
       for (const mapping of sortedMappings) {
-        const category = taskTypeToCategory[mapping.task_type];
+        const m = mapping as any;
+        const category = taskTypeToCategory[m.task_type as string];
         if (category && !categoryRoutes[category]) {
           categoryRoutes[category] = {
-            id: mapping.id,
+            id: m.id,
             category: category,
-            providerId: mapping.provider_id,
-            modelId: mapping.model_name,
+            providerId: m.provider_id,
+            modelId: m.model_name,
           };
         }
       }
 
       set({
-        providers: providers as ModelProvider[],
+        providers: providers as unknown as ModelProvider[],
         categoryRoutes,
         isLoading: false,
       });

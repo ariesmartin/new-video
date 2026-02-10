@@ -1,0 +1,7 @@
+{
+  "dependencies": {
+    "@tiptap/extension-bubble-menu": "^3.19.0",
+    "@tiptap/extension-floating-menu": "^3.19.0",
+    "@tiptap/markdown": "^3.19.0"
+  }
+}

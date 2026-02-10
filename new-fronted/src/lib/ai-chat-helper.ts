@@ -56,17 +56,23 @@ export function cleanJsonFromContent(content: string): string {
                     return typeof parsed.text === 'string' ? parsed.text.trim() : String(parsed.text).trim();
                 }
 
-                const possibleFields = ['response', 'answer', 'result', 'output', 'message', 'data'];
+                const possibleFields = ['response', 'answer', 'result', 'output', 'message', 'data', 'skeleton', 'outline', 'content_text'];
                 for (const field of possibleFields) {
                     if (parsed[field] && typeof parsed[field] === 'string') {
                         return parsed[field].trim();
                     }
                 }
-                
-                return JSON.stringify(parsed, null, 2);
+
+                if (parsed.toString && typeof parsed.toString === 'function') {
+                    const str = parsed.toString();
+                    if (str !== '[object Object]') {
+                        return str.trim();
+                    }
+                }
+
+                return '';
             }
         } catch {
-            // JSON 解析失败，继续后续清理逻辑
         }
     }
 

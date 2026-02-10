@@ -1,4 +1,4 @@
-import { useState, useRef, useCallback } from 'react';
+import { useState, useRef, useCallback, useEffect } from 'react';
 import { Bot, Send, Sparkles, RotateCcw, Loader2, Maximize2, Square } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -53,6 +53,8 @@ export function AIAssistantPanel({ projectId: externalProjectId, sceneContext }:
     setMessages,
     isLoading: isInitLoading,
     resetChat,
+    isGenerating: isBackendGenerating,
+    generatingNode,
   } = useAIChatInit({
     projectId,
     onError: (error) => {
@@ -61,7 +63,14 @@ export function AIAssistantPanel({ projectId: externalProjectId, sceneContext }:
   });
 
   // 合并 loading 状态
-  const isTyping = isInitLoading || !!abortControllerRef.current;
+  const isTyping = isInitLoading || !!abortControllerRef.current || isBackendGenerating;
+
+  // 当检测到后端正在生成时，更新状态提示
+  useEffect(() => {
+    if (isBackendGenerating && generatingNode) {
+      setThinkingStatus(`AI 正在生成中 (${generatingNode})...`);
+    }
+  }, [isBackendGenerating, generatingNode]);
 
   // 使用统一的自动滚动 hook
   const messagesEndRef = useChatScroll({
@@ -98,6 +107,9 @@ export function AIAssistantPanel({ projectId: externalProjectId, sceneContext }:
           onNodeStart: (_node, desc) => {
             if (desc) setThinkingStatus(desc);
           },
+          onProgress: (desc) => {
+            setThinkingStatus(desc);
+          },
           onStatus: (status) => {
             setThinkingStatus(status);
           },
@@ -118,7 +130,15 @@ export function AIAssistantPanel({ projectId: externalProjectId, sceneContext }:
                 timestamp: new Date(),
                 ui_interaction: lastUiInteraction,
               };
-              setMessages(prev => [...prev, newMessage]);
+              setMessages(prev => {
+                if (lastUiInteraction?.buttons?.some((b: any) => b.action === 'select_plan')) {
+                  const filtered = prev.filter(m => 
+                    !(m.role === 'assistant' && m.ui_interaction?.buttons?.some((b: any) => b.action === 'select_plan'))
+                  );
+                  return [...filtered, newMessage];
+                }
+                return [...prev, newMessage];
+              });
             }
             setStreamingContent('');
             abortControllerRef.current = null;
@@ -193,6 +213,10 @@ export function AIAssistantPanel({ projectId: externalProjectId, sceneContext }:
       'inspect_assets': '👤 资产探查',
       'set_episode_config': '✅ 确认剧集配置',
       'custom_episode_config': '⚙️ 自定义剧集配置',
+      'start_skeleton_building': '📋 开始大纲拆解',
+      'confirm_skeleton': '✅ 确认大纲',
+      'regenerate_skeleton': '🔄 重新生成大纲',
+      'select_ending': '🎭 选择结局类型',
     };
 
     let displayLabel = actionLabels[action] || action;
@@ -233,6 +257,9 @@ export function AIAssistantPanel({ projectId: externalProjectId, sceneContext }:
           onNodeStart: (_node, desc) => {
             if (desc) setThinkingStatus(desc);
           },
+          onProgress: (desc) => {
+            setThinkingStatus(desc);
+          },
           onStatus: (status) => {
             setThinkingStatus(status);
           },
@@ -244,16 +271,25 @@ export function AIAssistantPanel({ projectId: externalProjectId, sceneContext }:
             setStreamingContent(accumulatedContent);
           },
           onComplete: () => {
-            console.log('[AIAssistantPanel] Action complete, content length:', accumulatedContent.length);
-            if (accumulatedContent) {
+            console.log('[AIAssistantPanel] Action complete, content length:', accumulatedContent.length, 'has UI:', !!lastUiInteraction);
+            if (accumulatedContent || lastUiInteraction) {
               const newMessage: Message = {
                 id: `ai-action-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`,
                 role: 'assistant',
-                content: accumulatedContent,
+                content: accumulatedContent || '',
                 timestamp: new Date(),
                 ui_interaction: lastUiInteraction,
               };
-              setMessages(prev => [...prev, newMessage]);
+              setMessages(prev => {
+                // 如果新消息包含方案按钮，替换掉之前包含方案的消息（重新生成场景）
+                if (lastUiInteraction?.buttons?.some((b: any) => b.action === 'select_plan')) {
+                  const filtered = prev.filter(m => 
+                    !(m.role === 'assistant' && m.ui_interaction?.buttons?.some((b: any) => b.action === 'select_plan'))
+                  );
+                  return [...filtered, newMessage];
+                }
+                return [...prev, newMessage];
+              });
             }
             setStreamingContent('');
             abortControllerRef.current = null;
@@ -372,8 +408,17 @@ export function AIAssistantPanel({ projectId: externalProjectId, sceneContext }:
       {/* Messages */}
       <ScrollArea className="flex-1 min-h-0 px-4">
         <div className="py-4 space-y-4">
-          {messages.map((message) => {
+          {/* 找到最后一条包含 ui_interaction 的 AI 消息索引 */}
+          {(() => {
+            const lastUiInteractionIndex = messages.findLastIndex(m => m.role === 'assistant' && m.ui_interaction);
+            
+            return messages.map((message, index) => {
             const isLongContent = message.role === 'assistant' && cleanJsonFromContent(message.content).length > 150;
+            // ✅ 修复：在所有有 ui_interaction 的消息上都显示按钮，不只是最后一个
+            // 这样可以保留历史交互按钮的状态
+            const shouldShowButtons = message.ui_interaction;
+            // ✅ 修复：只有最后一条包含 ui_interaction 的 AI 消息的按钮可点击
+            const isLatestUiInteraction = index === lastUiInteractionIndex;
 
             return (
               <div
@@ -389,7 +434,7 @@ export function AIAssistantPanel({ projectId: externalProjectId, sceneContext }:
                   {message.role === 'user' ? (
                     <p className="text-sm whitespace-pre-wrap">{cleanJsonFromContent(message.content)}</p>
                   ) : (
-                    <div className="prose prose-sm prose-invert w-full text-sm break-words whitespace-pre-wrap overflow-hidden [&>p]:mb-2 [&>p:last-child]:mb-0 [&>ul]:list-disc [&>ul]:pl-4 [&>ol]:list-decimal [&>ol]:pl-4 [&>code]:bg-background [&>code]:px-1 [&>code]:rounded [&>pre]:overflow-x-auto [&>pre]:max-w-full [&_pre]:whitespace-pre-wrap [&_pre]:break-words [&_code]:break-all">
+                    <div className="w-full text-sm break-words whitespace-pre-wrap overflow-hidden">
                       <ReactMarkdown
                         remarkPlugins={[remarkGfm]}
                         components={{
@@ -428,9 +473,13 @@ export function AIAssistantPanel({ projectId: externalProjectId, sceneContext }:
                     </>
                   )}
 
-                  {message.ui_interaction && (
+                  {shouldShowButtons && (
                     <div className="mt-4 pt-3 border-t border-border/50">
-                      <ActionBlockRenderer block={message.ui_interaction} onActionClick={handleActionClick} />
+                      <ActionBlockRenderer
+                        block={message.ui_interaction}
+                        onActionClick={handleActionClick}
+                        isHistorical={!isLatestUiInteraction}
+                      />
                     </div>
                   )}
 
@@ -441,12 +490,13 @@ export function AIAssistantPanel({ projectId: externalProjectId, sceneContext }:
               </div>
             );
           })}
+          )()}
 
           {/* Streaming Content */}
           {streamingContent && (
             <div className="flex justify-start">
               <div className="bg-elevated border border-border rounded-2xl rounded-bl-md px-4 py-3 max-w-[90%]">
-                <div className="prose prose-sm prose-invert w-full text-sm break-words whitespace-pre-wrap overflow-hidden [&>p]:mb-2 [&>p:last-child]:mb-0 [&>ul]:list-disc [&>ul]:pl-4 [&>ol]:list-decimal [&>ol]:pl-4 [&>pre]:overflow-x-auto [&>pre]:max-w-full [&_pre]:whitespace-pre-wrap [&_pre]:break-words [&_code]:break-all">
+                <div className="w-full text-sm break-words whitespace-pre-wrap overflow-hidden">
                   <ReactMarkdown
                     remarkPlugins={[remarkGfm]}
                     components={{

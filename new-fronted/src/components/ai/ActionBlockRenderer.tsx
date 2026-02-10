@@ -6,7 +6,7 @@
 
 import { useState, useEffect } from 'react';
 import * as LucideIcons from 'lucide-react';
-import { X, Zap, Check, ArrowLeft } from 'lucide-react';
+import { X, Zap } from 'lucide-react';
 import type { UIInteractionBlock, FormField } from '@/types/sdui';
 import { chatService } from '@/api/services/chat';
 import { useAppStore } from '@/hooks/useStore';
@@ -17,9 +17,10 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 interface ActionBlockRendererProps {
     block: UIInteractionBlock;
     onActionClick?: (action: string, payload?: Record<string, unknown>) => void;
+    isHistorical?: boolean;
 }
 
-export function ActionBlockRenderer({ block, onActionClick }: ActionBlockRendererProps) {
+export function ActionBlockRenderer({ block, onActionClick, isHistorical = false }: ActionBlockRendererProps) {
     const [isDismissed, setIsDismissed] = useState(false);
     const [isLoading, setIsLoading] = useState<string | null>(null);
     const [formValues, setFormValues] = useState<Record<string, unknown>>({});
@@ -226,12 +227,15 @@ export function ActionBlockRenderer({ block, onActionClick }: ActionBlockRendere
                         handleButtonClick(btn.action, payload);
                     };
 
+                    const isButtonDisabled = btn.disabled || isButtonLoading || isHistorical;
+
                     return (
                         <button
                             key={idx}
                             className={btnClasses}
                             onClick={handleClick}
-                            disabled={btn.disabled || isButtonLoading}
+                            disabled={isButtonDisabled}
+                            title={isHistorical ? "已完成的操作" : undefined}
                         >
                             {isButtonLoading ? (
                                 <div className="w-3.5 h-3.5 border-2 border-current border-t-transparent rounded-full animate-spin" />

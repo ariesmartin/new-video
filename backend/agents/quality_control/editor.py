@@ -24,7 +24,7 @@ async def _load_editor_prompt(
     total_episodes: int,
 ) -> str:
     """从文件加载 Editor 的 System Prompt"""
-    prompt_path = Path(__file__).parent.parent.parent / "prompts" / "7_Editor_Reviewer.md"
+    prompt_path = Path(__file__).parent.parent / "prompts" / "7_Editor_Reviewer.md"
 
     try:
         with open(prompt_path, "r", encoding="utf-8") as f:
@@ -153,7 +153,7 @@ async def editor_node(state: Dict) -> Dict:
         }
 
     # 检查是否有内容可以审阅
-    if not messages or len(messages) < 2:
+    if not messages or len(messages) < 1:
         logger.warning("No content to review", message_count=len(messages))
         # 返回一个最小化的review_report，让流程能继续
         return {
@@ -175,7 +175,7 @@ async def editor_node(state: Dict) -> Dict:
     # 从 state 中提取完整上下文（必须包含所有元数据）
     user_config = state.get("user_config", {})
     genre_combination = user_config.get("sub_tags", ["revenge", "romance"])
-    ending = user_config.get("ending", "HE")
+    ending = user_config.get("ending_type", "HE")
     total_episodes = user_config.get("total_episodes", 80)
 
     # 根据当前阶段判断 content_type

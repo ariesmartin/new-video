@@ -110,22 +110,9 @@ export const assetsService = {
     if (error) throw error;
   },
 
-  /**
-   * 从内容中提取资产
-   */
-  async extractAssets(projectId: string, content: string, contentType: 'novel' | 'script' | 'outline') {
-    const { data, error } = await client.POST('/api/projects/{project_id}/assets/extract', {
-      params: {
-        path: { project_id: projectId },
-      },
-      body: {
-        content,
-        content_type: contentType,
-      },
-    });
-
-    if (error) throw error;
-    return data!;
+  async extractAssets(_projectId: string, _content: string, _contentType: 'novel' | 'script' | 'outline') {
+    console.warn('[assetsService] extractAssets API 尚未实现');
+    return { assets: [] };
   },
 };
 

@@ -56,9 +56,9 @@ class PromptService:
             debug_mode: 是否开启调试模式（热重载）
         """
         if prompts_dir is None:
-            # 默认查找项目根目录的 prompts 文件夹
-            # backend/services/prompt_service.py -> backend -> project_root
-            prompts_dir = Path(__file__).parent.parent.parent / "prompts"
+            # 使用 backend/prompts/ 目录
+            # backend/services/prompt_service.py -> backend -> backend/prompts
+            prompts_dir = Path(__file__).parent.parent / "prompts"
 
         self._prompts_dir = prompts_dir
         self._debug_mode = debug_mode

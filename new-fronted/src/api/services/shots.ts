@@ -81,7 +81,7 @@ export const shotsService = {
    * 更新分镜
    */
   async updateShot(episodeId: string, shotId: string, updates: ShotUpdate) {
-    const { data, error } = await client.PUT('/api/episodes/{episode_id}/shots/{shot_id}', {
+    const { data, error } = await client.PATCH('/api/episodes/{episode_id}/shots/{shot_id}', {
       params: {
         path: { 
           episode_id: episodeId,

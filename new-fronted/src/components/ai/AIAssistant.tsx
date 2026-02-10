@@ -27,10 +27,10 @@ interface ActionButton {
 }
 
 interface UIInteractionBlock {
-  block_type: 'action_group' | 'selection' | 'confirmation' | 'input';
+  block_type: 'action_group' | 'selection' | 'confirmation' | 'input' | 'form';
   title?: string;
   description?: string;
-  buttons: ActionButton[];
+  buttons?: ActionButton[];
   data?: Record<string, unknown>;
   dismissible?: boolean;
 }
@@ -62,6 +62,9 @@ import { chatService } from '@/api/services/chat';
 import { useAppStore } from '@/hooks/useStore';
 import { useAIChatInit } from '@/hooks/useAIChatInit';
 
+// 保持对 chatService 的引用以便未来使用
+void chatService;
+
 const iconMap: Record<string, React.ReactNode> = {
   'Play': <span className="mr-1">▶</span>,
   'FileText': <span className="mr-1">📄</span>,
@@ -80,8 +83,8 @@ export function AIAssistant() {
   const [inputValue, setInputValue] = useState('');
   const [messages, setMessages] = useState<Message[]>([]);
   const [isTyping, setIsTyping] = useState(false);
-  const [isLoading, setIsLoading] = useState(false);
-  const [contentStatus, setContentStatus] = useState({
+  const [isLoading, _setIsLoading] = useState(false);
+  const [contentStatus, _setContentStatus] = useState({
     hasNovelContent: false,
     hasScript: false,
     hasStoryboard: false,
@@ -105,7 +108,7 @@ export function AIAssistant() {
   // 使用新的 Hook 处理初始化 - 后端决定返回历史还是冷启动
   const {
     messages: initMessages,
-    isLoading: isInitLoading,
+    isLoading: _isInitLoading,
     isInitialized,
     initChat,
   } = useAIChatInit({

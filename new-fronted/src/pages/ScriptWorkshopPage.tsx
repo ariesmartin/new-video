@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef } from 'react';
+import { useState, useEffect, useRef, useCallback } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import {
   Play,
@@ -10,13 +10,18 @@ import {
   Mic,
   Music,
   Loader2,
-  Sparkles
+  Sparkles,
+  BookOpen,
+  CheckCircle,
+  AlertTriangle,
+  XCircle
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { Separator } from '@/components/ui/separator';
 import { Logo } from '@/components/ui/Logo';
+import { cn } from '@/lib/utils';
 import { ResizablePanel } from '@/components/ui/ResizablePanel';
 import { AIAssistantPanel } from '@/components/ai/AIAssistantPanel';
 import { useUIStore } from '@/hooks/useStore';
@@ -30,10 +35,16 @@ import {
   NovelEditor,
   ScriptEditor,
   StoryboardEditor,
-  FooterToolbar
+  OutlineEditor,
+  ChapterTree,
+  UnifiedReviewPanel
 } from '@/components/workshop';
+import { useWorkshopStore } from '@/store/workshopStore';
+import { reviewService } from '@/api/services/review';
 import { ConfirmNovelNameDialog } from '@/components/modals/ConfirmNovelNameDialog';
 import type { components } from '@/types/api';
+import type { OutlineNode } from '@/types/outline';
+import type { ChapterReview } from '@/types/review';
 
 type SceneResponse = components['schemas']['SceneResponse'];
 type ShotResponse = components['schemas']['ShotResponse'];
@@ -45,6 +56,24 @@ export function ScriptWorkshopPage() {
   const { projectId, episodeId } = useParams<{ projectId: string; episodeId: string }>();
   const { openBackstageModal, addToast } = useUIStore();
   const abortControllerRef = useRef<AbortController | null>(null);
+
+  const {
+    outline,
+    outlineNodes,
+    selectedNodeId,
+    selectNode,
+    globalReview,
+    isReviewing,
+    reReview,
+    applySuggestion,
+    ignoreIssue,
+    loadGlobalReview,
+    loadOutline,
+    batchStatus,
+    continueOutlineGeneration,
+    isGenerating,
+    updateOutlineNode,
+  } = useWorkshopStore();
 
   const [activeModule, setActiveModule] = useState<EditorModule>('script');
   const [selectedSceneId, setSelectedSceneId] = useState<string | null>(null);
@@ -101,6 +130,10 @@ export function ScriptWorkshopPage() {
         if (scenesRes.data.length > 0) {
           setSelectedSceneId(String(scenesRes.data[0].sceneId));
         }
+
+        await loadOutline(projectId);
+
+        await loadGlobalReview(projectId);
       } catch (err) {
         console.error('Failed to load data:', err);
         setError('加载数据失败，请稍后重试');
@@ -110,7 +143,7 @@ export function ScriptWorkshopPage() {
     };
 
     loadData();
-  }, [projectId, episodeId]);
+  }, [projectId, episodeId, loadGlobalReview]);
 
   useEffect(() => {
     if (!episodeId || !selectedSceneId) return;
@@ -294,8 +327,169 @@ export function ScriptWorkshopPage() {
 
   const selectedScene = scenes.find(s => String(s.sceneId) === selectedSceneId);
 
+  const handleNodeSelect = useCallback((nodeId: string, node: OutlineNode) => {
+    selectNode(nodeId);
+    if (node.type === 'scene' || node.type === 'shot') {
+      setSelectedSceneId(nodeId);
+    }
+  }, [selectNode]);
+
+  const handleReReview = useCallback(async () => {
+    if (!projectId) return;
+
+    if (activeModule === 'outline') {
+      if (outlineNodes.length === 0) {
+        addToast?.({ type: 'warning', message: '暂无大纲数据，请先完成故事策划' });
+        return;
+      }
+
+      if (globalReview) {
+        await reReview(projectId);
+      } else {
+        await reviewService.triggerOutlineReview(projectId);
+        await loadGlobalReview(projectId);
+      }
+    } else if (selectedNodeId) {
+      await reReview(projectId, selectedNodeId);
+    }
+  }, [projectId, activeModule, selectedNodeId, reReview, globalReview, loadGlobalReview, outlineNodes, addToast]);
+
+  const handleApplySuggestion = useCallback(async (suggestionId: string) => {
+    if (!projectId || !selectedNodeId) return;
+    await applySuggestion(projectId, selectedNodeId, suggestionId);
+  }, [projectId, selectedNodeId, applySuggestion]);
+
+  const handleIgnoreIssue = useCallback(async (issueId: string) => {
+    if (!projectId || !selectedNodeId) return;
+    await ignoreIssue(projectId, selectedNodeId, issueId);
+  }, [projectId, selectedNodeId, ignoreIssue]);
+
+  const selectedNode = outlineNodes.find(n => n.id === selectedNodeId);
+
+  const renderLeftPanel = () => {
+    if (activeModule === 'outline' || activeModule === 'novel') {
+      return (
+        <ChapterTree
+          nodes={outlineNodes}
+          selectedId={selectedNodeId}
+          onSelect={handleNodeSelect}
+          batchStatus={batchStatus}
+          onContinueGeneration={() => projectId && continueOutlineGeneration(projectId)}
+          isGenerating={isGenerating}
+        />
+      );
+    }
+    
+    return (
+      <>
+        <div className="p-4 border-b border-border">
+          <Button
+            variant="outline"
+            className="w-full gap-2"
+            onClick={handleAddScene}
+          >
+            <Plus size={16} />
+            添加场景
+          </Button>
+        </div>
+        <ScrollArea className="flex-1 min-h-0">
+          {scenes.map((scene) => (
+            <div
+              key={String(scene.sceneId)}
+              onClick={() => setSelectedSceneId(String(scene.sceneId))}
+              className={`p-4 cursor-pointer border-b border-border transition-all duration-200 ${selectedSceneId === String(scene.sceneId)
+                ? 'bg-primary/10 border-l-2 border-l-primary'
+                : 'hover:bg-elevated border-l-2 border-l-transparent'
+                }`}
+            >
+              <div className="flex items-center gap-2 mb-2">
+                <Badge variant="outline" className="text-xs">
+                  {scene.sceneNumber}
+                </Badge>
+                <span className="text-xs text-text-tertiary flex items-center gap-1">
+                  <Clock size={12} />
+                  夜晚
+                </span>
+              </div>
+              <p className="text-sm font-medium text-text-primary mb-1">
+                {scene.location}
+              </p>
+              <p className="text-xs text-text-secondary line-clamp-2">
+                {scene.description || '暂无描述'}
+              </p>
+              <div className="flex items-center gap-1 mt-2">
+                <Badge variant="secondary" className="text-xs">
+                  {scene.shotCount} 镜头
+                </Badge>
+              </div>
+            </div>
+          ))}
+        </ScrollArea>
+      </>
+    );
+  };
+
+  const renderBottomPanel = () => {
+    let review: GlobalReview | ChapterReview | null = null;
+
+    if (activeModule === 'outline') {
+      review = globalReview;
+    } else if (selectedNodeId && globalReview?.chapterReviews?.[selectedNodeId]) {
+      const chapterData = globalReview.chapterReviews[selectedNodeId];
+      review = {
+        chapterId: selectedNodeId,
+        reviewedAt: globalReview.generatedAt,
+        score: chapterData.score,
+        categories: {} as ChapterReview['categories'],
+        issues: chapterData.issues || [],
+        tensionCurve: [],
+        summary: '',
+      };
+    }
+    
+    const chapterTitle = activeModule !== 'outline' && selectedNode
+      ? selectedNode.title
+      : undefined;
+
+    return (
+      <UnifiedReviewPanel
+        review={review}
+        chapterTitle={chapterTitle}
+        isLoading={isReviewing}
+        onReReview={handleReReview}
+        onApplySuggestion={handleApplySuggestion}
+        onIgnoreIssue={handleIgnoreIssue}
+      />
+    );
+  };
+
   const renderEditorContent = () => {
     switch (activeModule) {
+      case 'outline':
+        if (!selectedNode) {
+          return (
+            <div className="flex-1 flex flex-col items-center justify-center p-8 text-center text-muted-foreground">
+              <BookOpen className="w-16 h-16 mb-4 opacity-50" />
+              <h2 className="text-lg font-medium mb-2">大纲编辑模式</h2>
+              <p className="text-sm max-w-md">
+                请在左侧选择章节进行编辑。大纲数据将自动同步到剧本医生进行审阅。
+              </p>
+            </div>
+          );
+        }
+
+        return (
+          <OutlineEditor
+            content={selectedNode.metadata?.content || selectedNode.metadata?.summary || ''}
+            onChange={(html) => updateOutlineNode(selectedNode.id, {
+              metadata: { ...selectedNode.metadata, content: html }
+            })}
+            title={selectedNode.title}
+            onTitleChange={(title) => updateOutlineNode(selectedNode.id, { title })}
+            nodeType={selectedNode.type}
+            nodeNumber={selectedNode.episodeNumber || selectedNode.sceneNumber || selectedNode.shotNumber}
+          />
+        );
       case 'novel':
         return (
           <NovelEditor
@@ -432,49 +626,7 @@ export function ScriptWorkshopPage() {
           storageKey="script-workshop-left"
           className="hidden md:flex flex-col bg-surface border-r border-border"
         >
-          <div className="p-4 border-b border-border">
-            <Button
-              variant="outline"
-              className="w-full gap-2"
-              onClick={handleAddScene}
-            >
-              <Plus size={16} />
-              添加场景
-            </Button>
-          </div>
-          <ScrollArea className="flex-1 min-h-0">
-            {scenes.map((scene) => (
-              <div
-                key={String(scene.sceneId)}
-                onClick={() => setSelectedSceneId(String(scene.sceneId))}
-                className={`p-4 cursor-pointer border-b border-border transition-all duration-200 ${selectedSceneId === String(scene.sceneId)
-                  ? 'bg-primary/10 border-l-2 border-l-primary'
-                  : 'hover:bg-elevated border-l-2 border-l-transparent'
-                  }`}
-              >
-                <div className="flex items-center gap-2 mb-2">
-                  <Badge variant="outline" className="text-xs">
-                    {scene.sceneNumber}
-                  </Badge>
-                  <span className="text-xs text-text-tertiary flex items-center gap-1">
-                    <Clock size={12} />
-                    夜晚
-                  </span>
-                </div>
-                <p className="text-sm font-medium text-text-primary mb-1">
-                  {scene.location}
-                </p>
-                <p className="text-xs text-text-secondary line-clamp-2">
-                  {scene.description || '暂无描述'}
-                </p>
-                <div className="flex items-center gap-1 mt-2">
-                  <Badge variant="secondary" className="text-xs">
-                    {scene.shotCount} 镜头
-                  </Badge>
-                </div>
-              </div>
-            ))}
-          </ScrollArea>
+          {renderLeftPanel()}
         </ResizablePanel>
 
         <div className="flex-1 flex flex-col overflow-hidden">
@@ -503,25 +655,7 @@ export function ScriptWorkshopPage() {
             {renderEditorContent()}
           </div>
 
-          <FooterToolbar
-            scriptScore={88}
-            diagnostics={[
-              {
-                id: '1',
-                score: 88,
-                quote: '这双手值钱，比我们在废墟里挖出来的任何...',
-                suggestion: '深井人从未适应过地表，但主角的表现（仅是虚弱）略显平淡。对于首次从"坟墓"出来的人，对"天空"、"风"或"无限空间"的心理冲击描写可以更具张力。',
-                category: 'logic'
-              },
-              {
-                id: '2',
-                score: 75,
-                quote: '仿佛还未适应地表稀薄的空气',
-                suggestion: '这句台词略显文绉绉，不太像是一个在废土生存的冷酷雇佣兵会说的。',
-                category: 'dialogue'
-              }
-            ]}
-          />
+          {renderBottomPanel()}
         </div>
 
         <ResizablePanel

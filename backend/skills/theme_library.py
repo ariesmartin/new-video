@@ -529,12 +529,64 @@ async def analyze_genre_compatibility(genre1: str, genre2: str) -> str:
 # ============================================================================
 
 
+# Internal implementation to avoid Tool calling Tool issues
+async def _get_tropes_impl(genre_id: str, limit: int = 5) -> str:
+    """Internal implementation for getting tropes"""
+    db = get_db_service()
+    try:
+        # Get theme UUID
+        theme_response = await db._client.get(
+            f"{db._rest_url}/themes", params={"slug": f"eq.{genre_id}", "select": "id,name"}
+        )
+        theme_response.raise_for_status()
+        themes = theme_response.json()
+
+        if not themes:
+            return f"错误：找不到题材 '{genre_id}'"
+
+        theme_uuid = themes[0]["id"]
+        theme_name = themes[0]["name"]
+
+        # Query high-effectiveness elements
+        elements_response = await db._client.get(
+            f"{db._rest_url}/theme_elements",
+            params={
+                "theme_id": f"eq.{theme_uuid}",
+                "effectiveness_score": "gte.80",
+                "select": "*",
+                "order": "effectiveness_score.desc",
+                "limit": limit,
+            },
+        )
+        elements_response.raise_for_status()
+        elements = elements_response.json() or []
+
+        if not elements:
+            return f"在题材 '{theme_name}' 中没有找到高评分元素"
+
+        result = [f"## {theme_name} - 高效果元素 (评分 >= 80)\\n"]
+        for i, elem in enumerate(elements, 1):
+            name = elem.get("name", "N/A")
+            score = elem.get("effectiveness_score", 0)
+            desc = elem.get("description", "")
+            guidance = elem.get("usage_guidance", "")
+            weight = elem.get("weight", 1.0)
+
+            result.append(f"""
+**{i}. {name}** (评分: {score}, 权重: {weight})
+   描述: {desc}
+   使用建议: {guidance}
+""")
+
+        return "\\n".join(result)
+    except Exception as e:
+        return f"获取元素失败: {str(e)}"
+
+
 @tool
 async def get_tropes(genre_id: str, limit: int = 5) -> str:
     """
     Skill: 获取指定题材的常用套路(tropes)。
-
-    这是 search_elements_by_effectiveness 的别名，保持向后兼容。
 
     Args:
         genre_id: 题材ID
@@ -543,9 +595,8 @@ async def get_tropes(genre_id: str, limit: int = 5) -> str:
     Returns:
         套路/元素列表
     """
-    return await search_elements_by_effectiveness.ainvoke(
-        {"theme_id": genre_id, "min_score": 80, "limit": limit}
-    )
+    # Use internal implementation to avoid Tool calling Tool issues
+    return await _get_tropes_impl(genre_id=genre_id, limit=limit)
 
 
 @tool

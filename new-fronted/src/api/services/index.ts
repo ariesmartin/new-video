@@ -6,3 +6,6 @@ export * from './canvas';
 export * from './models';
 export * from './chat';
 export * from './assets';
+export * from './outline';
+export * from './novel';
+export * from './review';

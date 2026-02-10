@@ -245,6 +245,21 @@ class AgentState(TypedDict, total=False):
     # ===== Level 3: Skeleton Building =====
     character_bible: list[CharacterProfile]  # 角色圣经
     beat_sheet: list[EpisodeOutline]  # 分集大纲
+    chapter_mapping: dict | None  # 章节映射（章节数、付费卡点等）
+    inferred_config: dict | None  # 推断配置（总章节数、总字数估算等）
+    skeleton_content: str | None  # 大纲内容（Skeleton Builder 生成）
+
+    # ===== Level 3: Skeleton Building - Batch Generation (V4.2 新增) =====
+    generation_batches: (
+        list[dict] | None
+    )  # 分批生成策略列表 [{"range": (1, 13), "type": "opening", "description": "..."}]
+    current_batch_index: int  # 当前批次索引 (0-based)
+    total_batches: int  # 总批次数
+    accumulated_content: str | None  # 累积的所有批次内容
+    batch_completed: bool  # 所有批次是否已完成
+    current_batch_range: str | None  # 当前批次范围描述 (如 "1-13")
+    needs_next_batch: bool  # 是否需要继续下一批（用于前端交互）
+    auto_batch_mode: bool  # 自动分批模式: True=自动连续生成, False=每批暂停等待用户确认
 
     # ===== Module A: Novel Generation =====
     current_episode: int  # 当前生成的集数

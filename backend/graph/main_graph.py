@@ -11,6 +11,8 @@ LangGraph 主图定义，实现 Master Router 单一入口架构。
 """
 
 from typing import Any, Dict, Optional
+import json
+import re
 import structlog
 from langgraph.graph import StateGraph, START, END
 from langgraph.checkpoint.base import BaseCheckpointSaver
@@ -27,6 +29,9 @@ from backend.agents import (
 from backend.graph.router import (
     route_after_master,
     route_after_agent_execution,
+    route_after_market_analyst,
+    route_after_story_planner,
+    route_after_skeleton_builder,
 )
 
 logger = structlog.get_logger(__name__)
@@ -36,6 +41,34 @@ _compiled_graph = None
 
 
 # ===== 辅助函数 =====
+
+
+def _content_to_string(content) -> str:
+    """将 LLM 返回的 content 转换为字符串。
+
+    Gemini 模型返回多部分响应时，content 是 list 而非 str，
+    直接对 list 调用 re.search / str.strip 等方法会抛出 TypeError。
+    此函数统一处理 None / str / list / dict 等类型。
+    """
+    if content is None:
+        return ""
+    if isinstance(content, str):
+        return content
+    if isinstance(content, list):
+        text_parts: list[str] = []
+        for part in content:
+            if isinstance(part, str):
+                text_parts.append(part)
+            elif isinstance(part, dict) and "text" in part:
+                text_parts.append(str(part["text"]))
+            elif hasattr(part, "text"):
+                text_parts.append(str(getattr(part, "text", "")))
+        return "\n".join(text_parts)
+    if isinstance(content, dict):
+        if "text" in content:
+            return str(content["text"])
+        return json.dumps(content, ensure_ascii=False)
+    return str(content)
 
 
 def _get_background_info(background: str) -> dict:
@@ -112,7 +145,6 @@ async def _cold_start_node(state: AgentState) -> Dict[str, Any]:
     """
     from backend.services.chat_init_service import create_welcome_message, get_content_status
     from langchain_core.messages import AIMessage
-    import json
 
     logger.info("Executing cold start node", user_id=state.get("user_id"))
 
@@ -176,7 +208,7 @@ async def _market_analyst_node(state: AgentState) -> Dict[str, Any]:
         messages = result.get("messages", [])
         return {
             "messages": messages,
-            "market_report": messages[-1].content if messages else "",
+            "market_report": _content_to_string(messages[-1].content) if messages else "",
             "last_successful_node": "market_analyst",
         }
     except Exception as e:
@@ -209,6 +241,33 @@ async def _story_planner_node(state: AgentState) -> Dict[str, Any]:
         # 从 routed_parameters 获取用户选择（如果存在）
         routed_params = state.get("routed_parameters", {})
 
+        # ✅ 从数据库加载已保存的 selected_plan（如果状态中没有）
+        current_selected_plan = state.get("selected_plan")
+        if not current_selected_plan and project_id:
+            try:
+                from backend.services.database import get_db_service
+
+                db = get_db_service()
+                saved_plan = await db.get_selected_plan(project_id)
+                if saved_plan:
+                    state["selected_plan"] = {
+                        "id": saved_plan.get("plan_id"),
+                        "title": saved_plan.get("title"),
+                        "label": saved_plan.get("label"),
+                    }
+                    logger.info(
+                        "✅ Loaded selected_plan from database", plan_id=saved_plan.get("plan_id")
+                    )
+            except Exception as e:
+                logger.warning("Failed to load selected_plan from database", error=str(e))
+
+        logger.info(
+            "Story planner node started",
+            routed_params=routed_params,
+            has_action=bool(routed_params.get("action")),
+            has_selected_plan=bool(state.get("selected_plan")),
+        )
+
         # ✅ 处理 select_plan action - 用户已选择方案，直接保存并确认
         if routed_params.get("action") == "select_plan":
             plan_id = routed_params.get("plan_id", "")
@@ -220,9 +279,7 @@ async def _story_planner_node(state: AgentState) -> Dict[str, Any]:
                 plan_label=plan_label,
             )
 
-            # 从 plan_label 中提取剧名（格式："锁定《剧名》进行细化"）
-            import re
-
+            # 从 plan_label 中提取剧名（格式：「锁定《剧名》进行细化」）
             title_match = re.search(r"《([^》]+)》", plan_label)
             plan_title = title_match.group(1) if title_match else plan_label
 
@@ -260,6 +317,41 @@ async def _story_planner_node(state: AgentState) -> Dict[str, Any]:
                 dismissible=False,
             )
 
+            # ✅ 保存 selected_plan 到数据库，确保状态持久化
+            try:
+                from backend.services.database import get_db_service
+                import uuid
+
+                db = get_db_service()
+                # 检查是否已存在该方案
+                existing = await db.get_plan(plan_id)
+                if existing:
+                    # 更新现有方案为选中状态
+                    await db._client.patch(
+                        f"{db._rest_url}/story_plans",
+                        params={"plan_id": f"eq.{existing['plan_id']}"},
+                        json={"is_selected": True},
+                    )
+                else:
+                    # 创建新方案记录
+                    await db._client.post(
+                        f"{db._rest_url}/story_plans",
+                        json={
+                            "project_id": project_id,
+                            "user_id": user_id,
+                            "title": plan_title,
+                            "description": plan_label,
+                            "genre": user_config.get("genre"),
+                            "is_selected": True,
+                            "status": "active",
+                        },
+                    )
+                logger.info(
+                    "✅ Saved selected_plan to database", plan_id=plan_id, project_id=project_id
+                )
+            except Exception as e:
+                logger.warning("Failed to save selected_plan to database", error=str(e))
+
             return {
                 "messages": [
                     AIMessage(
@@ -270,6 +362,7 @@ async def _story_planner_node(state: AgentState) -> Dict[str, Any]:
                 "selected_plan": selected_plan,
                 "user_config": user_config,
                 "last_successful_node": "story_planner_plan_selected",
+                "routed_parameters": {},  # ✅ 清空routed_parameters，避免传递到下一个节点
             }
 
         # 如果 routed_params 中有 genre，更新 user_config
@@ -622,7 +715,18 @@ async def _story_planner_node(state: AgentState) -> Dict[str, Any]:
             )
 
         # 在 messages 中添加上下文
-        messages = state.get("messages", [])
+        from langchain_core.messages import BaseMessage, HumanMessage
+
+        messages: list[BaseMessage] = state.get("messages", [])
+
+        # ✅ 修复：如果是重新生成，清理之前的方案生成消息，避免影响新内容
+        if is_regenerate:
+            # 只保留用户的消息（HumanMessage），清理AI的方案生成消息
+            messages = [m for m in messages if isinstance(m, HumanMessage)]
+            logger.info(
+                "🔄 Regenerate: cleared previous AI messages", remaining_messages=len(messages)
+            )
+
         messages.append(SystemMessage(content=config_context))
         state["messages"] = messages
 
@@ -644,13 +748,12 @@ async def _story_planner_node(state: AgentState) -> Dict[str, Any]:
         # 从 Agent 输出中提取 JSON UI 数据并解析
         ui_interaction = None
         if messages:
-            import json
-            import re
-
             last_message = messages[-1]
-            content = (
+            raw_content = (
                 last_message.content if hasattr(last_message, "content") else str(last_message)
             )
+            # ✅ 修复：Gemini 返回 list 类型 content，统一转为 str
+            content = _content_to_string(raw_content)
 
             # 查找 ```json ... ``` 代码块
             json_match = re.search(r"```json\s*\n?([\s\S]*?)\n?```", content)
@@ -825,7 +928,7 @@ async def _story_planner_node(state: AgentState) -> Dict[str, Any]:
 
         return {
             "messages": messages,
-            "story_plans": messages[-1].content if messages else "",
+            "story_plans": _content_to_string(messages[-1].content) if messages else "",
             "ui_interaction": ui_interaction,
             "user_config": user_config,
             "last_successful_node": "story_planner",
@@ -852,7 +955,7 @@ async def _script_adapter_node(state: AgentState) -> Dict[str, Any]:
         messages = result.get("messages", [])
         return {
             "messages": messages,
-            "script": messages[-1].content if messages else "",
+            "script": _content_to_string(messages[-1].content) if messages else "",
             "last_successful_node": "script_adapter",
         }
     except Exception as e:
@@ -877,7 +980,7 @@ async def _storyboard_director_node(state: AgentState) -> Dict[str, Any]:
         messages = result.get("messages", [])
         return {
             "messages": messages,
-            "storyboard": messages[-1].content if messages else "",
+            "storyboard": _content_to_string(messages[-1].content) if messages else "",
             "last_successful_node": "storyboard_director",
         }
     except Exception as e:
@@ -902,7 +1005,7 @@ async def _image_generator_node(state: AgentState) -> Dict[str, Any]:
         messages = result.get("messages", [])
         return {
             "messages": messages,
-            "generated_images": messages[-1].content if messages else "",
+            "generated_images": _content_to_string(messages[-1].content) if messages else "",
             "last_successful_node": "image_generator",
         }
     except Exception as e:
@@ -1019,49 +1122,63 @@ def create_main_graph(checkpointer: BaseCheckpointSaver | None = None):
             return "cold_start"
 
         # 检测是否是 SDUI Action（用户点击按钮）
-        if messages:
-            last_msg = messages[-1]
-            content = last_msg.content if hasattr(last_msg, "content") else str(last_msg)
+        # ✅ 修复：查找最新的用户 action 消息（从后往前找）
+        # 但避免重复处理已经路由过的 action
+        last_successful_node = state.get("last_successful_node", "")
+        already_processed = last_successful_node in [
+            "story_planner_plan_selected",
+            "skeleton_builder_completed",
+        ]
 
-            # 检测是否是 action JSON 格式
-            if content.strip().startswith("{") and '"action"' in content:
-                try:
-                    import json
+        if messages and not already_processed:
+            user_action_data = None
+            # 从后往前查找最新的 action 消息
+            for msg in reversed(messages):
+                # ✅ 修复：content 可能是 list（Gemini 多部分响应）
+                content = _content_to_string(msg.content if hasattr(msg, "content") else str(msg))
+                if content.strip().startswith("{") and '"action"' in content:
+                    try:
+                        data = json.loads(content)
+                        if data.get("action"):
+                            user_action_data = data
+                            break  # 找到最新的 action，停止查找
+                    except Exception:
+                        continue
 
-                    data = json.loads(content)
-                    action = data.get("action", "")
+            if user_action_data:
+                action = user_action_data.get("action", "")
 
-                    # SDUI Action 到 Agent 的映射
-                    sdui_action_map = {
-                        "start_creation": "story_planner",
-                        "adapt_script": "script_adapter",
-                        "create_storyboard": "storyboard_director",
-                        "inspect_assets": "asset_inspector",
-                        "random_plan": "story_planner",
-                        "select_genre": "story_planner",
-                        "select_plan": "story_planner",
-                        "start_custom": "story_planner",
-                        "proceed_to_planning": "story_planner",
-                        "reset_genre": "story_planner",
-                        "start_skeleton_building": "skeleton_builder",  # V3.0: 大纲构建
-                        "confirm_skeleton": "skeleton_builder",  # V3.0: 确认大纲
-                        "regenerate_skeleton": "skeleton_builder",  # V3.0: 重新生成大纲
-                    }
+                # SDUI Action 到 Agent 的映射
+                sdui_action_map = {
+                    "start_creation": "story_planner",
+                    "adapt_script": "script_adapter",
+                    "create_storyboard": "storyboard_director",
+                    "inspect_assets": "asset_inspector",
+                    "random_plan": "story_planner",
+                    "select_genre": "story_planner",
+                    "select_plan": "story_planner",
+                    "start_custom": "story_planner",
+                    "proceed_to_planning": "story_planner",
+                    "reset_genre": "story_planner",
+                    "start_skeleton_building": "skeleton_builder",
+                    "confirm_skeleton": "skeleton_builder",
+                    "regenerate_skeleton": "skeleton_builder",
+                }
 
-                    if action in sdui_action_map:
-                        target_agent = sdui_action_map[action]
-                        # 在状态中设置 routed_agent，让 Master Router 直接路由
-                        state["routed_agent"] = target_agent
-                        state["ui_feedback"] = f"正在为您启动{target_agent.replace('_', ' ')}..."
-                        state["intent_analysis"] = f"SDUI action: {action}"
-                        logger.info(
-                            "SDUI action detected, routing directly",
-                            action=action,
-                            target_agent=target_agent,
-                        )
-                        return "master_router"
-                except Exception as e:
-                    logger.warning(f"Failed to parse SDUI action: {e}")
+                if action in sdui_action_map:
+                    target_agent = sdui_action_map[action]
+                    # 在状态中设置 routed_agent，让 Master Router 直接路由
+                    state["routed_agent"] = target_agent
+                    state["routed_parameters"] = user_action_data
+                    state["ui_feedback"] = f"正在为您启动{target_agent.replace('_', ' ')}..."
+                    state["intent_analysis"] = f"SDUI action: {action}"
+                    logger.info(
+                        "SDUI action detected, routing directly",
+                        action=action,
+                        target_agent=target_agent,
+                        payload=user_action_data,
+                    )
+                    return "master_router"
 
         # 否则走正常流程
         logger.info("Routing to master_router")
@@ -1098,10 +1215,39 @@ def create_main_graph(checkpointer: BaseCheckpointSaver | None = None):
 
     # 各 Agent 执行后的路由（V4.1 新增）
     # 如果有 workflow_plan 且还有下一步，回到 Master Router
-    for node in [
+
+    # Market Analyst -> Story Planner / Wait
+    graph.add_conditional_edges(
         "market_analyst",
+        route_after_market_analyst,
+        {
+            "story_planner": "story_planner",
+            "wait_for_input": "wait_for_input",
+        },
+    )
+
+    # Story Planner -> Skeleton Builder / Wait (关键修复：使用特定的路由函数)
+    graph.add_conditional_edges(
         "story_planner",
-        "skeleton_builder",  # V3.0: 骨架构建完成后回到 Master Router
+        route_after_story_planner,
+        {
+            "skeleton_builder": "skeleton_builder",
+            "wait_for_input": "wait_for_input",
+        },
+    )
+
+    # Skeleton Builder -> END / Wait (module_a not yet implemented)
+    graph.add_conditional_edges(
+        "skeleton_builder",
+        route_after_skeleton_builder,
+        {
+            "module_a": END,  # Route to END for now until module_a is implemented
+            "wait_for_input": "wait_for_input",
+        },
+    )
+
+    # 其他 Agent 使用通用路由
+    for node in [
         "script_adapter",
         "storyboard_director",
         "image_generator",

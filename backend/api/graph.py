@@ -54,6 +54,9 @@ def format_message_content(content: str) -> str:
         "cold_start": "🚀 启动助手",
         "set_episode_config": "✅ 确认剧集配置",
         "custom_episode_config": "⚙️ 自定义剧集配置",
+        "select_ending": "🎭 选择结局类型",
+        "confirm_skeleton": "✅ 确认大纲",
+        "regenerate_skeleton": "🔄 重新生成大纲",
     }
 
     # 1. 尝试解析 action JSON（用户消息）
@@ -177,6 +180,8 @@ class ChatInitResponse(BaseModel):
     messages: List[ChatMessage]
     is_cold_start: bool  # true=冷启动（新会话），false=恢复历史
     ui_interaction: Optional[UIInteractionBlock] = None  # 冷启动时的 UI 组件
+    is_generating: bool = False  # 是否有正在进行的生成
+    generating_node: Optional[str] = None  # 正在生成的节点名称
 
 
 @router.post("/chat", response_model=ChatResponse)
@@ -328,6 +333,7 @@ async def chat_init_endpoint(request: ChatInitRequest):
         history_messages = []
         channel_values = None
         saved_ui_interaction = None
+        checkpoint = None
 
         try:
             if checkpointer:
@@ -445,18 +451,36 @@ async def chat_init_endpoint(request: ChatInitRequest):
                 except Exception as e:
                     logger.warning("Failed to return connection to pool", error=str(e))
 
+        # 检查是否有正在进行的生成
+        is_generating = False
+        generating_node = None
+        if checkpoint and isinstance(checkpoint, dict):
+            # 如果 checkpoint 中有 next 节点，说明有正在进行的生成
+            next_nodes = checkpoint.get("next", [])
+            if next_nodes:
+                is_generating = True
+                generating_node = next_nodes[0] if next_nodes else None
+                logger.info(
+                    "Detected ongoing generation",
+                    thread_id=thread_id,
+                    generating_node=generating_node,
+                )
+
         # 如果有历史记录，返回历史消息
         if history_messages:
             logger.info(
                 "History found, returning chat history",
                 thread_id=thread_id,
                 message_count=len(history_messages),
+                is_generating=is_generating,
             )
             return ChatInitResponse(
                 thread_id=thread_id,
                 messages=history_messages,
                 is_cold_start=False,
                 ui_interaction=None,
+                is_generating=is_generating,
+                generating_node=generating_node,
             )
 
         # 无历史记录，触发冷启动
@@ -747,32 +771,134 @@ async def chat_sse_endpoint(
                 }
             }
 
-            # 发送节点开始事件
-            yield f"data: {json.dumps({'type': 'node_start', 'node': 'router', 'desc': '正在分析您的请求...'})}\n\n"
-            await asyncio.sleep(0.1)
+            # 节点名称到友好描述的映射
+            node_descriptions = {
+                "master_router": "🧠 智能路由分析",
+                "cold_start": "🚀 初始化助手",
+                "market_analyst": "📊 市场趋势分析",
+                "story_planner": "📋 故事方案策划",
+                "select_plan": "✅ 确认故事方案",
+                "handle_ending_selection": "🎭 处理结局选择",
+                "validate_input": "🔍 验证输入数据",
+                "batch_coordinator": "📚 分批策略规划",
+                "skeleton_builder": "📝 生成小说大纲（可能需要2-5分钟）",
+                "validate_output": "🔍 验证大纲质量",
+                "quality_control": "✨ 质量优化调整",
+                "request_ending": "🎭 请求结局选择",
+                "handle_action": "⚡ 处理用户操作",
+                "router": "🔄 请求路由",
+            }
 
-            # 运行 graph
-            result = await graph.ainvoke(state, config)
+            # 运行 graph 并流式获取事件
+            result = None
+            current_node = None
 
-            # 发送节点结束事件
-            yield f"data: {json.dumps({'type': 'node_end', 'node': 'router'})}\n\n"
-            await asyncio.sleep(0.1)
+            async for event in graph.astream_events(state, config, version="v2"):
+                event_type = event.get("event")
+
+                # 处理节点级别的事件
+                if event_type == "on_chain_start":
+                    # 获取节点名称
+                    metadata = event.get("metadata", {})
+                    node_name = metadata.get("langgraph_node")
+
+                    if node_name:
+                        current_node = node_name
+                        desc = node_descriptions.get(node_name, f"⏳ 正在执行: {node_name}")
+                        yield f"data: {json.dumps({'type': 'node_start', 'node': node_name, 'desc': desc})}\n\n"
+                        await asyncio.sleep(0.01)
+
+                elif event_type == "on_chain_end":
+                    metadata = event.get("metadata", {})
+                    node_name = metadata.get("langgraph_node")
+
+                    if node_name:
+                        yield f"data: {json.dumps({'type': 'node_end', 'node': node_name})}\n\n"
+                        await asyncio.sleep(0.01)
+
+                elif event_type == "on_llm_start":
+                    # LLM 开始生成
+                    if current_node == "skeleton_builder":
+                        yield f"data: {json.dumps({'type': 'progress', 'desc': '🤖 AI 正在构思大纲结构...'})}\n\n"
+
+                elif event_type == "on_llm_stream":
+                    # LLM 流式输出（可以用来显示实时生成进度）
+                    if current_node == "skeleton_builder":
+                        chunk = event.get("data", {}).get("chunk", {})
+                        if hasattr(chunk, "content") and chunk.content:
+                            # 每 500 字符发送一次进度更新
+                            content = chunk.content
+                            if len(content) % 500 < 50:  # 粗略估计
+                                yield f"data: {json.dumps({'type': 'progress', 'desc': f'📝 正在生成大纲... ({len(content) // 500 * 500}+ 字符)'})}\n\n"
+
+                elif event_type == "on_custom_event":
+                    # 处理自定义事件
+                    data = event.get("data", {})
+                    event_name = data.get("name")
+                    event_data = data.get("data", {})
+
+                    if event_name == "skeleton_progress":
+                        progress = event_data.get("progress", 0)
+                        stage = event_data.get("stage", "")
+                        yield f"data: {json.dumps({'type': 'progress', 'desc': f'📝 {stage} ({progress}%)'})}\n\n"
+
+            # 获取最终结果
+            # 重要：从 checkpoint 读取 astream_events 完成后的最终状态
+            # 绝不能再次调用 graph.ainvoke()，否则会重复执行整个 graph，
+            # 导致：1) 消息重复 2) 刷新后显示两次 3) SDUI 按钮丢失
+            state_snapshot = await graph.aget_state(config)
+            result = state_snapshot.values if state_snapshot else {}
 
             # 提取响应内容
             messages = result.get("messages", [])
             ai_content = ""
 
+            def content_to_string(content) -> str:
+                """将 content 转换为字符串（处理 list/dict 类型）"""
+                if content is None:
+                    return ""
+                if isinstance(content, str):
+                    return content
+                if isinstance(content, list):
+                    # Gemini 多部分响应：提取所有文本部分
+                    text_parts = []
+                    for part in content:
+                        if isinstance(part, str):
+                            text_parts.append(part)
+                        elif isinstance(part, dict) and "text" in part:
+                            text_parts.append(str(part["text"]))
+                        elif hasattr(part, "text"):
+                            text_parts.append(str(getattr(part, "text", "")))
+                    return "\n".join(text_parts)
+                if isinstance(content, dict):
+                    if "text" in content:
+                        return str(content["text"])
+                    return json.dumps(content, ensure_ascii=False)
+                return str(content)
+
             if messages:
+                # 使用最后一条 AI 消息（而非最长的消息）
+                # 重新生成方案时，checkpoint 包含所有历史 AI 消息，
+                # 最后一条才是本次执行的最新结果
                 for msg in reversed(messages):
                     if hasattr(msg, "content") and msg.content:
-                        ai_content = msg.content
-                        break
+                        msg_type = getattr(msg, "type", None)
+                        if msg_type == "ai" or msg_type is None:
+                            ai_content = content_to_string(msg.content)
+                            break
 
             # 清理 AI 内容（提取 ui_feedback、thought_process 或其他可读内容）
-            def extract_display_content(content: str) -> str:
+            def extract_display_content(content: Any) -> str:
                 """从内容中提取可显示的文本"""
-                if not content or not isinstance(content, str):
-                    return content or ""
+                if content is None:
+                    return ""
+
+                # 如果是列表或字典，转换为字符串
+                if isinstance(content, (list, dict)):
+                    return json.dumps(content, ensure_ascii=False)
+
+                if not isinstance(content, str):
+                    return str(content)
 
                 content = content.strip()
 
@@ -816,6 +942,27 @@ async def chat_sse_endpoint(
                     yield f"data: {json.dumps({'type': 'token', 'content': word + ' '})}\n\n"
                     if i < len(words) - 1:
                         await asyncio.sleep(0.05)
+
+            # 如果用户选择了方案，更新项目名称为方案标题
+            if result and isinstance(result, dict):
+                selected_plan = result.get("selected_plan")
+                if selected_plan and isinstance(selected_plan, dict):
+                    plan_title = selected_plan.get("title")
+                    if plan_title and project_id:
+                        try:
+                            from backend.services.database import get_db_service
+
+                            db = get_db_service()
+                            await db.update_project(project_id, {"name": plan_title})
+                            logger.info(
+                                "Updated project name after plan selection",
+                                project_id=project_id,
+                                name=plan_title,
+                            )
+                        except Exception as e:
+                            logger.warning(
+                                "Failed to update project name", project_id=project_id, error=str(e)
+                            )
 
             # 发送完成事件
             content_status = get_content_status(result)

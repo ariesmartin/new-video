@@ -169,6 +169,9 @@ export function AIAssistantBar() {
       'inspect_assets': '👤 资产探查',
       'set_episode_config': '✅ 确认剧集配置',
       'custom_episode_config': '⚙️ 自定义剧集配置',
+      'select_ending': '🎭 选择结局类型',
+      'confirm_skeleton': '✅ 确认大纲',
+      'regenerate_skeleton': '🔄 重新生成大纲',
     };
 
     let displayLabel = actionLabels[action] || action;
@@ -203,6 +206,9 @@ export function AIAssistantBar() {
         {
           onNodeStart: (_node, desc) => {
             if (desc) setThinkingStatus(desc);
+          },
+          onProgress: (desc) => {
+            setThinkingStatus(desc);
           },
           onStatus: (status) => setThinkingStatus(status),
           onMessage: (message) => {
@@ -313,6 +319,9 @@ export function AIAssistantBar() {
           },
           onNodeStart: (node, desc) => {
             setThinkingStatus(desc || `⚙️ AI 正在处理 (${node})...`);
+          },
+          onProgress: (desc) => {
+            setThinkingStatus(desc);
           },
           onStatus: (status) => {
             setThinkingStatus(status);

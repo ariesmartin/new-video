@@ -57,6 +57,36 @@ def _genre_to_slug(genre: str) -> Optional[str]:
     return None
 
 
+async def _get_all_theme_slugs() -> list[str]:
+    """从数据库动态获取所有可用主题的slug列表"""
+    try:
+        from backend.services.database import get_db_service
+
+        db = get_db_service()
+        themes = await db.get_all_themes(active_only=True)
+        slugs = [theme["slug"] for theme in themes if theme.get("is_active", True)]
+        logger.info(f"Dynamically loaded {len(slugs)} themes from database")
+        return slugs
+    except Exception as e:
+        logger.warning("Failed to load themes from DB, using fallback", error=str(e))
+        # 回退方案：返回所有已知主题（硬编码作为fallback）
+        return [
+            "revenge",
+            "romance",
+            "suspense",
+            "transmigration",
+            "family_urban",
+            "infinite_flow",
+            "apocalypse",
+            "rules_horror",
+            "cyberpunk",
+            "business_war",
+            "medical_drama",
+            "sports",
+            "food_culture",
+        ]
+
+
 async def _load_story_planner_prompt(
     market_report: Optional[dict] = None,
     episode_count: int = 80,
@@ -99,13 +129,20 @@ async def _load_story_planner_prompt(
         prompt = prompt.replace("{genre}", genre)
         prompt = prompt.replace("{setting}", setting)
 
-        # ✅ 注入主题库数据 - 加载所有主题供AI自由组合（不限于用户选择的genre）
-        all_theme_slugs = ["revenge", "romance", "suspense", "transmigration", "family_urban"]
-
+        # ✅ 注入主题库数据 - 动态加载所有主题供AI自由组合
         try:
-            # ✅ 加载所有题材的完整数据（不再局限于单一genre）
+            # 动态获取所有主题slug
+            all_theme_slugs = await _get_all_theme_slugs()
+
+            # ✅ 随机选择5-8个主题加载（增加多样性，避免总是加载全部）
+            import random
+
+            num_themes = random.randint(5, min(8, len(all_theme_slugs)))
+            selected_slugs = random.sample(all_theme_slugs, k=num_themes)
+
+            # ✅ 加载选中题材的完整数据
             all_themes_context = []
-            for slug in all_theme_slugs:
+            for slug in selected_slugs:
                 try:
                     theme_context = await load_genre_context.ainvoke({"genre_id": slug})
                     all_themes_context.append(f"\n{'=' * 50}\n{theme_context}\n{'=' * 50}")
@@ -115,14 +152,37 @@ async def _load_story_planner_prompt(
 
             if all_themes_context:
                 full_theme_data = "\n".join(all_themes_context)
-                prompt = prompt.replace("{theme_library_data}", full_theme_data)
+                # ✅ 显示全部主题列表，但只详细加载选中部分
+                available_themes_info = f"""
+## 📚 题材库信息
+
+### 全部可用题材（{len(all_theme_slugs)}个）
+{", ".join(all_theme_slugs)}
+
+### 详细加载的题材（{len(selected_slugs)}个）
+以下题材的完整信息已加载，供您优先参考：
+{", ".join(selected_slugs)}
+
+**说明**：您可以选择任意2-3个题材进行融合创新。如果需要了解其他未加载题材的详细信息，可以调用 `load_genre_context()` 工具获取。
+
+### 题材选择建议
+1. **热门题材**（market_score > 85）：revenge, transmigration, infinite_flow, romance, rules_horror
+2. **新兴题材**（market_score 75-85）：cyberpunk, business_war, medical_drama, sports, food_culture
+3. **推荐策略**：选择1个热门 + 1个新兴 + 1个创新元素
+"""
+                prompt = prompt.replace(
+                    "{theme_library_data}", available_themes_info + full_theme_data
+                )
                 logger.info(
-                    "Injected all themes library data", themes_count=len(all_themes_context)
+                    "Injected themes library data",
+                    total_themes=len(all_theme_slugs),
+                    loaded_themes=len(all_themes_context),
+                    selected_slugs=selected_slugs,
                 )
             else:
                 prompt = prompt.replace(
                     "{theme_library_data}",
-                    "## 题材库\n系统包含五大题材：复仇逆袭、甜宠恋爱、悬疑推理、穿越重生、家庭伦理。",
+                    "## 题材库\n系统包含13大题材，包括复仇逆袭、甜宠恋爱、悬疑推理、穿越重生、家庭伦理、无限流、末世求生、规则怪谈、赛博朋克、职场商战、医疗剧、体育竞技、美食文化等。",
                 )
 
             # 清空跨主题占位符（已整合到主数据中）
@@ -132,7 +192,7 @@ async def _load_story_planner_prompt(
             logger.warning("Failed to load theme library", error=str(e))
             prompt = prompt.replace(
                 "{theme_library_data}",
-                "## 题材库\n系统包含五大题材：复仇逆袭、甜宠恋爱、悬疑推理、穿越重生、家庭伦理。",
+                "## 题材库\n系统包含13大题材，包括复仇逆袭、甜宠恋爱、悬疑推理、穿越重生、家庭伦理、无限流、末世求生、规则怪谈、赛博朋克、职场商战、医疗剧、体育竞技、美食文化等。",
             )
             prompt = prompt.replace("{all_themes_data}", "")
 
@@ -140,16 +200,22 @@ async def _load_story_planner_prompt(
         try:
             import random
 
-            # ✅ 从所有主题中随机选择2-3个，混合推荐
-            all_theme_slugs = ["revenge", "romance", "suspense", "transmigration", "family_urban"]
+            # ✅ 从所有主题中动态获取并随机选择2-3个，混合推荐
+            all_theme_slugs = await _get_all_theme_slugs()
             selected_themes = random.sample(all_theme_slugs, k=min(3, len(all_theme_slugs)))
             all_tropes = []
             for theme in selected_themes:
                 try:
                     tropes = await get_tropes.ainvoke({"genre_id": theme, "limit": 3})
+                    # ✅ Fix: 确保 tropes 是字符串类型
+                    if isinstance(tropes, list):
+                        tropes = "\n".join(str(t) for t in tropes)
+                    elif not isinstance(tropes, str):
+                        tropes = str(tropes)
                     if tropes and "错误" not in tropes:
                         all_tropes.append(f"【{theme}】{tropes}")
-                except Exception:
+                except Exception as e:
+                    logger.warning(f"Failed to get tropes for {theme}", error=str(e))
                     continue
 
             if all_tropes:
@@ -189,13 +255,71 @@ async def _load_story_planner_prompt(
 
 
 def _format_market_report(report: dict) -> str:
-    """格式化市场分析报告为 Prompt 可用的字符串"""
-    lines = ["## 最新市场分析报告"]
+    """格式化市场分析报告为 Prompt 可用的字符串（软性引导版）"""
+    lines = ["## 💡 市场趋势参考（创意建议）"]
 
-    # 添加题材趋势
+    # ✅ 优化：以软性引导方式呈现热点元素
+    hot_elements = report.get("hot_elements", {})
+    if hot_elements:
+        lines.append("\n### 🔥 当前市场热门趋势（供参考）")
+
+        # 热门元素
+        tropes = hot_elements.get("hot_tropes", [])
+        if tropes:
+            lines.append("\n**近期观众关注的元素**（可作为创意灵感）：")
+            for i, trope in enumerate(tropes[:8], 1):
+                lines.append(f"{i}. {trope}")
+
+        # 热门背景
+        settings = hot_elements.get("hot_settings", [])
+        if settings:
+            lines.append("\n**受欢迎的故事背景**：")
+            for setting in settings[:5]:
+                lines.append(f"- {setting}")
+
+        # 热门人设
+        characters = hot_elements.get("hot_character_types", [])
+        if characters:
+            lines.append("\n**讨喜的角色人设**：")
+            for char in characters[:6]:
+                lines.append(f"- {char}")
+
+        # 新兴组合
+        emerging = hot_elements.get("emerging_combinations", [])
+        if emerging:
+            lines.append("\n**🆕 新兴组合**（创新方向，推荐尝试）：")
+            for combo in emerging[:5]:
+                lines.append(f"- {combo}")
+
+        # 过度使用的套路
+        overused = hot_elements.get("overused_tropes", [])
+        if overused:
+            lines.append("\n**🚫 已过度使用**（谨慎使用或避免）：")
+            for trope in overused[:5]:
+                lines.append(f"- ❌ {trope}")
+
+        # 参考爆款剧
+        works = hot_elements.get("specific_works", [])
+        if works:
+            lines.append("\n**🎬 参考爆款剧**（了解市场热点）：")
+            for work in works[:5]:
+                lines.append(f"- 《{work}》")
+
+        # 添加创意建议（软性引导）
+        lines.append("\n" + "=" * 50)
+        lines.append("💡 **创意建议**（参考而非限制）：")
+        lines.append("• 融合1-2个市场热点元素，可能提升观众接受度")
+        lines.append("• 尝试新兴组合，创造差异化的故事体验")
+        if overused:
+            lines.append("• 【已过度使用】的元素建议谨慎使用或增加创新 twist")
+        lines.append("• 参考【爆款剧】了解当前市场偏好，但不必模仿")
+        lines.append("• **最重要的是：保持创意独特性！**")
+        lines.append("=" * 50)
+
+    # 原有的题材趋势
     genres = report.get("genres", [])
     if genres:
-        lines.append("\n### 热门题材")
+        lines.append("\n### 热门题材趋势")
         for g in genres:
             trend_emoji = {"hot": "🔥", "up": "📈", "stable": "➡️", "down": "📉"}.get(
                 g.get("trend"), "•"
@@ -291,13 +415,39 @@ async def create_story_planner_agent(
             "last_successful_node": "story_planner_error",
         }
 
-    # 2. 获取配置好的模型
+    # 2. 获取去重上下文（如果是重新生成）
+    dedup_context = ""
+    if is_regenerate:
+        try:
+            from backend.services.plan_deduplication import get_dedup_service
+
+            dedup_service = get_dedup_service()
+            dedup_context = await dedup_service.get_dedup_context_for_prompt(user_id, days=7)
+            if dedup_context:
+                logger.info("Loaded dedup context for regeneration", user_id=user_id)
+        except Exception as e:
+            logger.warning("Failed to load dedup context", error=str(e))
+
+    # 3. 获取配置好的模型
     router = get_model_router()
     model = await router.get_model(
         user_id=user_id, task_type=TaskType.STORY_PLANNER, project_id=project_id
     )
 
-    # 3. 创建 Agent（使用 Skills）
+    # 4. 加载基础prompt
+    base_prompt = await _load_story_planner_prompt(
+        market_report=market_report,
+        episode_count=episode_count,
+        episode_duration=episode_duration,
+        genre=genre,
+        setting=setting,
+    )
+
+    # 5. 如果有去重上下文，追加到prompt
+    if dedup_context:
+        base_prompt = base_prompt + "\n\n" + dedup_context
+
+    # 6. 创建 Agent（使用 Skills）
     agent = create_react_agent(
         model=model,
         tools=[
@@ -312,13 +462,7 @@ async def create_story_planner_agent(
             get_pacing_rules,  # 获取节奏规则
             get_trending_combinations,  # 获取热门组合
         ],
-        prompt=await _load_story_planner_prompt(
-            market_report=market_report,
-            episode_count=episode_count,
-            episode_duration=episode_duration,
-            genre=genre,
-            setting=setting,
-        ),
+        prompt=base_prompt,
     )
 
     return agent

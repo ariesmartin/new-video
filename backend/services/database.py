@@ -1697,6 +1697,586 @@ class DatabaseService:
             return result[0]
         return None
 
+    # ===== Theme Library Methods =====
+
+    async def get_all_themes(self, active_only: bool = True) -> list[dict[str, Any]]:
+        """获取所有题材主题
+
+        Args:
+            active_only: 是否只返回激活状态的主题
+
+        Returns:
+            主题列表，每个主题包含完整信息
+        """
+        try:
+            params = {
+                "select": "*",
+                "order": "market_score.desc",
+            }
+
+            if active_only:
+                params["is_active"] = "eq.true"
+
+            response = await self._client.get(
+                f"{self._rest_url}/themes",
+                params=params,
+            )
+            response.raise_for_status()
+            return response.json()
+
+        except Exception as e:
+            logger.error("Failed to get all themes", error=str(e))
+            return []
+
+    async def get_theme_by_slug(self, slug: str) -> dict[str, Any] | None:
+        """通过slug获取单个主题
+
+        Args:
+            slug: 主题slug
+
+        Returns:
+            主题信息，如果不存在返回None
+        """
+        try:
+            response = await self._client.get(
+                f"{self._rest_url}/themes",
+                params={
+                    "slug": f"eq.{slug}",
+                    "select": "*",
+                    "limit": 1,
+                },
+            )
+            response.raise_for_status()
+            result = response.json()
+            return result[0] if result else None
+
+        except Exception as e:
+            logger.error("Failed to get theme by slug", slug=slug, error=str(e))
+            return None
+
+    # ===== Plan History Methods (for Deduplication) =====
+
+    async def get_recent_plans(
+        self, user_id: str, days: int = 30, limit: int = 50
+    ) -> list[dict[str, Any]]:
+        """获取用户最近生成的方案历史
+
+        Args:
+            user_id: 用户ID
+            days: 查询最近多少天内的方案
+            limit: 最多返回多少条
+
+        Returns:
+            方案历史列表
+        """
+        try:
+            from datetime import datetime, timezone, timedelta
+
+            cutoff_date = (datetime.now(timezone.utc) - timedelta(days=days)).isoformat()
+
+            response = await self._client.get(
+                f"{self._rest_url}/generated_plans_history",
+                params={
+                    "user_id": f"eq.{user_id}",
+                    "generated_at": f"gte.{cutoff_date}",
+                    "select": "*",
+                    "order": "generated_at.desc",
+                    "limit": limit,
+                },
+            )
+            response.raise_for_status()
+            return response.json()
+
+        except Exception as e:
+            logger.error("Failed to get recent plans", user_id=user_id, error=str(e))
+            return []
+
+    async def save_plan_history(self, record: dict[str, Any]) -> dict[str, Any] | None:
+        """保存方案生成历史
+
+        Args:
+            record: 方案记录，包含user_id, project_id, plan_title等
+
+        Returns:
+            保存后的记录，失败返回None
+        """
+        try:
+            response = await self._client.post(
+                f"{self._rest_url}/generated_plans_history",
+                json=record,
+                headers=self._headers,
+            )
+            response.raise_for_status()
+            result = response.json()
+            return result[0] if result else record
+
+        except Exception as e:
+            logger.error("Failed to save plan history", error=str(e))
+            return None
+
+    async def get_user_plan_preferences(self, user_id: str) -> dict[str, Any] | None:
+        """获取用户方案偏好
+
+        Args:
+            user_id: 用户ID
+
+        Returns:
+            用户偏好设置，不存在返回None
+        """
+        try:
+            response = await self._client.get(
+                f"{self._rest_url}/user_plan_preferences",
+                params={
+                    "user_id": f"eq.{user_id}",
+                    "select": "*",
+                    "limit": 1,
+                },
+            )
+            response.raise_for_status()
+            result = response.json()
+            return result[0] if result else None
+
+        except Exception as e:
+            logger.error("Failed to get user preferences", user_id=user_id, error=str(e))
+            return None
+
+    async def update_user_plan_preferences(self, user_id: str, preferences: dict[str, Any]) -> bool:
+        """更新用户方案偏好
+
+        Args:
+            user_id: 用户ID
+            preferences: 偏好数据
+
+        Returns:
+            是否成功
+        """
+        try:
+            # 检查是否已存在
+            existing = await self.get_user_plan_preferences(user_id)
+
+            if existing:
+                # 更新
+                response = await self._client.patch(
+                    f"{self._rest_url}/user_plan_preferences",
+                    params={"user_id": f"eq.{user_id}"},
+                    json={**preferences, "last_updated": "now()"},
+                    headers=self._headers,
+                )
+            else:
+                # 创建
+                response = await self._client.post(
+                    f"{self._rest_url}/user_plan_preferences",
+                    json={**preferences, "user_id": user_id},
+                    headers=self._headers,
+                )
+
+            response.raise_for_status()
+            return True
+
+        except Exception as e:
+            logger.error("Failed to update preferences", user_id=user_id, error=str(e))
+            return False
+
+    # ===== Outline & Review Methods =====
+
+    async def get_outline(self, project_id: str) -> dict[str, Any] | None:
+        """获取项目大纲
+
+        从 project_content 表中获取 content_type='outline' 的内容
+        """
+        try:
+            response = await self._client.get(
+                f"{self._rest_url}/project_content",
+                params={
+                    "project_id": f"eq.{project_id}",
+                    "content_type": "eq.outline",
+                    "select": "*",
+                    "order": "created_at.desc",
+                    "limit": "1",
+                },
+            )
+            response.raise_for_status()
+            result = response.json()
+
+            if not result:
+                return None
+
+            content = result[0]
+            # 解析 content 字段中的 JSON 数据
+            import json
+
+            try:
+                outline_data = json.loads(content.get("content", "{}"))
+                outline_data["projectId"] = project_id
+                outline_data["updatedAt"] = content.get("updated_at")
+                return outline_data
+            except json.JSONDecodeError:
+                logger.error("Failed to parse outline content", project_id=project_id)
+                return None
+
+        except Exception as e:
+            logger.error("Failed to get outline", project_id=project_id, error=str(e))
+            return None
+
+    async def save_outline(self, project_id: str, outline_data: dict[str, Any]) -> bool:
+        """保存项目大纲
+
+        保存到 project_content 表中
+        """
+        try:
+            import json
+
+            payload = {
+                "project_id": project_id,
+                "content_type": "outline",
+                "title": outline_data.get("title", "未命名大纲"),
+                "content": json.dumps(outline_data),
+                "metadata": {
+                    "total_episodes": outline_data.get("totalEpisodes", 80),
+                    "version": outline_data.get("version", 1),
+                },
+                "status": "draft",
+            }
+
+            # 检查是否已存在
+            existing = await self.get_outline(project_id)
+            if existing:
+                # 更新现有记录
+                response = await self._client.patch(
+                    f"{self._rest_url}/project_content",
+                    params={"project_id": f"eq.{project_id}", "content_type": "eq.outline"},
+                    json=payload,
+                )
+            else:
+                # 创建新记录
+                response = await self._client.post(
+                    f"{self._rest_url}/project_content", json=payload
+                )
+
+            response.raise_for_status()
+            return True
+
+        except Exception as e:
+            logger.error("Failed to save outline", project_id=project_id, error=str(e))
+            return False
+
+    async def get_outline_node(self, project_id: str, node_id: str) -> dict[str, Any] | None:
+        """获取大纲节点（剧集）
+
+        从 episodes 表中获取
+        """
+        try:
+            response = await self._client.get(
+                f"{self._rest_url}/episodes",
+                params={
+                    "episode_id": f"eq.{node_id}",
+                    "project_id": f"eq.{project_id}",
+                    "select": "*",
+                },
+            )
+            response.raise_for_status()
+            result = response.json()
+
+            if not result:
+                return None
+
+            return result[0]
+
+        except Exception as e:
+            logger.error("Failed to get outline node", node_id=node_id, error=str(e))
+            return None
+
+    async def update_outline_node(
+        self, project_id: str, node_id: str, data: dict[str, Any]
+    ) -> bool:
+        """更新大纲节点"""
+        try:
+            # 构建更新 payload
+            payload = {}
+            if "title" in data:
+                payload["title"] = data["title"]
+            if "content" in data:
+                payload["summary"] = data["content"]
+            if "metadata" in data:
+                # 合并 metadata
+                import json
+
+                payload["script_scenes"] = json.dumps(data["metadata"])
+
+            payload["updated_at"] = datetime.now(timezone.utc).isoformat()
+
+            response = await self._client.patch(
+                f"{self._rest_url}/episodes",
+                params={"episode_id": f"eq.{node_id}", "project_id": f"eq.{project_id}"},
+                json=payload,
+            )
+            response.raise_for_status()
+            return True
+
+        except Exception as e:
+            logger.error("Failed to update outline node", node_id=node_id, error=str(e))
+            return False
+
+    # ===== Story Plans Methods =====
+
+    async def get_plan(self, plan_id: str) -> dict[str, Any] | None:
+        """获取故事策划方案"""
+        try:
+            response = await self._client.get(
+                f"{self._rest_url}/story_plans", params={"plan_id": f"eq.{plan_id}", "select": "*"}
+            )
+            response.raise_for_status()
+            result = response.json()
+
+            if not result:
+                return None
+
+            return result[0]
+
+        except Exception as e:
+            logger.error("Failed to get plan", plan_id=plan_id, error=str(e))
+            return None
+
+    async def get_selected_plan(self, project_id: str) -> dict[str, Any] | None:
+        """获取项目选中的方案"""
+        try:
+            response = await self._client.get(
+                f"{self._rest_url}/story_plans",
+                params={
+                    "project_id": f"eq.{project_id}",
+                    "is_selected": "eq.true",
+                    "select": "*",
+                    "limit": "1",
+                },
+            )
+            response.raise_for_status()
+            result = response.json()
+
+            if not result:
+                return None
+
+            return result[0]
+
+        except Exception as e:
+            logger.error("Failed to get selected plan", project_id=project_id, error=str(e))
+            return None
+
+    # ===== Review Methods =====
+
+    async def get_outline_review(
+        self, project_id: str, review_type: str = "global"
+    ) -> dict[str, Any] | None:
+        """获取大纲审阅结果
+
+        从 content_reviews 表中获取
+        """
+        try:
+            response = await self._client.get(
+                f"{self._rest_url}/content_reviews",
+                params={
+                    "project_id": f"eq.{project_id}",
+                    "review_type": f"eq.{review_type}",
+                    "content_type": "eq.outline",
+                    "select": "*",
+                    "order": "created_at.desc",
+                    "limit": "1",
+                },
+            )
+            response.raise_for_status()
+            result = response.json()
+
+            if not result:
+                return None
+
+            review = result[0]
+            # 转换字段名称为驼峰式
+            return {
+                "generatedAt": review.get("created_at"),
+                "overallScore": review.get("overall_score"),
+                "categories": review.get("categories", {}),
+                "tensionCurve": review.get("tension_curve", []),
+                "chapterReviews": review.get("chapter_reviews", {}),
+                "issues": review.get("issues", []),
+                "summary": review.get("summary", ""),
+                "recommendations": review.get("recommendations", []),
+            }
+
+        except Exception as e:
+            logger.error("Failed to get outline review", project_id=project_id, error=str(e))
+            return None
+
+    async def save_outline_review(self, project_id: str, review_data: dict[str, Any]) -> bool:
+        """保存大纲审阅结果"""
+        try:
+            # 获取当前用户ID
+            # 注意：实际应该从请求上下文中获取
+            user_id = review_data.get("userId", "system")
+
+            payload = {
+                "project_id": project_id,
+                "user_id": user_id,
+                "review_type": "global",
+                "content_type": "outline",
+                "overall_score": review_data.get("overallScore", 0),
+                "categories": review_data.get("categories", {}),
+                "tension_curve": review_data.get("tensionCurve", []),
+                "chapter_reviews": review_data.get("chapterReviews", {}),
+                "issues": review_data.get("issues", []),
+                "summary": review_data.get("summary", ""),
+                "recommendations": review_data.get("recommendations", []),
+                "status": "completed",
+            }
+
+            response = await self._client.post(f"{self._rest_url}/content_reviews", json=payload)
+            response.raise_for_status()
+            return True
+
+        except Exception as e:
+            logger.error("Failed to save outline review", project_id=project_id, error=str(e))
+            return False
+
+    async def get_chapter_review(self, project_id: str, chapter_id: str) -> dict[str, Any] | None:
+        """获取单章审阅结果"""
+        try:
+            response = await self._client.get(
+                f"{self._rest_url}/content_reviews",
+                params={
+                    "project_id": f"eq.{project_id}",
+                    "review_type": "eq.chapter",
+                    "episode_id": f"eq.{chapter_id}",
+                    "select": "*",
+                    "order": "created_at.desc",
+                    "limit": "1",
+                },
+            )
+            response.raise_for_status()
+            result = response.json()
+
+            if not result:
+                return None
+
+            review = result[0]
+            return {
+                "chapterId": chapter_id,
+                "reviewedAt": review.get("created_at"),
+                "score": review.get("overall_score", 0),
+                "issues": review.get("issues", []),
+                "suggestions": review.get("recommendations", []),
+            }
+
+        except Exception as e:
+            logger.error("Failed to get chapter review", chapter_id=chapter_id, error=str(e))
+            return None
+
+    async def save_chapter_review(
+        self, project_id: str, chapter_id: str, review_data: dict[str, Any]
+    ) -> bool:
+        """保存单章审阅结果"""
+        try:
+            user_id = review_data.get("userId", "system")
+
+            payload = {
+                "project_id": project_id,
+                "user_id": user_id,
+                "review_type": "chapter",
+                "content_type": "outline",
+                "episode_id": chapter_id,
+                "overall_score": review_data.get("score", 0),
+                "issues": review_data.get("issues", []),
+                "recommendations": review_data.get("suggestions", []),
+                "summary": f"章节 {chapter_id} 审阅完成",
+                "status": "completed",
+            }
+
+            response = await self._client.post(f"{self._rest_url}/content_reviews", json=payload)
+            response.raise_for_status()
+            return True
+
+        except Exception as e:
+            logger.error("Failed to save chapter review", chapter_id=chapter_id, error=str(e))
+            return False
+
+    # ===== User Config Methods =====
+
+    async def get_user_config(self, project_id: str) -> dict[str, Any]:
+        """获取用户配置
+
+        从 projects 表和 user_preferences 表中获取
+        """
+        try:
+            # 先获取项目信息
+            response = await self._client.get(
+                f"{self._rest_url}/projects",
+                params={"id": f"eq.{project_id}", "select": "*,user_preferences(user_config)"},
+            )
+            response.raise_for_status()
+            result = response.json()
+
+            if not result:
+                return {}
+
+            project = result[0]
+
+            # 合并配置
+            config = {
+                "user_id": project.get("user_id"),
+                "project_id": project_id,
+            }
+
+            # 从 user_preferences 获取 user_config
+            preferences = project.get("user_preferences", {})
+            if isinstance(preferences, list) and preferences:
+                preferences = preferences[0]
+
+            user_config = preferences.get("user_config", {}) if preferences else {}
+            config.update(user_config)
+
+            # 从 project meta 获取配置
+            meta = project.get("meta", {})
+            if isinstance(meta, str):
+                import json
+
+                try:
+                    meta = json.loads(meta)
+                except:
+                    meta = {}
+
+            config.update(
+                {
+                    "sub_tags": meta.get("sub_tags", ["revenge"]),
+                    "ending": meta.get("ending", "HE"),
+                    "total_episodes": meta.get("total_episodes", 80),
+                    "target_word_count": meta.get("target_word_count", 1500),
+                }
+            )
+
+            return config
+
+        except Exception as e:
+            logger.error("Failed to get user config", project_id=project_id, error=str(e))
+            return {
+                "user_id": "default",
+                "project_id": project_id,
+                "sub_tags": ["revenge"],
+                "ending": "HE",
+                "total_episodes": 80,
+            }
+
+    async def update_project_status(self, project_id: str, status: str) -> bool:
+        """更新项目状态"""
+        try:
+            response = await self._client.patch(
+                f"{self._rest_url}/projects",
+                params={"id": f"eq.{project_id}"},
+                json={"status": status, "updated_at": datetime.now(timezone.utc).isoformat()},
+            )
+            response.raise_for_status()
+            return True
+
+        except Exception as e:
+            logger.error("Failed to update project status", project_id=project_id, error=str(e))
+            return False
+
 
 # ===== Singleton Factory =====
 

@@ -14,6 +14,8 @@ from backend.api.canvas import router as canvas_router
 from backend.api.connections import router as connections_router
 from backend.api.assets import router as assets_router
 from backend.api.themes import router as themes_router
+from backend.api.review import router as review_router
+from backend.api.skeleton_builder import router as skeleton_router
 
 __all__ = [
     "graph_router",
@@ -26,4 +28,6 @@ __all__ = [
     "connections_router",
     "assets_router",
     "themes_router",
+    "review_router",
+    "skeleton_router",
 ]

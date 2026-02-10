@@ -21,7 +21,7 @@ async def _load_refiner_prompt(
     character_voices: Optional[Dict] = None,
 ) -> str:
     """从文件加载 Refiner 的 System Prompt"""
-    prompt_path = Path(__file__).parent.parent.parent / "prompts" / "8_Refiner.md"
+    prompt_path = Path(__file__).parent.parent / "prompts" / "8_Refiner.md"
 
     try:
         with open(prompt_path, "r", encoding="utf-8") as f:
@@ -135,7 +135,7 @@ async def refiner_node(state: Dict) -> Dict:
 
     # 提取其他上下文
     genre_combination = user_config.get("sub_tags", ["revenge", "romance"])
-    ending = user_config.get("ending", "HE")
+    ending = user_config.get("ending_type", "HE")
     total_episodes = user_config.get("total_episodes", 80)
 
     # 根据当前阶段判断 content_type

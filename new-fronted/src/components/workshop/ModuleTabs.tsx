@@ -1,7 +1,7 @@
-import { BookOpen, FileText, Grid3X3 } from 'lucide-react';
+import { BookOpen, FileText, Grid3X3, ListTree } from 'lucide-react';
 import { cn } from '@/lib/utils';
 
-export type EditorModule = 'novel' | 'script' | 'storyboard';
+export type EditorModule = 'outline' | 'novel' | 'script' | 'storyboard';
 
 interface ModuleTabsProps {
   activeModule: EditorModule;
@@ -9,6 +9,7 @@ interface ModuleTabsProps {
 }
 
 const modules = [
+  { id: 'outline' as EditorModule, label: '大纲', icon: ListTree },
   { id: 'novel' as EditorModule, label: '小说', icon: BookOpen },
   { id: 'script' as EditorModule, label: '剧本', icon: FileText },
   { id: 'storyboard' as EditorModule, label: '分镜', icon: Grid3X3 },

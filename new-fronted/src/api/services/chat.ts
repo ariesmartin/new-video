@@ -21,6 +21,8 @@ export interface ChatInitResponse {
   messages: Message[];
   is_cold_start: boolean;
   ui_interaction?: UIInteractionBlock;
+  is_generating?: boolean;
+  generating_node?: string;
 }
 
 export interface ChatStreamCallbacks {
@@ -29,6 +31,7 @@ export interface ChatStreamCallbacks {
   onToolCall?: (tool: { name: string; arguments: any }) => void;
   onNodeStart?: (node: string, desc?: string) => void;
   onNodeEnd?: (node: string) => void;
+  onProgress?: (desc: string) => void;  // 新增：详细进度更新
   onStatus?: (status: string) => void;
   onError?: (error: string) => void;
   onComplete?: () => void;
@@ -36,7 +39,7 @@ export interface ChatStreamCallbacks {
 
 // 后端 SSE 事件类型定义（与 backend/api/graph.py 对应）
 interface BackendSSEEvent {
-  type: 'node_start' | 'node_end' | 'token' | 'done' | 'error' | 'status' | 'ui_interaction';
+  type: 'node_start' | 'node_end' | 'token' | 'done' | 'error' | 'status' | 'ui_interaction' | 'progress';
   node?: string;
   content?: string;
   data?: any;
@@ -155,7 +158,7 @@ export const chatService = {
       // 后备：保持原有格式但确保 timestamp 是 Date
       return {
         ...msg,
-        role: msg.role === 'ai' ? 'assistant' : msg.role,
+        role: (msg.role as string) === 'ai' ? 'assistant' : msg.role,
         timestamp: new Date(msg.timestamp || Date.now()),
       };
     });
@@ -434,6 +437,13 @@ export const chatService = {
             }
             break;
 
+          case 'progress':
+            // 详细进度更新
+            if (callbacks.onProgress && data.desc) {
+              callbacks.onProgress(data.desc);
+            }
+            break;
+
           case 'status':
             // 状态更新（工具调用、处理阶段等）
             if (callbacks.onStatus && data.message) {
@@ -587,7 +597,7 @@ export const chatService = {
         }
         return {
           id: msg.id,
-          role: msg.role === 'ai' ? 'assistant' : msg.role,
+        role: msg.role === 'ai' ? 'assistant' : msg.role as 'user' | 'assistant' | 'system',
           content: cleanJsonFromContent(msg.content),
           timestamp: new Date(msg.timestamp),
           metadata: msg.metadata,

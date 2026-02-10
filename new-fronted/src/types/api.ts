@@ -772,6 +772,401 @@ export interface paths {
         patch: operations["update_asset_api_projects_assets__asset_id__patch"];
         trace?: never;
     };
+    "/api/themes": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * List Themes
+         * @description 获取所有主题/题材列表
+         *
+         *     返回系统中所有可用的短剧题材，包括复仇逆袭、甜宠恋爱、悬疑推理等。
+         *     可按分类筛选。
+         */
+        get: operations["list_themes_api_themes_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/themes/hooks/templates": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * List Hook Templates
+         * @description 获取所有钩子模板
+         *
+         *     钩子模板用于短剧开头3秒吸引观众注意，提高留存率。
+         *     支持按类型和有效性评分筛选。
+         */
+        get: operations["list_hook_templates_api_themes_hooks_templates_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/themes/search/elements": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Search Elements
+         * @description 搜索爆款元素
+         *
+         *     在元素名称和描述中搜索关键词，返回最相关的元素。
+         *     可用于快速查找特定类型的元素。
+         */
+        get: operations["search_elements_api_themes_search_elements_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/themes/{theme_slug}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Get Theme
+         * @description 获取指定主题的详细信息
+         *
+         *     包含：
+         *     - 主题基本信息（名称、描述、核心公式）
+         *     - 爆款元素列表（可选）
+         *     - 钩子模板（可选）
+         *     - 标杆案例（可选）
+         */
+        get: operations["get_theme_api_themes__theme_slug__get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/themes/{theme_slug}/elements": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * List Theme Elements
+         * @description 获取指定主题的所有爆款元素
+         *
+         *     支持按元素类型筛选和有效性评分过滤。
+         *     按有效性评分降序排列。
+         */
+        get: operations["list_theme_elements_api_themes__theme_slug__elements_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/themes/{theme_slug}/examples": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * List Theme Examples
+         * @description 获取指定主题的所有标杆案例
+         *
+         *     包含国内外成功的短剧案例，用于学习和参考。
+         */
+        get: operations["list_theme_examples_api_themes__theme_slug__examples_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/themes/{theme_slug}/recommend": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Get Theme Recommendations
+         * @description 获取针对特定场景的元素推荐
+         *
+         *     根据目标集数和期望的情绪效果，推荐最合适的爆款元素组合。
+         *     用于辅助编剧选择剧情转折点。
+         */
+        post: operations["get_theme_recommendations_api_themes__theme_slug__recommend_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/review/{project_id}/global": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Get Global Review
+         * @description 获取全局审阅报告
+         *
+         *     获取大纲全局审阅结果，包含：
+         *     - overallScore: 总体评分
+         *     - categories: 6大分类评分
+         *     - tensionCurve: 张力曲线
+         *     - chapterReviews: 章节审阅映射
+         */
+        get: operations["get_global_review_api_review__project_id__global_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/review/{project_id}/chapters/{chapter_id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Get Chapter Review
+         * @description 获取单章审阅详情
+         *
+         *     获取指定章节的审阅结果
+         */
+        get: operations["get_chapter_review_api_review__project_id__chapters__chapter_id__get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/review/{project_id}/re_review": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Re Review
+         * @description 触发重新审阅
+         *
+         *     - 如 chapterId 为空，重新审阅全局
+         *     - 如 chapterId 不为空，重新审阅指定章节
+         */
+        post: operations["re_review_api_review__project_id__re_review_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/review/{project_id}/tension_curve": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Get Tension Curve
+         * @description 获取张力曲线
+         *
+         *     - 如 chapterId 为空，返回全局张力曲线
+         *     - 如 chapterId 不为空，返回该章节的张力曲线（如有）
+         */
+        get: operations["get_tension_curve_api_review__project_id__tension_curve_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/review/{project_id}/status": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Get Review Status
+         * @description 获取审阅状态概览
+         *
+         *     返回项目所有章节的审阅状态统计
+         */
+        get: operations["get_review_status_api_review__project_id__status_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/skeleton/generate": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Generate Outline
+         * @description 生成大纲
+         *
+         *     触发 skeleton_builder_graph 工作流生成大纲结构
+         */
+        post: operations["generate_outline_api_skeleton_generate_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/skeleton/{project_id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Get Outline
+         * @description 获取大纲
+         *
+         *     获取指定项目的大纲数据（包含审阅结果）
+         */
+        get: operations["get_outline_api_skeleton__project_id__get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/skeleton/{project_id}/nodes/{node_id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        /**
+         * Update Node
+         * @description 更新大纲节点
+         *
+         *     更新指定节点的标题、内容或元数据，并自动触发该章节的审阅
+         */
+        patch: operations["update_node_api_skeleton__project_id__nodes__node_id__patch"];
+        trace?: never;
+    };
+    "/api/skeleton/{project_id}/review": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Get Outline Review
+         * @description 获取大纲审阅结果
+         *
+         *     获取全局审阅报告
+         */
+        get: operations["get_outline_review_api_skeleton__project_id__review_get"];
+        put?: never;
+        /**
+         * Review Outline
+         * @description 触发大纲全局审阅
+         *
+         *     调用 Quality Control Graph 进行全局审阅（global_review 模式）
+         */
+        post: operations["review_outline_api_skeleton__project_id__review_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/skeleton/{project_id}/confirm": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Confirm Outline
+         * @description 确认大纲
+         *
+         *     用户确认大纲后，流转到小说创作阶段
+         */
+        post: operations["confirm_outline_api_skeleton__project_id__confirm_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/health": {
         parameters: {
             query?: never;
@@ -1103,6 +1498,21 @@ export interface components {
             content_status?: components["schemas"]["ContentStatus"] | null;
         };
         /**
+         * ConfirmOutlineResponse
+         * @description 确认大纲响应
+         */
+        ConfirmOutlineResponse: {
+            /** Success */
+            success: boolean;
+            /** Message */
+            message: string;
+            /**
+             * Nextstep
+             * @default novel_writer
+             */
+            nextStep: string;
+        };
+        /**
          * Connection
          * @description 节点连线 - v6.0
          */
@@ -1304,6 +1714,18 @@ export interface components {
              */
             novelContent?: string | null;
         };
+        /**
+         * GenerateOutlineRequest
+         * @description 生成大纲请求
+         */
+        GenerateOutlineRequest: {
+            /** Projectid */
+            projectId: string;
+            /** Planid */
+            planId: string;
+            /** Userinput */
+            userInput?: string | null;
+        };
         /** HTTPValidationError */
         HTTPValidationError: {
             /** Detail */
@@ -1443,6 +1865,24 @@ export interface components {
             /** Error */
             error?: string | null;
         };
+        /**
+         * OutlineResponse
+         * @description 大纲响应
+         */
+        OutlineResponse: {
+            /** Projectid */
+            projectId: string;
+            /** Episodes */
+            episodes: {
+                [key: string]: unknown;
+            }[];
+            /** Totalepisodes */
+            totalEpisodes: number;
+            /** Createdat */
+            createdAt: string;
+            /** Updatedat */
+            updatedAt: string;
+        };
         /** PaginatedResponse[AssetResponseData] */
         PaginatedResponse_AssetResponseData_: {
             /**
@@ -1498,6 +1938,51 @@ export interface components {
              * @description 数据列表
              */
             data: components["schemas"]["ProjectResponse"][];
+            /**
+             * Total
+             * @description 总记录数
+             */
+            total: number;
+            /**
+             * Page
+             * @description 当前页码 (从 1 开始)
+             */
+            page: number;
+            /**
+             * Page Size
+             * @description 每页大小
+             */
+            page_size: number;
+            /**
+             * Total Pages
+             * @description 总页数
+             */
+            total_pages: number;
+            /**
+             * Has Next
+             * @description 是否有下一页
+             */
+            has_next: boolean;
+            /**
+             * Has Prev
+             * @description 是否有上一页
+             */
+            has_prev: boolean;
+        };
+        /** PaginatedResponse[dict] */
+        PaginatedResponse_dict_: {
+            /**
+             * Success
+             * @default true
+             */
+            success: boolean;
+            /**
+             * Data
+             * @description 数据列表
+             */
+            data: {
+                [key: string]: unknown;
+            }[];
             /**
              * Total
              * @description 总记录数
@@ -1719,6 +2204,14 @@ export interface components {
          * @enum {string}
          */
         ProviderType: "llm" | "video" | "image";
+        /**
+         * ReReviewRequest
+         * @description 重新审阅请求
+         */
+        ReReviewRequest: {
+            /** Chapterid */
+            chapterId?: string | null;
+        };
         /**
          * SceneCreate
          * @description 创建场景请求
@@ -2106,6 +2599,16 @@ export interface components {
                 [key: string]: string;
             };
         };
+        /** SuccessResponse[list] */
+        SuccessResponse_list_: {
+            /**
+             * Success
+             * @default true
+             */
+            success: boolean;
+            /** Data */
+            data: unknown[];
+        };
         /** SuccessResponse[list[Connection]] */
         SuccessResponse_list_Connection__: {
             /**
@@ -2201,6 +2704,20 @@ export interface components {
              * @default true
              */
             dismissible: boolean;
+        };
+        /**
+         * UpdateNodeRequest
+         * @description 更新节点请求
+         */
+        UpdateNodeRequest: {
+            /** Title */
+            title?: string | null;
+            /** Content */
+            content?: string | null;
+            /** Metadata */
+            metadata?: {
+                [key: string]: unknown;
+            } | null;
         };
         /** ValidationError */
         ValidationError: {
@@ -3931,6 +4448,621 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["SuccessResponse_AssetResponseData_"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    list_themes_api_themes_get: {
+        parameters: {
+            query?: {
+                /** @description 按分类筛选: drama, romance, suspense, etc. */
+                category?: string | null;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["SuccessResponse_list_"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    list_hook_templates_api_themes_hooks_templates_get: {
+        parameters: {
+            query?: {
+                /** @description 钩子类型: situation, question, visual */
+                hook_type?: string | null;
+                /** @description 最低有效性评分 */
+                min_effectiveness?: number | null;
+                /** @description 页码 */
+                page?: number;
+                /** @description 每页数量 */
+                page_size?: number;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["PaginatedResponse_dict_"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    search_elements_api_themes_search_elements_get: {
+        parameters: {
+            query: {
+                /** @description 搜索关键词 */
+                query: string;
+                /** @description 限定主题 */
+                theme_slug?: string | null;
+                /** @description 返回数量 */
+                limit?: number;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["SuccessResponse_list_"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    get_theme_api_themes__theme_slug__get: {
+        parameters: {
+            query?: {
+                /** @description 是否包含爆款元素 */
+                include_elements?: boolean;
+                /** @description 是否包含钩子模板 */
+                include_hooks?: boolean;
+                /** @description 是否包含标杆案例 */
+                include_examples?: boolean;
+            };
+            header?: never;
+            path: {
+                theme_slug: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["SuccessResponse_dict_"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    list_theme_elements_api_themes__theme_slug__elements_get: {
+        parameters: {
+            query?: {
+                /** @description 元素类型筛选 */
+                element_type?: string | null;
+                /** @description 最低有效性评分 */
+                min_effectiveness?: number | null;
+                /** @description 页码 */
+                page?: number;
+                /** @description 每页数量 */
+                page_size?: number;
+            };
+            header?: never;
+            path: {
+                theme_slug: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["PaginatedResponse_dict_"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    list_theme_examples_api_themes__theme_slug__examples_get: {
+        parameters: {
+            query?: {
+                /** @description 案例类型: domestic, international */
+                example_type?: string | null;
+                /** @description 页码 */
+                page?: number;
+                /** @description 每页数量 */
+                page_size?: number;
+            };
+            header?: never;
+            path: {
+                theme_slug: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["PaginatedResponse_dict_"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    get_theme_recommendations_api_themes__theme_slug__recommend_post: {
+        parameters: {
+            query: {
+                /** @description 目标集数 */
+                target_episode: number;
+                /** @description 目标情绪: tension, relief, excitement */
+                emotion_target?: string | null;
+            };
+            header?: never;
+            path: {
+                theme_slug: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["SuccessResponse_dict_"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    get_global_review_api_review__project_id__global_get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                project_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": unknown;
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    get_chapter_review_api_review__project_id__chapters__chapter_id__get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                project_id: string;
+                chapter_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": unknown;
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    re_review_api_review__project_id__re_review_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                project_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["ReReviewRequest"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": unknown;
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    get_tension_curve_api_review__project_id__tension_curve_get: {
+        parameters: {
+            query?: {
+                chapter_id?: string | null;
+            };
+            header?: never;
+            path: {
+                project_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": unknown;
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    get_review_status_api_review__project_id__status_get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                project_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": unknown;
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    generate_outline_api_skeleton_generate_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["GenerateOutlineRequest"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["OutlineResponse"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    get_outline_api_skeleton__project_id__get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                project_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["OutlineResponse"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    update_node_api_skeleton__project_id__nodes__node_id__patch: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                project_id: string;
+                node_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["UpdateNodeRequest"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": unknown;
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    get_outline_review_api_skeleton__project_id__review_get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                project_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        [key: string]: unknown;
+                    };
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    review_outline_api_skeleton__project_id__review_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                project_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": unknown;
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    confirm_outline_api_skeleton__project_id__confirm_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                project_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ConfirmOutlineResponse"];
                 };
             };
             /** @description Validation Error */
