@@ -591,15 +591,15 @@ export function AIAssistantBar() {
                       className={`flex flex-col ${message.role === 'user' ? 'items-end' : 'items-start'}`}
                     >
                       <div
-                        className={`max-w-[85%] sm:max-w-[80%] rounded-2xl px-3 py-2 sm:px-4 sm:py-3 ${message.role === 'user'
+                        className={`max-w-[85%] sm:max-w-[80%] rounded-2xl px-3 py-2 sm:px-4 sm:py-3 min-w-0 ${message.role === 'user'
                           ? 'bg-primary text-primary-foreground rounded-br-md'
                           : 'bg-elevated border border-border rounded-bl-md'
                           }`}
                       >
                         {message.role === 'user' ? (
-                          <p className="text-xs sm:text-sm whitespace-pre-wrap">{message.content}</p>
+                          <p className="text-xs sm:text-sm whitespace-pre-wrap break-words min-w-0">{message.content}</p>
                         ) : (
-                          <div className="prose prose-sm prose-invert max-w-none text-xs sm:text-sm overflow-hidden break-words [&>p]:mb-2 [&>p:last-child]:mb-0 [&>ul]:list-disc [&>ul]:pl-4 [&>ol]:list-decimal [&>ol]:pl-4 [&>code]:bg-background [&>code]:px-1 [&>code]:rounded [&>pre]:overflow-x-auto">
+                          <div className="prose prose-sm prose-invert max-w-none text-xs sm:text-sm overflow-hidden break-words min-w-0 [&>p]:mb-2 [&>p:last-child]:mb-0 [&>ul]:list-disc [&>ul]:pl-4 [&>ol]:list-decimal [&>ol]:pl-4 [&>code]:bg-background [&>code]:px-1 [&>code]:rounded [&>pre]:overflow-x-auto">
                             <ReactMarkdown
                               remarkPlugins={[remarkGfm]}
                               components={{
@@ -631,8 +631,8 @@ export function AIAssistantBar() {
 
                 {streamingContent && (
                   <div className="flex justify-start">
-                    <div className="bg-elevated border border-border rounded-2xl rounded-bl-md px-4 py-3 max-w-[85%] sm:max-w-[80%]">
-                      <div className="prose prose-sm prose-invert max-w-none text-sm overflow-hidden break-words [&>p]:mb-2 [&>p:last-child]:mb-0 [&>ul]:list-disc [&>ul]:pl-4 [&>ol]:list-decimal [&>ol]:pl-4 [&>pre]:overflow-x-auto">
+                    <div className="bg-elevated border border-border rounded-2xl rounded-bl-md px-4 py-3 max-w-[85%] sm:max-w-[80%] min-w-0">
+                      <div className="prose prose-sm prose-invert max-w-none text-sm overflow-hidden break-words min-w-0 [&>p]:mb-2 [&>p:last-child]:mb-0 [&>ul]:list-disc [&>ul]:pl-4 [&>ol]:list-decimal [&>ol]:pl-4 [&>pre]:overflow-x-auto">
                         <ReactMarkdown
                           remarkPlugins={[remarkGfm]}
                           components={{

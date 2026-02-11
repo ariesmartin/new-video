@@ -373,22 +373,22 @@ export function AIAssistant() {
                 className={`flex ${message.role === 'user' ? 'justify-end' : 'justify-start'}`}
               >
                 <div
-                  className={`max-w-[85%] rounded-2xl px-4 py-3 ${
+                  className={`max-w-[85%] rounded-2xl px-4 py-3 min-w-0 ${
                     message.role === 'user'
                       ? 'bg-primary text-primary-foreground rounded-br-md'
                       : 'bg-background border border-border rounded-bl-md'
                   }`}
                 >
-                  <p className="text-sm whitespace-pre-wrap break-words">{message.content}</p>
+                  <p className="text-sm whitespace-pre-wrap break-words min-w-0">{message.content}</p>
                   
                   {message.ui_interaction && message.role === 'assistant' && (
-                    <div className="mt-4 space-y-3">
+                    <div className="mt-4 space-y-3 min-w-0">
                       {message.ui_interaction.title && (
                         <p className="text-sm font-medium text-text-secondary">{message.ui_interaction.title}</p>
                       )}
                       
                       {message.ui_interaction.buttons && message.ui_interaction.buttons.length > 0 && (
-                        <div className="flex flex-wrap gap-2">
+                        <div className="flex flex-wrap gap-2 min-w-0">
                           {message.ui_interaction.buttons.map((button, idx) => {
                             const isDisabled = button.disabled || 
                               (button.action === 'adapt_script' && !contentStatus.hasNovelContent) ||
@@ -402,7 +402,7 @@ export function AIAssistant() {
                                 size="sm"
                                 disabled={isDisabled}
                                 onClick={() => handleActionButton(button)}
-                                className="text-xs h-8 gap-1"
+                                className="text-xs h-8 gap-1 break-words whitespace-normal"
                               >
                                 {button.icon && iconMap[button.icon]}
                                 {button.label}
