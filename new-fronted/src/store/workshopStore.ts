@@ -70,7 +70,10 @@ interface WorkshopState {
   loadOutline: (projectId: string) => Promise<void>;
   updateOutlineNode: (nodeId: string, updates: Partial<OutlineNode>) => Promise<void>;
   selectNode: (nodeId: string) => void;
-  confirmOutline: (projectId: string) => Promise<boolean>;
+  confirmOutline: (projectId: string) => Promise<{
+    success: boolean;
+    projectConverted?: boolean;
+  }>;
   
   // Actions - 审阅
   reviewOutline: (projectId: string) => Promise<void>;
@@ -198,9 +201,12 @@ export const useWorkshopStore = create<WorkshopState>()(
           const response = await outlineService.confirm(projectId);
           if (response.success) {
             set({ workflow: { ...get().workflow, stage: 'novel_writing' } });
-            return true;
+            return {
+              success: true,
+              projectConverted: response.projectConverted,
+            };
           }
-          return false;
+          return { success: false };
         },
 
         // 审阅操作
@@ -377,7 +383,137 @@ export const useWorkshopStore = create<WorkshopState>()(
 // 辅助函数：将大纲数据转换为树形节点
 function convertOutlineToNodes(outline: OutlineData): OutlineNode[] {
   const nodes: OutlineNode[] = [];
-  
+
+  const storySettings = outline.storySettings || outline.metadata?.story_settings;
+  if (storySettings) {
+    const settingsNode: OutlineNode = {
+      id: 'story-settings',
+      type: 'episode',
+      title: '📚 故事设定',
+      episodeNumber: 0,
+      children: [],
+      metadata: {
+        reviewStatus: 'pending',
+        isPaidWall: false,
+        content: JSON.stringify(storySettings, null, 2),
+      }
+    };
+
+    if (storySettings.metadata?.markdown) {
+      const metaNode: OutlineNode = {
+        id: 'settings-metadata',
+        type: 'scene',
+        title: '📋 项目信息',
+        sceneNumber: 1,
+        metadata: {
+          reviewStatus: 'pending',
+          content: storySettings.metadata.markdown,
+        }
+      };
+      settingsNode.children?.push(metaNode);
+    }
+
+    if (storySettings.coreSetting?.markdown) {
+      const coreNode: OutlineNode = {
+        id: 'settings-core',
+        type: 'scene',
+        title: '🌍 核心设定',
+        sceneNumber: 2,
+        metadata: {
+          reviewStatus: 'pending',
+          content: storySettings.coreSetting.markdown,
+        }
+      };
+      settingsNode.children?.push(coreNode);
+    }
+
+    if (storySettings.characters && storySettings.characters.length > 0) {
+      const charsNode: OutlineNode = {
+        id: 'settings-characters',
+        type: 'scene',
+        title: '👥 人物体系',
+        sceneNumber: 3,
+        children: [],
+        metadata: {
+          reviewStatus: 'pending',
+        }
+      };
+
+      storySettings.characters.forEach((char, idx) => {
+        charsNode.children?.push({
+          id: `char-${idx}`,
+          type: 'shot',
+          title: char.name,
+          shotNumber: idx + 1,
+          metadata: {
+            reviewStatus: 'pending',
+            content: char.description,
+          }
+        });
+      });
+
+      settingsNode.children?.push(charsNode);
+    }
+
+    if (storySettings.plotArchitecture?.markdown) {
+      const plotNode: OutlineNode = {
+        id: 'settings-plot',
+        type: 'scene',
+        title: '📖 情节架构',
+        sceneNumber: 4,
+        metadata: {
+          reviewStatus: 'pending',
+          content: storySettings.plotArchitecture.markdown,
+        }
+      };
+      settingsNode.children?.push(plotNode);
+    }
+
+    if (storySettings.adaptationMapping?.markdown) {
+      const adaptNode: OutlineNode = {
+        id: 'settings-adaptation',
+        type: 'scene',
+        title: '🎬 改编映射',
+        sceneNumber: 5,
+        metadata: {
+          reviewStatus: 'pending',
+          content: storySettings.adaptationMapping.markdown,
+        }
+      };
+      settingsNode.children?.push(adaptNode);
+    }
+
+    if (storySettings.writingGuidelines?.markdown) {
+      const guideNode: OutlineNode = {
+        id: 'settings-guidelines',
+        type: 'scene',
+        title: '✍️ 创作指导',
+        sceneNumber: 6,
+        metadata: {
+          reviewStatus: 'pending',
+          content: storySettings.writingGuidelines.markdown,
+        }
+      };
+      settingsNode.children?.push(guideNode);
+    }
+
+    if (storySettings.paywallDesign?.markdown) {
+      const paywallNode: OutlineNode = {
+        id: 'settings-paywall',
+        type: 'scene',
+        title: '💎 付费卡点',
+        sceneNumber: 7,
+        metadata: {
+          reviewStatus: 'pending',
+          content: storySettings.paywallDesign.markdown,
+        }
+      };
+      settingsNode.children?.push(paywallNode);
+    }
+
+    nodes.push(settingsNode);
+  }
+
   for (const episode of outline.episodes) {
     // 剧集节点
     const episodeNode: OutlineNode = {
