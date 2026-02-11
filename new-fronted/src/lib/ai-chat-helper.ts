@@ -112,6 +112,11 @@ export function cleanJsonFromContent(content: string): string {
     // 情况3: 移除赛道推荐数组
     cleaned = cleaned.replace(/\[\s*\{\s*"(label|genre|style|track|description|potential_roi)"[\s\S]*?\}\s*\]/g, '');
 
+    // 情况4: 移除大纲生成器的 UI JSON 块（```json { "ui_mode": "novel_skeleton_editor" ... } ```）
+    cleaned = cleaned.replace(/```json\s*\{[\s\S]*?"ui_mode"\s*:\s*"novel_skeleton_editor"[\s\S]*?\}\s*```/g, '');
+    // 移除末尾的裸 JSON 块（无 markdown 代码块包裹的情况）
+    cleaned = cleaned.replace(/\{\s*"ui_mode"\s*:\s*"novel_skeleton_editor"[\s\S]*?"actions"\s*:\s*\[[\s\S]*?\]\s*\}\s*$/g, '');
+
 
 
     // 情况5: 移除 <thinking> ... </thinking> 块 (如果前端不想显示)

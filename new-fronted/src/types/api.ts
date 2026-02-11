@@ -1432,6 +1432,13 @@ export interface components {
             /** Is Cold Start */
             is_cold_start: boolean;
             ui_interaction?: components["schemas"]["UIInteractionBlock"] | null;
+            /**
+             * Is Generating
+             * @default false
+             */
+            is_generating: boolean;
+            /** Generating Node */
+            generating_node?: string | null;
         };
         /**
          * ChatMessage

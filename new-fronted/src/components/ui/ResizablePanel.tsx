@@ -96,9 +96,9 @@ export function ResizablePanel({
     <div
       ref={panelRef}
       className={cn('relative flex-shrink-0 h-full', className)}
-      style={{ width }}
+      style={{ width, minWidth: width, maxWidth: width }}
     >
-      <div className="h-full overflow-hidden">{children}</div>
+      <div className="h-full w-full overflow-auto" style={{ minWidth: '100%' }}>{children}</div>
       
       <div
         onMouseDown={handleMouseDown}

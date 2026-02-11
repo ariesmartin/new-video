@@ -164,9 +164,9 @@ export const useWorkshopStore = create<WorkshopState>()(
             set({ outlineNodes: nodes });
 
             const metadata = outline.metadata || {};
-            const totalBatches = metadata.total_batches || 4;
-            const currentBatch = metadata.current_batch || Math.ceil(nodes.length / 20);
-            const needsNextBatch = nodes.length < (outline.totalEpisodes || 80) && currentBatch < totalBatches;
+            const totalBatches = metadata.total_batches || 1;
+            const currentBatch = metadata.current_batch || totalBatches;
+            const needsNextBatch = metadata.needs_next_batch === true;
 
             set({
               batchStatus: {
