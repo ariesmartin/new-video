@@ -55,7 +55,14 @@ async def _load_skeleton_builder_prompt(
         content = content.replace("{genre}", user_config.get("genre", "revenge"))
         content = content.replace("{setting}", user_config.get("setting", "modern"))
         content = content.replace("{ending}", user_config.get("ending_type", "HE"))
-        content = content.replace("{selected_plan}", str(selected_plan))
+        # 注入选中方案内容：优先使用完整的 markdown 内容
+        plan_content = selected_plan.get("content", "") if isinstance(selected_plan, dict) else ""
+        if plan_content:
+            # 使用完整方案内容（包含梗概、人设、困境、付费卡点等）
+            content = content.replace("{selected_plan}", plan_content)
+        else:
+            # 兜底：至少注入方案标题和ID
+            content = content.replace("{selected_plan}", str(selected_plan))
         content = content.replace("{user_config}", str(user_config))
 
         # 新增：章节映射变量注入
@@ -422,7 +429,13 @@ Chapter {batch_start} 到 Chapter {batch_end}
             retry_count=retry_count,
             batch_index=current_batch_index,
         )
-        messages = [HumanMessage(content=f"【重试第{retry_count}次】\n\n" + batch_instruction)]
+        # 使用 HumanMessage 添加元数据标记为内部消息，前端可据此隐藏
+        messages = [
+            HumanMessage(
+                content=f"【重试第{retry_count}次】\n\n" + batch_instruction,
+                additional_kwargs={"is_internal": True, "message_type": "batch_instruction"},
+            )
+        ]
     else:
         # 首次生成：构建完整消息（包含上下文）
         full_message = build_context_message(
@@ -431,7 +444,13 @@ Chapter {batch_start} 到 Chapter {batch_end}
             batch_instruction,
             current_batch_index,
         )
-        messages = [HumanMessage(content=full_message)]
+        # 使用 HumanMessage 添加元数据标记为内部消息，前端可据此隐藏
+        messages = [
+            HumanMessage(
+                content=full_message,
+                additional_kwargs={"is_internal": True, "message_type": "batch_instruction"},
+            )
+        ]
 
     # 过滤掉空消息，避免 Gemini 400 错误
     messages = [msg for msg in messages if hasattr(msg, "content") and msg.content]
@@ -479,6 +498,19 @@ Chapter {batch_start} 到 Chapter {batch_end}
                 type=type(msg).__name__,
                 content_len=len(msg.content) if hasattr(msg, "content") else 0,
             )
+
+        # 过滤：只保留 AI 生成的消息，排除内部的批次指令消息
+        # 这样可以避免 checkpoint 中保存用户不友好的提示词内容
+        from langchain_core.messages import AIMessage
+
+        ai_messages = [msg for msg in output_messages if isinstance(msg, AIMessage)]
+        if ai_messages:
+            logger.info(
+                "Filtered messages to only AI outputs",
+                original_count=len(output_messages),
+                ai_count=len(ai_messages),
+            )
+            output_messages = ai_messages
 
         # 从 AI 消息中提取生成的内容作为 skeleton_content
         # 策略：找到内容最长的 AIMessage（因为大纲内容应该是最长的）

@@ -99,8 +99,13 @@ class DatabaseService:
 
     async def get_project(self, project_id: str) -> ProjectResponse | None:
         """获取项目详情"""
+        # 显式指定字段名以确保正确映射（Supabase 默认返回 camelCase）
         response = await self._client.get(
-            f"{self._rest_url}/projects", params={"id": f"eq.{project_id}", "select": "*"}
+            f"{self._rest_url}/projects",
+            params={
+                "id": f"eq.{project_id}",
+                "select": "id,user_id,name,cover_image,meta,is_temporary,created_at,updated_at",
+            },
         )
         response.raise_for_status()
         result = response.json()
@@ -136,9 +141,14 @@ class DatabaseService:
 
         return projects
 
-    async def update_project(self, project_id: str, data: ProjectUpdate) -> ProjectResponse | None:
+    async def update_project(
+        self, project_id: str, data: ProjectUpdate | dict
+    ) -> ProjectResponse | None:
         """更新项目"""
-        payload = data.model_dump(exclude_unset=True)
+        if isinstance(data, dict):
+            payload = data
+        else:
+            payload = data.model_dump(exclude_unset=True)
         if "meta" in payload and payload["meta"]:
             payload["meta"] = (
                 payload["meta"].model_dump()
@@ -2046,6 +2056,7 @@ class DatabaseService:
                     "project_id": f"eq.{project_id}",
                     "is_selected": "eq.true",
                     "select": "*",
+                    "order": "updated_at.desc",  # ✅ GAP-8 修复：确定性排序，取最新选中的
                     "limit": "1",
                 },
             )

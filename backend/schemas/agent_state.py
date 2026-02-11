@@ -238,7 +238,9 @@ class AgentState(TypedDict, total=False):
     market_report: dict | None  # Market Analyst 生成的市场分析报告
 
     # ===== Level 2: Story Planning =====
-    story_plans: list[StoryPlan]  # 3-5 个候选方案
+    # ✅ GAP-6 修复：story_plans 实际存储的是 AI 输出的 markdown 字符串
+    # main_graph.py:1069 赋值为 _content_to_string(messages[-1].content)
+    story_plans: str | list[StoryPlan]  # markdown 文本或结构化方案列表
     selected_plan: StoryPlan | None  # 用户选中的方案
     fusion_request: dict | None  # 方案融合请求
 
