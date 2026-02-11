@@ -271,6 +271,10 @@ async def generate_outline(request: GenerateOutlineRequest):
                 checkpointer=checkpointer,  # ✅ 启用持久化
             )
 
+        # 检查 Graph 执行是否返回错误
+        if result.get("error"):
+            raise HTTPException(status_code=500, detail=f"大纲生成失败: {result['error']}")
+
         # 提取大纲内容
         skeleton_content = result.get("skeleton_content")
         if not skeleton_content:

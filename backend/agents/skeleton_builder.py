@@ -299,60 +299,53 @@ async def skeleton_builder_node(state: Dict) -> Dict:
         # 第一批：生成完整骨架（章节清单）
         batch_instruction = f"""【第1批：完整骨架 - 章节清单模式】
 
-本次生成任务：构建完整的故事大纲骨架（不包含详细章节内容）
+本次生成任务：构建完整的故事大纲骨架
 
 **重要说明**：
-- 本次只生成"骨架"，不展开详细章节内容
-- 骨架将作为后续批次的指导，必须完整且一致
-- 后续批次（第2-5批）将基于此骨架展开详细内容
+- 本次生成故事骨架：包含完整的元数据、设定、人物、情节架构、以及所有章节的简要清单
+- 后续批次将基于此骨架，逐批展开每章的详细内容（场景、情绪曲线、伏笔等）
+- 骨架必须完整且一致，覆盖从 Chapter 1 到 Chapter {total_chapters}
 
-**需要输出的完整部分**：
+**本批次输出内容**：
 
-1. 一、元数据（Metadata）- 完整项目信息
+1. 一、元数据（Metadata）- 按 System Prompt 格式完整输出
 
-2. 二、核心设定（Core Setting）- 完整世界观架构
+2. 二、核心设定（Core Setting）- 按 System Prompt 格式完整输出
 
 3. 三、人物体系（Character System）- **完整且详细**
-   - 女主：完整人物小传 + **完整成长弧光**（从Chapter 1到Chapter {total_chapters}）
-   - 男主：完整人物小传 + **完整成长弧光**（从Chapter 1到Chapter {total_chapters}）
-   - 反派1号、反派2号、辅助角色：基础档案 + 人物关系 + 在故事中的作用
-   - 人物关系图谱
-   - 人物成长对照表（Chapter 1, 付费点, 中点, Chapter {total_chapters}）
+   - 按 System Prompt 格式输出所有主要人物的完整档案
+   - 人物成长弧光必须覆盖全部 {total_chapters} 章
+   - 包含人物关系图谱和成长对照表
 
 4. 四、情节架构（Plot Architecture）- **完整节拍表**
-   - 核心梗概（超短版、短版、标准版、详细版）
-   - **完整情节节拍表**：列出从"开场画面"到"结局"的所有节拍
-     * 开场画面（Chapter 1）
-     * 主题呈现（Chapter 1-2）
-     * 布局（Chapter 3-5）
-     * 催化剂（Chapter 6）
-     * ...一直到结局（Chapter {total_chapters}）
+   - 按 System Prompt 格式输出核心梗概（超短版、短版、标准版、详细版）
+   - 完整情节节拍表（从开场画面到结局）
    - 张力曲线设计
 
-5. 五、章节清单（Chapter List）- **所有{total_chapters}章的清单**
-   每章格式（简洁，不展开）：
+5. 五、章节清单（Chapter List）- **所有 {total_chapters} 章的简要清单**
+   ⚠️ 注意：本批次使用**简化清单格式**（非 System Prompt 中的详细章节模板，详细展开留到后续批次）
+   每章格式：
    ### Chapter X: [标题]
    - **核心任务**：[本章必须完成的任务]
    - **核心冲突**：[具体冲突]
-   - **一句话摘要**：[50字内概括本章内容]
-   - **钩子**：[章节结尾的钩子，用于吸引读者继续]
-   - **预计字数**：[根据阶段：开篇9000/发展10000/高潮12000/结局9000]
+   - **一句话摘要**：[50字内概括]
+   - **钩子**：[章节结尾的钩子]
+   - **预计字数**：[根据阶段调整]
    - **对应短剧**：[第X-Y集]
    - **故事阶段**：[开篇/发展/高潮/结局]
 
 **约束**：
-- 人物成长弧光必须覆盖全部{total_chapters}章
-- 节拍表必须列出所有节拍（Chapter 1到Chapter {total_chapters}）
-- 章节清单必须列出所有{total_chapters}章（每章只需标题+核心任务+摘要+钩子）
-- 不输出详细章节内容（如场景清单、情绪曲线等），留到后续批次展开
+- 章节清单必须列出所有 {total_chapters} 章，不可省略
+- 不要在本批次输出详细章节内容（场景清单、情绪曲线、伏笔系统等留到后续批次）
+- 不要输出 JSON 数据块
 
-**输出格式**：严格按照 System Prompt 定义的格式输出
+**输出格式**：严格按照 System Prompt 定义的 markdown 格式输出
 """
     elif is_last_batch:
         # 最后一批：生成最后N章 + 映射表 + UI JSON
-        batch_instruction = f"""【第{current_batch_index + 1}批：最后部分 - Chapter {batch_start}-{batch_end} + 映射表 + UI数据】
+        batch_instruction = f"""【第{current_batch_index + 1}批：最后部分 - Chapter {batch_start}-{batch_end} + 映射表】
 
-本次生成任务：生成最后一批章节 + 完整映射表 + UI数据
+本次生成任务：生成最后一批章节 + 完整映射表
 
 **基于已生成的故事骨架和前几批详细内容**：
 - 所有元数据、核心设定、人物体系已在第1批生成
@@ -370,14 +363,10 @@ async def skeleton_builder_node(state: Dict) -> Dict:
 
 3. 七、创作指导（Writing Guidelines）- 完整
 
-4. 八、UI交互数据 - **完整JSON**
-   - 包含准确的字数统计（基于所有已生成章节）
-   - 包含所有章节的映射信息
-
 **约束**：
 - 必须收束所有伏笔
 - 映射表不能省略，必须列出所有80集
-- UI JSON 中的 chapter_map 必须列出所有 {total_chapters} 个章节
+- 不要输出JSON数据块，系统会自动生成UI交互数据
 
 **输出格式**：严格按照 System Prompt 定义的格式输出
 """
@@ -395,19 +384,14 @@ async def skeleton_builder_node(state: Dict) -> Dict:
 **本次展开详细内容**：
 Chapter {batch_start} 到 Chapter {batch_end}
 
-每章必须包含的详细要素：
-1. **元数据**：字数、对应短剧、故事阶段、是否付费卡点
-2. **核心要素**：任务、冲突、抉择
-3. **节奏设计**：类型、钩子位置、钩子内容
-4. **情绪曲线**：起始值 → 变化 → 结束值
-5. **场景清单**：3-5个场景（地点、核心事件、作用）
-6. **伏笔系统**：新埋设 + 计划回收
+按照 System Prompt 中「五、章节大纲（Chapter Outlines）」定义的**完整章节模板**输出每章，包括：元数据、核心要素、节奏设计、情绪曲线、人物发展、伏笔系统、场景清单、创作公式、关键台词。
 
 **约束**：
 - 严格遵循骨架中的人物设定
 - 严格实现骨架中规划的节拍
 - 保持与前面章节的连贯性
 - 继续发展伏笔和角色成长
+- 不要输出 JSON 数据块
 
 **输出格式**：严格按照 System Prompt 定义的章节格式输出
 """
@@ -570,6 +554,24 @@ Chapter {batch_start} 到 Chapter {batch_end}
 
         # ===== 累积内容 =====
         # 将当前批次的内容追加到累积内容中
+        # 先剥离嵌入在内容中的 UI JSON 块（如 novel_skeleton_editor）
+        if skeleton_content:
+            import re
+
+            json_block_pattern = re.compile(
+                r'```json\s*(\{[\s\S]*?"ui_mode"\s*:\s*"novel_skeleton_editor"[\s\S]*?\})\s*```',
+            )
+            match = json_block_pattern.search(skeleton_content)
+            if match:
+                skeleton_content = skeleton_content[: match.start()].rstrip()
+            else:
+                bare_json_pattern = re.compile(
+                    r'\{\s*"ui_mode"\s*:\s*"novel_skeleton_editor"[\s\S]*?"actions"\s*:\s*\[[\s\S]*?\]\s*\}\s*$',
+                )
+                bare_match = bare_json_pattern.search(skeleton_content)
+                if bare_match:
+                    skeleton_content = skeleton_content[: bare_match.start()].rstrip()
+
         new_accumulated_content = accumulated_content
         if skeleton_content:
             if accumulated_content:

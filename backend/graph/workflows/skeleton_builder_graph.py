@@ -716,6 +716,7 @@ async def validate_output_node(state: AgentState) -> Dict[str, Any]:
                 "last_successful_node": "validate_output",
                 "needs_next_batch": True,  # 自动继续
                 "auto_continue": True,  # 标记自动继续，不显示按钮
+                "retry_count": 0,  # 重置重试计数，每批独立计算
             }
 
         # 第1批及以后：构建 SDUI 交互块，让用户选择
@@ -837,6 +838,7 @@ async def validate_output_node(state: AgentState) -> Dict[str, Any]:
             "last_successful_node": "validate_output",
             "needs_next_batch": has_more_batches,
             "ui_interaction": action_ui.dict(),
+            "retry_count": 0,  # 重置重试计数，每批独立计算
         }
 
     # ===== 最终验证（所有批次完成后）=====
@@ -853,14 +855,7 @@ async def validate_output_node(state: AgentState) -> Dict[str, Any]:
     if not has_paywall:
         issues.append("缺少付费卡点专项设计")
 
-    # 检查3：UI JSON
-    has_ui_json = (
-        '"ui_mode"' in content_to_validate and '"novel_skeleton_editor"' in content_to_validate
-    )
-    if not has_ui_json:
-        issues.append("缺少UI交互数据")
-
-    # 检查4：关键字段
+    # 检查3：关键字段
     required_sections = ["元数据", "核心设定", "人物体系", "情节架构", "章节大纲"]
     missing_sections = []
     for section in required_sections:
@@ -869,36 +864,22 @@ async def validate_output_node(state: AgentState) -> Dict[str, Any]:
     if missing_sections:
         issues.append(f"缺少关键部分: {', '.join(missing_sections)}")
 
-        # 检查5：JSON完整性
-        json_complete = True
-        json_matches = re.findall(r"```json\s*([\s\S]*?)\s*```", content_to_validate)
-        for json_str in json_matches:
-            try:
-                json.loads(json_str)
-            except json.JSONDecodeError:
-                json_complete = False
-                issues.append("JSON格式不完整")
-                break
+    # 检查4：人物设定一致性（从骨架中提取的人物必须在后续章节中出现）
+    if current_batch_index > 0:
+        skeleton_framework = state.get("skeleton_framework", "")
+        if skeleton_framework:
+            main_characters = extract_main_characters(skeleton_framework)
+            for char in main_characters:
+                if char not in content_to_validate:
+                    issues.append(f"人物一致性: 主角'{char}'在当前批次章节中未出现")
 
-        # 检查6：人物设定一致性（从骨架中提取的人物必须在后续章节中出现）
-        if current_batch_index > 0:  # 不是骨架批次
-            # 提取骨架中定义的主要人物
-            skeleton_framework = state.get("skeleton_framework", "")
-            if skeleton_framework:
-                # 检查主要人物是否在详细章节中被提及
-                main_characters = extract_main_characters(skeleton_framework)
-                for char in main_characters:
-                    if char not in content_to_validate:
-                        issues.append(f"人物一致性: 主角'{char}'在当前批次章节中未出现")
-
-        # 检查7：节拍一致性（章节是否符合骨架规划的节拍）
-        if current_batch_index > 0:
-            # 获取当前章节的节拍类型（基于章节号推断）
-            beat_check = check_beat_consistency(
-                current_batch_range, content_to_validate, state.get("beat_sheet", {})
-            )
-            if not beat_check["valid"]:
-                issues.append(f"节拍一致性: {beat_check['issue']}")
+    # 检查5：节拍一致性（章节是否符合骨架规划的节拍）
+    if current_batch_index > 0:
+        beat_check = check_beat_consistency(
+            current_batch_range, content_to_validate, state.get("beat_sheet", {})
+        )
+        if not beat_check["valid"]:
+            issues.append(f"节拍一致性: {beat_check['issue']}")
 
         if issues:
             current_retry = state.get("retry_count", 0)
