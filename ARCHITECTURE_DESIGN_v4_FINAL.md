@@ -4465,3 +4465,406 @@ async def re_review(project_id: str, chapter_id: Optional[str] = None):
 - ✅ 详细完整，不简化
 
 如有任何疑问，请指出！
+
+---
+
+## 附录 F: 前端项目生命周期管理 (Project Lifecycle)
+
+**文档版本**: v1.0  
+**最后更新**: 2026-02-11  
+**适用范围**: 前端项目创建、转正、剧集管理
+
+---
+
+### F.1 核心概念
+
+#### F.1.1 数据模型关系
+
+```
+Project (项目)
+├── project_content (项目级内容)
+│   ├── content_type='outline' → 大纲（整个项目共享）
+│   │   └── chapters[] (小说章节规划)
+│   ├── content_type='novel' → 小说内容（可选）
+│   └── content_type='review' → 审阅报告
+│
+└── Episodes (剧集列表) ← 在剧本改编阶段创建
+    ├── Episode 1: novel_content + script_text + scenes[]
+    ├── Episode 2: novel_content + script_text + scenes[]
+    └── Episode 3...
+```
+
+**关键设计原则**:
+- **大纲是项目级别**: 一个项目只有一个大纲，保存在 `project_content` 表
+- **大纲包含小说章节规划**: 大纲中的 `chapters` 是小说章节，不是剧集
+- **小说/剧本是剧集级别**: 每集有自己的小说和剧本，保存在 `episodes` 表
+- **剧集在剧本改编时创建**: Episodes 不是在"确认大纲"时创建，而是在"剧本改编"阶段创建
+
+---
+
+### F.2 项目状态流转
+
+#### F.2.1 状态定义
+
+| 状态 | 字段 | 说明 |
+|------|------|------|
+| **临时项目** | `isTemporary: true` | 刚创建，用户尚未确认内容 |
+| **正式项目** | `isTemporary: false` | 用户已确认选题，项目已命名 |
+| **空白项目** | `episodes: []` | 尚无剧集，等待AI生成 |
+| **有内容项目** | `episodes.length > 0` | 已有剧集和内容 |
+
+#### F.2.2 完整状态流转图（5阶段流程）
+
+```
+┌─────────────────────────────────────────────────────────────────────┐
+│                    项目生命周期状态流转（5阶段）                      │
+├─────────────────────────────────────────────────────────────────────┤
+│                                                                     │
+│  阶段1: 临时项目创建                                                 │
+│  ═══════════════════════                                           │
+│  [任意入口：剧本工坊/开始生成/新建项目]                               │
+│         │                                                          │
+│         ▼                                                          │
+│  ┌──────────────────────────┐                                      │
+│  │  创建临时项目             │                                      │
+│  │  - isTemporary: true      │                                      │
+│  │  - name: "未命名项目"      │                                      │
+│  │  - 无剧集                 │                                      │
+│  │  - 状态: temp_created     │                                      │
+│  └──────────┬───────────────┘                                      │
+│             │                                                       │
+│             ▼                                                       │
+│  ┌──────────────────────────┐                                      │
+│  │  AI创作模式               │                                      │
+│  │  /project/{id}/script-workshop                                   │
+│  └──────────┬───────────────┘                                      │
+│                                                                     │
+│  阶段2: 选题确认（转正#1）                                           │
+│  ══════════════════════════                                        │
+│             │                                                       │
+│             ▼                                                       │
+│  [AI生成选题 → 用户选择方案]                                         │
+│             │                                                       │
+│             ▼                                                       │
+│  ┌──────────────────────────┐                                      │
+│  │  backend/graph/main_graph.py                                     │
+│  │  select_plan handler:                                            │
+│  │  1. 保存选题方案              │                                  │
+│  │  2. 检查项目是否临时          │                                  │
+│  │  3. 验证名称是否需要更新      │                                  │
+│  │  4. 转正项目 (isTemporary: false)                               │
+│  │  5. 更新项目名称（如需要）    │                                  │
+│  │  6. 状态: theme_confirmed    │                                  │
+│  └──────────┬───────────────┘                                      │
+│             │                                                       │
+│             ▼                                                       │
+│  阶段3: 大纲生成                                                     │
+│  ═══════════════════                                               │
+│  [用户点击"开始大纲拆解"]                                            │
+│             │                                                       │
+│             ▼                                                       │
+│  ┌──────────────────────────┐                                      │
+│  │  skeleton_builder_graph   │                                      │
+│  │  - AI生成完整大纲         │                                      │
+│  │  - 保存到 project_content │                                      │
+│  │  - 状态: outline_generated│                                      │
+│  └──────────┬───────────────┘                                      │
+│             │                                                       │
+│             ▼                                                       │
+│  阶段4: 大纲确认（转正#2）                                           │
+│  ══════════════════════════                                        │
+│  [用户点击"确认大纲"]                                                │
+│             │                                                       │
+│             ▼                                                       │
+│  ┌──────────────────────────┐                                      │
+│  │  backend/api/skeleton_builder.py                                 │
+│  │  confirm_outline endpoint:                                       │
+│  │  1. 更新项目状态: outline_confirmed                              │
+│  │  2. 如仍临时，使用大纲标题转正                                  │
+│  │  ⚠️ 注意：此时不创建剧集，剧集在剧本改编阶段创建                  │
+│  └──────────┬───────────────┘                                      │
+│             │                                                       │
+│             ▼                                                       │
+│  阶段5: 小说创作 + 剧本改编                                           │
+│  ═══════════════════════════════                                   │
+│  ┌──────────────────────────┐                                      │
+│  │  - AI生成小说章节内容     │                                      │
+│  │  - 保存到 project_content │                                      │
+│  │  - 状态: novel_written    │                                      │
+│  └──────────┬───────────────┘                                      │
+│             │                                                       │
+│             ▼                                                       │
+│  [用户点击"提取剧本"/adapt_script]                                   │
+│             │                                                       │
+│             ▼                                                       │
+│  ┌──────────────────────────┐                                      │
+│  │  backend/graph/main_graph.py                                     │
+│  │  script_adapter_node:                                            │
+│  │  1. 将小说章节转换为剧本    │                                    │
+│  │  2. 创建 Episodes 记录      │                                    │
+│  │     - 每集对应一个剧本段落  │                                    │
+│  │     - novel_content + script_text                               │
+│  │  3. 返回 episode_id 列表    │                                    │
+│  └──────────┬───────────────┘                                      │
+│             │                                                       │
+│             ▼                                                       │
+│  ┌──────────────────────────┐                                      │
+│  │  编辑模式（有 episodeId）  │                                      │
+│  │  /project/{id}/episode/{id}/script-workshop                     │
+│  │  - AI继续生成后续剧集     │                                      │
+│  │  - 同步到分镜台           │                                      │
+│  └──────────────────────────┘                                      │
+│                                                                     │
+└─────────────────────────────────────────────────────────────────────┘
+```
+
+---
+
+### F.3 入口逻辑统一设计
+
+#### F.3.1 所有入口统一行为
+
+| 入口 | 行为 | 跳转目标 |
+|------|------|---------|
+| **主页"剧本工坊"** | 创建临时项目（无剧集） | `/project/{id}/script-workshop` |
+| **主页"开始生成"** | 创建临时项目 + 保存prompt | `/project/{id}/script-workshop` |
+| **主页"新建项目"** | 创建临时项目 | `/project/{id}` (画布) |
+| **画布"剧本"按钮** | 检查episode → 有则编辑，无则AI模式 | 编辑模式 或 AI模式 |
+
+#### F.3.2 剧本工坊双模式设计
+
+```typescript
+// ScriptWorkshopPage.tsx
+const { episodeId } = useParams<{ episodeId?: string }>();
+const isAICreationMode = !episodeId;
+
+// 两种模式：
+// 1. AI创作模式: /project/{id}/script-workshop (无episodeId)
+//    - 显示AI助手欢迎界面
+//    - 隐藏编辑器工具栏
+//    - 隐藏场景/镜头统计
+//    - 专注AI对话生成内容
+//
+// 2. 编辑模式: /project/{id}/episode/{id}/script-workshop (有episodeId)
+//    - 显示完整编辑器
+//    - 显示剧本/小说/大纲编辑器
+//    - 显示分镜工具
+//    - 支持保存、同步等操作
+```
+
+---
+
+### F.4 关键实现细节
+
+#### F.4.1 剧集创建时机
+
+**正确时机**: 用户**确认大纲后**立即创建（阶段4）
+
+**原因**:
+1. 大纲确认后，项目结构已明确（分集清晰）
+2. 每集title/summary可以从大纲中提取
+3. 避免过早创建空剧集
+4. 用户创作流程：选题 → 生成大纲 → 确认分集 → 小说写作 → 剧本改编 → 创建剧集
+
+**实现代码**:
+```python
+# backend/api/skeleton_builder.py
+@router.post("/{project_id}/confirm")
+async def confirm_outline(project_id: str):
+    # 1. 获取大纲数据
+    outline_data = await db.get_outline(project_id)
+    
+    # 2. 更新项目状态
+    await db.update_project_status(project_id, "outline_confirmed")
+    
+    # 3. 如仍临时，使用大纲标题转正
+    project = await db.get_project(project_id)
+    if project and project.is_temporary:
+        update_data = ProjectUpdate()
+        if should_update_name(project.name):
+            update_data.name = outline_data.get("title", "")
+        await db.save_temp_project(project_id, update_data)
+    
+    # ⚠️ 注意：此时不创建剧集
+    # 剧集在"剧本改编"阶段创建 (script_adapter_node)
+    
+    return ConfirmOutlineResponse(
+        success=True,
+        project_converted=project_converted,
+    )
+```
+
+**剧集创建时机**（剧本改编阶段）:
+```python
+# backend/graph/main_graph.py
+async def _script_adapter_node(state: AgentState):
+    # 1. 将小说转换为剧本
+    agent = await create_script_adapter_agent(user_id, project_id)
+    result = await agent.ainvoke({"messages": state.get("messages", [])})
+    
+    # 2. 解析剧本，为每个剧集段落创建 Episode 记录
+    # 3. 保存 novel_content 和 script_text 到 episodes 表
+```
+
+**错误做法**（已废弃）:
+- ❌ 进入剧本工坊时强制创建空剧集
+- ❌ 确认大纲时创建剧集（大纲是小说章节，不是剧集）
+- ❌ 确认选题时创建剧集（此时分集结构还不明确）
+- ❌ 询问用户"是否创建第一集"
+
+#### F.4.2 转正触发条件（双阶段转正）
+
+| 触发场景 | 转正操作 | 项目名称来源 | 验证逻辑 |
+|---------|---------|-------------|---------|
+| **确认选题方案** (阶段2) | `db.save_temp_project()` | 选题方案标题 | 四级验证（见下方） |
+| **确认大纲** (阶段4) | `db.save_temp_project()` | 大纲标题 | 四级验证 |
+| **用户手动改名** | `db.save_temp_project()` | 用户输入 | 跳过名称更新 |
+
+**四级验证逻辑**（防止重复转正和覆盖用户自定义名称）:
+```python
+# backend/graph/main_graph.py & skeleton_builder.py
+
+async def convert_project_if_needed(project_id: str, suggested_name: str):
+    project = await db.get_project(project_id)
+    
+    # Level 1: 获取项目最新状态
+    if not project:
+        return {"converted": False, "reason": "project_not_found"}
+    
+    # Level 2: 检查是否已转正
+    if not project.is_temporary:
+        return {"converted": False, "reason": "already_formal"}
+    
+    # Level 3: 检查用户是否已手动命名
+    current_name = project.name or ""
+    should_update_name = (
+        "临时项目" in current_name
+        or current_name.startswith("项目-")
+        or current_name == ""
+        or len(current_name) < 5  # 短名称可能是默认生成的
+    )
+    
+    # Level 4: 执行转正
+    update_data = ProjectUpdate()
+    if should_update_name:
+        update_data.name = suggested_name
+    
+    await db.save_temp_project(project_id, update_data)
+    
+    return {
+        "converted": True,
+        "name_updated": should_update_name,
+        "old_name": current_name,
+        "new_name": suggested_name if should_update_name else current_name
+    }
+```
+
+#### F.4.3 路由配置
+
+```typescript
+// App.tsx
+<Route path="/project/:projectId/script-workshop" element={<ScriptWorkshopPage />} />
+<Route path="/project/:projectId/episode/:episodeId/script-workshop" element={<ScriptWorkshopPage />} />
+```
+
+---
+
+### F.5 文件修改记录
+
+#### F.5.1 新增文件
+
+| 文件 | 用途 |
+|------|------|
+| `services/projectLifecycle.ts` | 项目生命周期管理服务，统一处理转正逻辑 |
+
+#### F.5.2 修改文件
+
+| 文件 | 修改内容 |
+|------|---------|
+| `App.tsx` | 添加无episodeId的路由支持（AI创作模式） |
+| `HomePage.tsx` | 统一所有入口创建临时项目（不创建剧集） |
+| `ProjectPage.tsx` | 画布"剧本"按钮直接跳转AI模式（不询问创建剧集） |
+| `ScriptWorkshopPage.tsx` | 支持AI创作模式（无episodeId）和编辑模式（有episodeId） |
+| `AIAssistantBar.tsx` | 点击按钮时过滤对应UI；移除confirm_skeleton的跳转逻辑 |
+| `outlineService.ts` | confirm()方法仅返回projectConverted（剧集在剧本改编阶段创建） |
+| `workshopStore.ts` | confirmOutline更新工作流状态，不处理剧集跳转 |
+| `backend/graph/main_graph.py` | select_plan handler添加项目转正逻辑（四级验证） |
+| `backend/api/skeleton_builder.py` | confirm_outline endpoint仅处理转正，不创建剧集 |
+
+#### F.5.3 删除文件/代码
+
+| 文件/代码 | 删除原因 |
+|-----------|---------|
+| `CreateEpisodeDialog.tsx` | 不再需要询问创建剧集 |
+| `projectAutoCreate.ts` 部分函数 | 统一使用 `projectsService.createTempProject()` |
+| `handleConfirmCreateEpisode` | 逻辑合并到AI助手 |
+
+---
+
+### F.6 用户流程示例
+
+#### F.6.1 从零开始AI创作
+
+```
+1. 用户点击"剧本工坊"
+   → 创建临时项目（未命名项目）
+   → 进入AI创作模式（无episode）
+   → 显示："开始你的创作之旅"
+
+2. 用户输入："我想写个复仇题材"
+   → AI生成3个选题方案
+   → 显示在对话面板
+
+3. 用户点击"选择方案A：豪门替嫁"
+   → 调用 select_plan action
+   → 转正项目（name="豪门替嫁"）
+   → 保持在AI创作模式
+
+4. AI生成大纲（小说章节规划）
+   → 保存到 project_content (outline)
+   → 显示小说章节结构（Chapter 1, Chapter 2...）
+   → 注意：这是小说章节，不是剧集
+
+5. 用户确认大纲
+   → 标记大纲为已确认
+   → 进入小说创作阶段
+   → 保持在AI创作模式
+   → 进入小说创作阶段
+
+6. AI生成小说内容
+   → 保存到 episode.novel_content
+   → 显示在小说编辑器
+
+7. AI提取剧本
+   → 保存到 episode.script_text
+   → 显示在剧本编辑器
+
+8. 用户点击"同步到分镜台"
+   → 解析剧本生成场景和镜头
+   → 跳转到画布页面
+```
+
+#### F.6.2 已有内容编辑
+
+```
+1. 已有项目，已有episode
+2. 用户点击"剧本"按钮
+3. 直接跳转到 /project/{id}/episode/{id}/script-workshop
+4. 显示编辑器，加载已有内容
+5. 用户继续编辑
+```
+
+---
+
+### F.7 注意事项
+
+1. **不要强制创建空剧集**: 剧集应该是AI生成的结果，不是进入的前提
+2. **统一入口逻辑**: 所有"新建"入口都创建临时项目，只是跳转目标不同
+3. **区分两种模式**: AI创作模式（无episode）和编辑模式（有episode）
+4. **转正时机**: 仅在用户确认内容后转正，不要过早转正
+5. **向后兼容**: 已有episode的项目仍能正常编辑
+
+---
+
+**最后更新**: 2026-02-11  
+**更新内容**: 统一项目创建逻辑，移除强制创建剧集的限制，支持AI创作模式
