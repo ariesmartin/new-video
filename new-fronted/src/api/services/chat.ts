@@ -452,9 +452,9 @@ export const chatService = {
             break;
 
           case 'token':
-            // Token 流输出（对应 response）
+            // 一次性接收完整内容（不再累积）
             if (data.content) {
-              assistantMessage += data.content;
+              assistantMessage = data.content;
               callbacks.onMessage({
                 id: messageId,
                 role: 'assistant',

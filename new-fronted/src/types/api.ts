@@ -1158,7 +1158,11 @@ export interface paths {
          * Confirm Outline
          * @description 确认大纲
          *
-         *     用户确认大纲后，流转到小说创作阶段
+         *     用户确认大纲后：
+         *     1. 更新项目状态为 outline_confirmed
+         *     2. 如果是临时项目，根据大纲标题转正
+         *
+         *     注意：此时不创建剧集(episodes)，剧集在剧本改编阶段创建
          */
         post: operations["confirm_outline_api_skeleton__project_id__confirm_post"];
         delete?: never;
@@ -1518,6 +1522,11 @@ export interface components {
              * @default novel_writer
              */
             nextStep: string;
+            /**
+             * Project Converted
+             * @default false
+             */
+            project_converted: boolean;
         };
         /**
          * Connection

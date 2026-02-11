@@ -24,16 +24,17 @@ export interface MessageMetadata {
   // 消息来源信息
   checkpointId?: string;           // 关联的checkpoint ID
   nodeId?: string;                 // 生成该消息的节点ID
-  
+
   // 消息类型标记
   isSystemInit?: boolean;          // 是否是系统初始化消息
   isHidden?: boolean;              // 是否对用户隐藏
+  isInternal?: boolean;
   messageType?: MessageType;       // 消息类型
-  
+
   // UI关联
   hasUiInteraction?: boolean;      // 是否有关联的ui_interaction
   uiInteractionId?: string;        // 关联的ui_interaction ID
-  
+
   // 其他
   action?: string;                 // 用户操作类型
   timestampMs?: number;            // 精确到毫秒的时间戳
@@ -106,7 +107,11 @@ export function shouldShowToUser(message: ChatMessage): boolean {
   if (message.metadata?.isHidden) {
     return false;
   }
-  
+
+  if (message.metadata?.isInternal) {
+    return false;
+  }
+
   // 检查消息类型
   if (message.metadata?.messageType && HIDDEN_MESSAGE_TYPES.has(message.metadata.messageType)) {
     return false;

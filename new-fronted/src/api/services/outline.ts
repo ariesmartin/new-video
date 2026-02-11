@@ -138,7 +138,11 @@ export const outlineService = {
    * 确认大纲
    * POST /api/skeleton/{project_id}/confirm
    */
-  async confirm(projectId: string): Promise<{ success: boolean }> {
+  async confirm(projectId: string): Promise<{
+    success: boolean;
+    projectConverted?: boolean;
+    message?: string;
+  }> {
     try {
       const response = await fetch(`${API_BASE}/skeleton/${projectId}/confirm`, {
         method: 'POST',
@@ -154,7 +158,11 @@ export const outlineService = {
       }
 
       const data = await response.json();
-      return { success: data.success || true };
+      return {
+        success: data.success || true,
+        projectConverted: data.project_converted,
+        message: data.message,
+      };
     } catch (error) {
       console.error('[outlineService] confirm error:', error);
       return { success: false };

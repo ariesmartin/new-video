@@ -31,6 +31,31 @@ type Episode = {
   isPaidWall?: boolean;
 };
 
+export interface StorySettingSection {
+  markdown: string;
+  parsed: Record<string, string>;
+}
+
+// 故事设定
+export interface StorySettings {
+  metadata?: StorySettingSection;
+  coreSetting?: StorySettingSection;
+  characters?: Array<{
+    name: string;
+    description: string;
+    markdown: string;
+  }>;
+  plotArchitecture?: StorySettingSection;
+  adaptationMapping?: StorySettingSection;
+  writingGuidelines?: StorySettingSection;
+  paywallDesign?: StorySettingSection;
+  tensionCurve?: {
+    markdown: string;
+    parsed: any[];
+    dataPoints: Array<{ chapter: number; tension: number }>;
+  };
+}
+
 // 大纲数据
 export interface OutlineData {
   projectId: string;
@@ -38,6 +63,19 @@ export interface OutlineData {
   totalEpisodes: number;
   createdAt: string;
   updatedAt: string;
+  content?: string;
+  storySettings?: StorySettings;
+  metadata?: {
+    chapter_map?: Array<{ chapter: number; episodes: string }>;
+    paywall_info?: { chapter?: number; episode?: number };
+    source?: string;
+    total_batches?: number;
+    current_batch?: number;
+    needs_next_batch?: boolean;
+    skeleton_content?: string;
+    story_settings?: StorySettings;
+    [key: string]: any;
+  };
 }
 
 // 大纲节点（用于树形结构）
@@ -55,6 +93,8 @@ export interface OutlineNode {
     wordCount?: number;
     isPaidWall?: boolean;
     lastModified?: string;
+    content?: string;   // 场景内容/剧集摘要
+    summary?: string;   // 剧集摘要
   };
 }
 
