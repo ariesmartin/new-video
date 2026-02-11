@@ -119,7 +119,7 @@ export function ActionBlockRenderer({ block, onActionClick, isHistorical = false
     };
 
     return (
-        <div className="mt-3 p-3 bg-elevated/50 border border-border rounded-lg animate-in fade-in slide-in-from-bottom-2 duration-300 relative">
+        <div className="mt-3 p-3 bg-elevated/50 border border-border rounded-lg animate-in fade-in slide-in-from-bottom-2 duration-300 relative w-full min-w-0">
             {/* 关闭按钮 */}
             {normalizedBlock.dismissible !== false && (
                 <button
@@ -193,13 +193,13 @@ export function ActionBlockRenderer({ block, onActionClick, isHistorical = false
             )}
 
             {/* 按钮组 */}
-            <div className="flex flex-wrap gap-2">
+            <div className="flex flex-wrap gap-2 w-full min-w-0">
                 {normalizedBlock.buttons?.map((btn, idx) => {
                     const IconComponent = btn.icon && (LucideIcons as any)[btn.icon]
                         ? (LucideIcons as any)[btn.icon]
                         : Zap;
 
-                    let btnClasses = "flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium rounded-md transition-all active:scale-95 disabled:opacity-50 disabled:active:scale-100";
+                    let btnClasses = "flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium rounded-md transition-all active:scale-95 disabled:opacity-50 disabled:active:scale-100 break-all whitespace-normal text-left max-w-full overflow-hidden";
 
                     switch (btn.style) {
                         case 'primary':
@@ -235,14 +235,14 @@ export function ActionBlockRenderer({ block, onActionClick, isHistorical = false
                             className={btnClasses}
                             onClick={handleClick}
                             disabled={isButtonDisabled}
-                            title={isHistorical ? "已完成的操作" : undefined}
+                            title={isHistorical ? "已完成的操作" : btn.label}
                         >
                             {isButtonLoading ? (
                                 <div className="w-3.5 h-3.5 border-2 border-current border-t-transparent rounded-full animate-spin" />
                             ) : (
                                 IconComponent && <IconComponent size={14} />
                             )}
-                            {btn.label}
+                            <span className="break-all whitespace-normal">{btn.label}</span>
                         </button>
                     );
                 })}

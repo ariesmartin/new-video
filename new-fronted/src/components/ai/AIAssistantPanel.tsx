@@ -406,8 +406,8 @@ export function AIAssistantPanel({ projectId: externalProjectId, sceneContext }:
       )}
 
       {/* Messages */}
-      <ScrollArea className="flex-1 min-h-0 px-4">
-        <div className="py-4 space-y-4">
+      <ScrollArea className="flex-1 min-h-0 px-4 w-full">
+        <div className="py-4 space-y-4 w-full min-w-0">
           {/* 找到最后一条包含 ui_interaction 的 AI 消息索引 */}
           {(() => {
             const lastUiInteractionIndex = messages.findLastIndex(m => m.role === 'assistant' && m.ui_interaction);
@@ -423,22 +423,41 @@ export function AIAssistantPanel({ projectId: externalProjectId, sceneContext }:
             return (
               <div
                 key={message.id}
-                className={`flex flex-col ${message.role === 'user' ? 'items-end' : 'items-start'}`}
+                className={`flex flex-col w-full ${message.role === 'user' ? 'items-end' : 'items-start'}`}
               >
                 <div
-                  className={`max-w-[90%] rounded-2xl px-4 py-3 group relative ${message.role === 'user'
+                  className={`max-w-full rounded-2xl px-4 py-3 group relative min-w-0 overflow-hidden ${message.role === 'user'
                     ? 'bg-primary text-primary-foreground rounded-br-md'
                     : 'bg-elevated border border-border rounded-bl-md'
                     }`}
+                  style={{ width: 'auto', maxWidth: 'min(90%, calc(100% - 32px))' }}
                 >
                   {message.role === 'user' ? (
-                    <p className="text-sm whitespace-pre-wrap max-h-[60vh] overflow-y-auto">{cleanJsonFromContent(message.content)}</p>
+                    <p className="text-sm whitespace-pre-wrap break-all max-h-[60vh] overflow-y-auto min-w-0 overflow-wrap-anywhere">{cleanJsonFromContent(message.content)}</p>
                   ) : (
-                    <div className="w-full text-sm break-words whitespace-pre-wrap overflow-hidden max-h-[60vh] overflow-y-auto">
+                    <div className="w-full text-sm break-all overflow-hidden max-h-[60vh] overflow-y-auto min-w-0" style={{ overflowWrap: 'anywhere' }}>
                       <ReactMarkdown
                         remarkPlugins={[remarkGfm]}
                         components={{
                           p: ScriptRenderer,
+                          h1: ({ children }) => <h1 className="text-base font-bold mt-3 mb-1.5 text-primary/90 border-b border-border/30 pb-1">{children}</h1>,
+                          h2: ({ children }) => <h2 className="text-sm font-bold mt-2.5 mb-1 text-primary/80">{children}</h2>,
+                          h3: ({ children }) => <h3 className="text-sm font-semibold mt-2 mb-1 text-text-primary">{children}</h3>,
+                          h4: ({ children }) => <h4 className="text-xs font-semibold mt-1.5 mb-0.5 text-text-primary">{children}</h4>,
+                          h5: ({ children }) => <h5 className="text-xs font-medium mt-1 mb-0.5 text-text-secondary">{children}</h5>,
+                          h6: ({ children }) => <h6 className="text-xs font-medium mt-1 mb-0.5 text-text-tertiary">{children}</h6>,
+                          table: ({ children }) => <div className="overflow-x-auto my-2"><table className="w-full text-xs border-collapse">{children}</table></div>,
+                          thead: ({ children }) => <thead className="bg-elevated">{children}</thead>,
+                          tbody: ({ children }) => <tbody>{children}</tbody>,
+                          tr: ({ children }) => <tr className="border-b border-border/20">{children}</tr>,
+                          th: ({ children }) => <th className="border border-border/30 px-2 py-1 text-left font-medium text-text-secondary bg-elevated/50">{children}</th>,
+                          td: ({ children }) => <td className="border border-border/30 px-2 py-1 text-text-tertiary">{children}</td>,
+                          ul: ({ children }) => <ul className="list-disc list-inside my-1 space-y-0.5 text-text-secondary">{children}</ul>,
+                          ol: ({ children }) => <ol className="list-decimal list-inside my-1 space-y-0.5 text-text-secondary">{children}</ol>,
+                          li: ({ children }) => <li className="text-text-secondary">{children}</li>,
+                          hr: () => <hr className="my-3 border-border/30" />,
+                          blockquote: ({ children }) => <blockquote className="border-l-2 border-primary/30 pl-3 my-2 text-text-secondary italic">{children}</blockquote>,
+                          strong: ({ children }) => <strong className="font-semibold text-text-primary">{children}</strong>,
                           pre: ({ children }) => (
                             <pre className="overflow-x-auto max-w-full text-xs bg-black/5 rounded p-2 my-2">{children}</pre>
                           ),
@@ -480,7 +499,7 @@ export function AIAssistantPanel({ projectId: externalProjectId, sceneContext }:
                   )}
 
                   {shouldShowButtons && (
-                    <div className="mt-4 pt-3 border-t border-border/50">
+                    <div className="mt-4 pt-3 border-t border-border/50 w-full min-w-0 overflow-hidden">
                       <ActionBlockRenderer
                         block={message.ui_interaction}
                         onActionClick={handleActionClick}
@@ -500,13 +519,32 @@ export function AIAssistantPanel({ projectId: externalProjectId, sceneContext }:
 
           {/* Streaming Content */}
           {streamingContent && (
-            <div className="flex justify-start">
-              <div className="bg-elevated border border-border rounded-2xl rounded-bl-md px-4 py-3 max-w-[90%] max-h-[60vh] overflow-y-auto">
-                <div className="w-full text-sm break-words whitespace-pre-wrap overflow-hidden">
+            <div className="flex justify-start w-full">
+              <div className="bg-elevated border border-border rounded-2xl rounded-bl-md px-4 py-3 max-h-[60vh] overflow-y-auto min-w-0 overflow-hidden"
+                style={{ width: 'auto', maxWidth: 'min(90%, calc(100% - 32px))' }}>
+                <div className="w-full text-sm break-all overflow-hidden min-w-0" style={{ overflowWrap: 'anywhere' }}>
                   <ReactMarkdown
                     remarkPlugins={[remarkGfm]}
                     components={{
                       p: ScriptRenderer,
+                      h1: ({ children }) => <h1 className="text-base font-bold mt-3 mb-1.5 text-primary/90 border-b border-border/30 pb-1">{children}</h1>,
+                      h2: ({ children }) => <h2 className="text-sm font-bold mt-2.5 mb-1 text-primary/80">{children}</h2>,
+                      h3: ({ children }) => <h3 className="text-sm font-semibold mt-2 mb-1 text-text-primary">{children}</h3>,
+                      h4: ({ children }) => <h4 className="text-xs font-semibold mt-1.5 mb-0.5 text-text-primary">{children}</h4>,
+                      h5: ({ children }) => <h5 className="text-xs font-medium mt-1 mb-0.5 text-text-secondary">{children}</h5>,
+                      h6: ({ children }) => <h6 className="text-xs font-medium mt-1 mb-0.5 text-text-tertiary">{children}</h6>,
+                      table: ({ children }) => <div className="overflow-x-auto my-2"><table className="w-full text-xs border-collapse">{children}</table></div>,
+                      thead: ({ children }) => <thead className="bg-elevated">{children}</thead>,
+                      tbody: ({ children }) => <tbody>{children}</tbody>,
+                      tr: ({ children }) => <tr className="border-b border-border/20">{children}</tr>,
+                      th: ({ children }) => <th className="border border-border/30 px-2 py-1 text-left font-medium text-text-secondary bg-elevated/50">{children}</th>,
+                      td: ({ children }) => <td className="border border-border/30 px-2 py-1 text-text-tertiary">{children}</td>,
+                      ul: ({ children }) => <ul className="list-disc list-inside my-1 space-y-0.5 text-text-secondary">{children}</ul>,
+                      ol: ({ children }) => <ol className="list-decimal list-inside my-1 space-y-0.5 text-text-secondary">{children}</ol>,
+                      li: ({ children }) => <li className="text-text-secondary">{children}</li>,
+                      hr: () => <hr className="my-3 border-border/30" />,
+                      blockquote: ({ children }) => <blockquote className="border-l-2 border-primary/30 pl-3 my-2 text-text-secondary italic">{children}</blockquote>,
+                      strong: ({ children }) => <strong className="font-semibold text-text-primary">{children}</strong>,
                       pre: ({ children }) => (
                         <pre className="overflow-x-auto max-w-full text-xs bg-black/5 rounded p-2 my-2">{children}</pre>
                       ),
@@ -540,9 +578,9 @@ export function AIAssistantPanel({ projectId: externalProjectId, sceneContext }:
       </ScrollArea>
 
       {/* Input Area */}
-      <div className="p-4 border-t border-border bg-surface">
-        <div className="relative">
-          <div className="flex flex-wrap gap-2 mb-3">
+      <div className="p-4 border-t border-border bg-surface w-full">
+        <div className="relative w-full">
+          <div className="flex flex-wrap gap-2 mb-3 w-full min-w-0">
             {quickActions.map((action) => (
               <Button
                 key={action.label}
