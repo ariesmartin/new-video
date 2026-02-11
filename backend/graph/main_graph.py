@@ -18,6 +18,7 @@ from langgraph.graph import StateGraph, START, END
 from langgraph.checkpoint.base import BaseCheckpointSaver
 
 from backend.schemas.agent_state import AgentState
+from backend.schemas.project import ProjectUpdate
 from backend.agents import (
     master_router_node,
     create_market_analyst_agent,
@@ -69,6 +70,95 @@ def _content_to_string(content) -> str:
             return str(content["text"])
         return json.dumps(content, ensure_ascii=False)
     return str(content)
+
+
+def _extract_plan_content(story_plans_markdown: str, plan_id: str) -> str:
+    """从完整的 Story Planner 输出 markdown 中提取指定方案的完整内容。
+
+    Story Planner 输出格式示例：
+      ### 方案 A: 《剧名A》
+      **一句话梗概** ...
+      ...
+      ---
+      ### 方案 B: 《剧名B》
+      ...
+
+    Args:
+        story_plans_markdown: Story Planner 生成的完整 markdown 文本
+        plan_id: 方案 ID（如 "A", "B", "C", "Fusion"）
+
+    Returns:
+        该方案的完整 markdown 内容（从标题到下一个方案之前）
+    """
+    if not story_plans_markdown or not plan_id:
+        logger.warning(
+            "Cannot extract plan content: missing data",
+            has_markdown=bool(story_plans_markdown),
+            plan_id=plan_id,
+        )
+        return ""
+
+    # 将 story_plans_markdown 统一为字符串（可能是 list 类型）
+    if not isinstance(story_plans_markdown, str):
+        story_plans_markdown = _content_to_string(story_plans_markdown)
+
+    # ✅ GAP-9 修复：加固 regex 匹配
+    # 支持 ## 和 ### 标题、全角冒号、Fusion 特殊 ID、无冒号格式
+    # 注意：f-string 中 {{ 和 }} 表示字面值 { 和 }
+    plan_pattern = rf"#{{2,3}}\s*方案\s*{re.escape(plan_id)}\s*[:：]"
+    match = re.search(plan_pattern, story_plans_markdown)
+    if not match:
+        # 备选1：不带冒号
+        plan_pattern_alt = rf"#{{2,3}}\s*方案\s*{re.escape(plan_id)}\b"
+        match = re.search(plan_pattern_alt, story_plans_markdown)
+    if not match:
+        # 备选2：融合方案特殊格式 "### 融合方案" 或 "### Fusion方案"
+        if plan_id.lower() == "fusion":
+            fusion_patterns = [
+                r"#{2,3}\s*融合方案\s*[:：]?",
+                r"#{2,3}\s*Fusion\s*方案\s*[:：]?",
+                r"#{2,3}\s*方案\s*(?:融合|Fusion)\s*[:：]?",
+            ]
+            for fp in fusion_patterns:
+                match = re.search(fp, story_plans_markdown, re.IGNORECASE)
+                if match:
+                    break
+
+    if not match:
+        logger.warning(
+            "Plan content not found in story_plans markdown",
+            plan_id=plan_id,
+            markdown_length=len(story_plans_markdown),
+        )
+        return ""
+
+    start = match.start()
+
+    # 在匹配位置之后的文本中查找结束标记
+    remaining = story_plans_markdown[match.end() :]
+    end_patterns = [
+        r"#{2,3}\s*方案\s*[A-Za-z]",  # 下一个方案标题（支持 ## 和 ###）
+        r"📊\s*方案对比",  # 方案对比表
+        r"```json",  # JSON 交互数据块
+    ]
+
+    end_offset = len(remaining)
+    for pattern in end_patterns:
+        end_match = re.search(pattern, remaining)
+        if end_match and end_match.start() < end_offset:
+            end_offset = end_match.start()
+
+    # 提取内容并清理尾部分隔符
+    content = story_plans_markdown[start : match.end() + end_offset]
+    # 移除尾部的 --- 分隔符和空白
+    content = re.sub(r"\n---\s*$", "", content.rstrip())
+
+    logger.info(
+        "✅ Extracted plan content from story_plans",
+        plan_id=plan_id,
+        content_length=len(content),
+    )
+    return content
 
 
 def _get_background_info(background: str) -> dict:
@@ -250,10 +340,28 @@ async def _story_planner_node(state: AgentState) -> Dict[str, Any]:
                 db = get_db_service()
                 saved_plan = await db.get_selected_plan(project_id)
                 if saved_plan:
+                    # 从 plan_data JSONB 恢复完整方案内容
+                    raw_plan_data = saved_plan.get("plan_data") or {}
+                    plan_data_dict: dict = {}
+                    restored_content = ""
+
+                    if isinstance(raw_plan_data, dict):
+                        plan_data_dict = raw_plan_data
+                        restored_content = raw_plan_data.get("content", "")
+                    elif isinstance(raw_plan_data, str):
+                        try:
+                            parsed = json.loads(raw_plan_data)
+                            if isinstance(parsed, dict):
+                                plan_data_dict = parsed
+                                restored_content = parsed.get("content", "")
+                        except (json.JSONDecodeError, AttributeError):
+                            pass
+
                     state["selected_plan"] = {
-                        "id": saved_plan.get("plan_id"),
-                        "title": saved_plan.get("title"),
-                        "label": saved_plan.get("label"),
+                        "id": saved_plan.get("plan_id") or plan_data_dict.get("plan_id", ""),
+                        "title": saved_plan.get("title", ""),
+                        "label": saved_plan.get("label") or plan_data_dict.get("label", ""),
+                        "content": restored_content,
                     }
                     logger.info(
                         "✅ Loaded selected_plan from database", plan_id=saved_plan.get("plan_id")
@@ -283,11 +391,23 @@ async def _story_planner_node(state: AgentState) -> Dict[str, Any]:
             title_match = re.search(r"《([^》]+)》", plan_label)
             plan_title = title_match.group(1) if title_match else plan_label
 
-            # 构建 selected_plan 数据
+            # 从 story_plans 中提取方案完整内容
+            story_plans_md = state.get("story_plans", "")
+            plan_content = _extract_plan_content(story_plans_md, plan_id)
+
+            if not plan_content:
+                logger.warning(
+                    "⚠️ Plan content extraction returned empty",
+                    plan_id=plan_id,
+                    story_plans_length=len(str(story_plans_md)),
+                )
+
+            # 构建 selected_plan 数据（包含完整内容）
             selected_plan = {
                 "id": plan_id,
                 "title": plan_title,
                 "label": plan_label,
+                "content": plan_content,
             }
 
             # 返回确认消息
@@ -325,18 +445,30 @@ async def _story_planner_node(state: AgentState) -> Dict[str, Any]:
                 db = get_db_service()
                 # 检查是否已存在该方案
                 existing = await db.get_plan(plan_id)
+                # 构建 plan_data JSONB 数据（完整方案内容）
+                plan_data_json = {
+                    "content": plan_content,
+                    "title": plan_title,
+                    "label": plan_label,
+                    "plan_id": plan_id,
+                }
+
                 if existing:
-                    # 更新现有方案为选中状态
+                    # 更新现有方案为选中状态，并写入完整内容
                     await db._client.patch(
                         f"{db._rest_url}/story_plans",
                         params={"plan_id": f"eq.{existing['plan_id']}"},
-                        json={"is_selected": True},
+                        json={
+                            "is_selected": True,
+                            "plan_data": plan_data_json,
+                        },
                     )
                 else:
-                    # 创建新方案记录
+                    # 创建新方案记录，包含完整方案内容
                     await db._client.post(
                         f"{db._rest_url}/story_plans",
                         json={
+                            "plan_id": plan_id,  # ✅ GAP-1 修复：添加 plan_id，使 get_plan() 可检索
                             "project_id": project_id,
                             "user_id": user_id,
                             "title": plan_title,
@@ -344,13 +476,88 @@ async def _story_planner_node(state: AgentState) -> Dict[str, Any]:
                             "genre": user_config.get("genre"),
                             "is_selected": True,
                             "status": "active",
+                            "plan_data": plan_data_json,
                         },
                     )
                 logger.info(
                     "✅ Saved selected_plan to database", plan_id=plan_id, project_id=project_id
                 )
+
+                # ✅ 项目转正逻辑：如果是临时项目，则使用选题名转正
+                try:
+                    # 获取当前项目信息
+                    project = await db.get_project(project_id)
+                    logger.info(
+                        "Checking project for conversion",
+                        project_id=project_id,
+                        project_exists=project is not None,
+                        project_name=project.name if project else None,
+                        is_temporary=project.is_temporary if project else None,
+                    )
+
+                    if project:
+                        # 处理可能的字符串类型（Supabase 有时返回字符串）
+                        is_temp = project.is_temporary
+                        if isinstance(is_temp, str):
+                            is_temp = is_temp.lower() == "true"
+
+                        if is_temp:
+                            # 检查项目名称是否需要更新（只有默认名称才自动更新）
+                            current_name = project.name or ""
+                            should_update_name = (
+                                "临时项目" in current_name
+                                or current_name.startswith("项目-")
+                                or current_name.startswith("未命名")
+                                or current_name == ""
+                                or len(current_name) < 6  # 短名称可能是默认生成的
+                            )
+
+                            update_data = ProjectUpdate()
+                            if should_update_name:
+                                update_data.name = plan_title
+                                logger.info(
+                                    "Auto-updating project name from temporary to formal",
+                                    old_name=current_name,
+                                    new_name=plan_title,
+                                    project_id=project_id,
+                                )
+
+                            # 执行转正（save_temp_project 会将 is_temporary 设为 False）
+                            await db.save_temp_project(project_id, update_data)
+                            logger.info(
+                                "Project converted from temporary to formal",
+                                project_id=project_id,
+                                name_updated=should_update_name,
+                                old_name=current_name,
+                            )
+                        else:
+                            logger.info(
+                                "Project is already formal, skipping conversion",
+                                project_id=project_id,
+                            )
+                    else:
+                        logger.warning(
+                            "Project not found for conversion",
+                            project_id=project_id,
+                        )
+                except Exception as e:
+                    logger.error(
+                        "Failed to convert temporary project to formal",
+                        error=str(e),
+                        project_id=project_id,
+                        error_type=type(e).__name__,
+                    )
+                    # 不阻塞主流程，继续执行
+
             except Exception as e:
-                logger.warning("Failed to save selected_plan to database", error=str(e))
+                # ✅ GAP-7 修复：DB 保存失败时升级为 error 级别并记录到 state
+                # 之前用 logger.warning 静默吞掉，导致后续 get_plan() 返回 None
+                logger.error(
+                    "❌ Failed to save selected_plan to database - plan may not persist",
+                    error=str(e),
+                    plan_id=plan_id,
+                    project_id=project_id,
+                )
 
             return {
                 "messages": [
@@ -359,6 +566,7 @@ async def _story_planner_node(state: AgentState) -> Dict[str, Any]:
                         additional_kwargs={"ui_interaction": confirmation_ui.dict()},
                     )
                 ],
+                "ui_interaction": confirmation_ui,  # ✅ 更新 state 中的 ui_interaction
                 "selected_plan": selected_plan,
                 "user_config": user_config,
                 "last_successful_node": "story_planner_plan_selected",
@@ -1093,7 +1301,7 @@ def create_main_graph(checkpointer: BaseCheckpointSaver | None = None):
     # validate → skeleton_builder → editor → refiner → END
     from backend.graph.workflows.skeleton_builder_graph import build_skeleton_builder_graph
 
-    skeleton_builder_graph = build_skeleton_builder_graph()
+    skeleton_builder_graph = build_skeleton_builder_graph(checkpointer=checkpointer)
     graph.add_node("skeleton_builder", skeleton_builder_graph)
 
     # Module B: 剧本改编
@@ -1110,10 +1318,79 @@ def create_main_graph(checkpointer: BaseCheckpointSaver | None = None):
     # ===== 添加边 =====
     logger.info("Adding edges...")
 
+    # ✅ GAP-3 修复：SDUI Action Router Node（从 route_from_start 路由函数中拆出状态突变逻辑）
+    # LangGraph 规范：路由函数（conditional edge）必须是纯函数，不得修改 state
+    # 状态变更必须在 Node 中通过返回值完成
+    _SDUI_ACTION_MAP = {
+        "start_creation": "story_planner",
+        "adapt_script": "script_adapter",
+        "create_storyboard": "storyboard_director",
+        "inspect_assets": "asset_inspector",
+        "random_plan": "story_planner",
+        "select_genre": "story_planner",
+        "select_plan": "story_planner",
+        "start_custom": "story_planner",
+        "proceed_to_planning": "story_planner",
+        "reset_genre": "story_planner",
+        "start_skeleton_building": "skeleton_builder",
+        "confirm_skeleton": "skeleton_builder",
+        "regenerate_skeleton": "skeleton_builder",
+        "continue_skeleton_generation": "skeleton_builder",  # 断点续传：继续下一批生成
+    }
+
+    def _detect_sdui_action(state: AgentState) -> dict | None:
+        """从消息中检测 SDUI action 数据（纯函数，不修改 state）"""
+        messages = state.get("messages", [])
+        last_successful_node = state.get("last_successful_node", "")
+        already_processed = last_successful_node in [
+            "story_planner_plan_selected",
+            "skeleton_builder_completed",
+        ]
+        if not messages or already_processed:
+            return None
+
+        for msg in reversed(messages):
+            content = _content_to_string(msg.content if hasattr(msg, "content") else str(msg))
+            if content.strip().startswith("{") and '"action"' in content:
+                try:
+                    data = json.loads(content)
+                    if data.get("action") and data["action"] in _SDUI_ACTION_MAP:
+                        return data
+                except Exception:
+                    continue
+        return None
+
+    async def _sdui_action_router_node(state: AgentState) -> dict:
+        """SDUI Action Router Node - 解析用户按钮动作并设置路由状态
+
+        此 Node 将 SDUI action 转化为 routed_agent/routed_parameters，
+        供 master_router 直接路由到目标 Agent。
+        """
+        action_data = _detect_sdui_action(state)
+        if not action_data:
+            # 防御性兜底：不应到达这里（route_from_start 已过滤）
+            logger.warning("sdui_action_router_node called but no action detected")
+            return {}
+
+        action = action_data.get("action", "")
+        target_agent = _SDUI_ACTION_MAP.get(action, "")
+        logger.info(
+            "SDUI action router: setting state for master_router",
+            action=action,
+            target_agent=target_agent,
+        )
+        return {
+            "routed_agent": target_agent,
+            "routed_parameters": action_data,
+            "ui_feedback": f"正在为您启动{target_agent.replace('_', ' ')}...",
+            "intent_analysis": f"SDUI action: {action}",
+        }
+
+    graph.add_node("sdui_action_router", _sdui_action_router_node)
+
     # 入口：根据是否冷启动选择路径
     def route_from_start(state: AgentState):
-        """入口路由 - 检测是否需要冷启动或SDUI Action"""
-        # 如果 messages 为空或明确标记为冷启动，走冷启动节点
+        """入口路由 - 纯函数，只返回路由名称，不修改 state"""
         messages = state.get("messages", [])
         is_cold_start = state.get("is_cold_start", False)
 
@@ -1121,64 +1398,10 @@ def create_main_graph(checkpointer: BaseCheckpointSaver | None = None):
             logger.info("Routing to cold_start node")
             return "cold_start"
 
-        # 检测是否是 SDUI Action（用户点击按钮）
-        # ✅ 修复：查找最新的用户 action 消息（从后往前找）
-        # 但避免重复处理已经路由过的 action
-        last_successful_node = state.get("last_successful_node", "")
-        already_processed = last_successful_node in [
-            "story_planner_plan_selected",
-            "skeleton_builder_completed",
-        ]
-
-        if messages and not already_processed:
-            user_action_data = None
-            # 从后往前查找最新的 action 消息
-            for msg in reversed(messages):
-                # ✅ 修复：content 可能是 list（Gemini 多部分响应）
-                content = _content_to_string(msg.content if hasattr(msg, "content") else str(msg))
-                if content.strip().startswith("{") and '"action"' in content:
-                    try:
-                        data = json.loads(content)
-                        if data.get("action"):
-                            user_action_data = data
-                            break  # 找到最新的 action，停止查找
-                    except Exception:
-                        continue
-
-            if user_action_data:
-                action = user_action_data.get("action", "")
-
-                # SDUI Action 到 Agent 的映射
-                sdui_action_map = {
-                    "start_creation": "story_planner",
-                    "adapt_script": "script_adapter",
-                    "create_storyboard": "storyboard_director",
-                    "inspect_assets": "asset_inspector",
-                    "random_plan": "story_planner",
-                    "select_genre": "story_planner",
-                    "select_plan": "story_planner",
-                    "start_custom": "story_planner",
-                    "proceed_to_planning": "story_planner",
-                    "reset_genre": "story_planner",
-                    "start_skeleton_building": "skeleton_builder",
-                    "confirm_skeleton": "skeleton_builder",
-                    "regenerate_skeleton": "skeleton_builder",
-                }
-
-                if action in sdui_action_map:
-                    target_agent = sdui_action_map[action]
-                    # 在状态中设置 routed_agent，让 Master Router 直接路由
-                    state["routed_agent"] = target_agent
-                    state["routed_parameters"] = user_action_data
-                    state["ui_feedback"] = f"正在为您启动{target_agent.replace('_', ' ')}..."
-                    state["intent_analysis"] = f"SDUI action: {action}"
-                    logger.info(
-                        "SDUI action detected, routing directly",
-                        action=action,
-                        target_agent=target_agent,
-                        payload=user_action_data,
-                    )
-                    return "master_router"
+        # 检测 SDUI Action → 走 sdui_action_router Node（由 Node 负责设置 state）
+        if _detect_sdui_action(state):
+            logger.info("SDUI action detected, routing to sdui_action_router node")
+            return "sdui_action_router"
 
         # 否则走正常流程
         logger.info("Routing to master_router")
@@ -1189,9 +1412,13 @@ def create_main_graph(checkpointer: BaseCheckpointSaver | None = None):
         route_from_start,
         {
             "cold_start": "cold_start",
+            "sdui_action_router": "sdui_action_router",
             "master_router": "master_router",
         },
     )
+
+    # sdui_action_router → master_router（状态已设置，直接进入路由）
+    graph.add_edge("sdui_action_router", "master_router")
 
     # 冷启动节点直接结束（内容已保存到 checkpoint）
     graph.add_edge("cold_start", END)

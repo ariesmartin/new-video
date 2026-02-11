@@ -12,6 +12,7 @@ START → validate_input → [conditional] →
 from typing import Dict, Any, List
 from langgraph.graph import StateGraph, START, END
 from langgraph.checkpoint.base import BaseCheckpointSaver
+from langchain_core.messages import AIMessage
 
 from backend.schemas.agent_state import AgentState, ApprovalStatus, StageType
 from backend.agents.skeleton_builder import skeleton_builder_node
@@ -421,9 +422,29 @@ async def validate_input_node(state: AgentState) -> Dict[str, Any]:
     total_episodes = user_config.get("total_episodes", 80)
     episode_duration = user_config.get("episode_duration", 2)
 
-    # 获取付费卡点信息
+    # 获取付费卡点信息（从 plan content markdown 中解析）
+    paywall_range = "10-12"  # 默认值
     paywall_design = selected_plan.get("paywall_design", {})
-    paywall_range = paywall_design.get("episode_range", "10-12")
+    if isinstance(paywall_design, dict) and paywall_design.get("episode_range"):
+        paywall_range = paywall_design["episode_range"]
+    else:
+        # 从 plan content markdown 中提取付费卡点集数范围
+        plan_content = selected_plan.get("content", "")
+        if plan_content:
+            import re
+
+            # 匹配模式：付费卡点/集数/episode 范围，如 "第10-12集" "10~12集" "ep10-12"
+            paywall_match = re.search(
+                r"付费卡点.*?第?\s*(\d+)\s*[-~到至]\s*(\d+)\s*集",
+                plan_content,
+                re.DOTALL,
+            )
+            if paywall_match:
+                paywall_range = f"{paywall_match.group(1)}-{paywall_match.group(2)}"
+                logger.info(
+                    "✅ Extracted paywall range from plan content",
+                    paywall_range=paywall_range,
+                )
     paywall_episodes = parse_paywall_range(paywall_range)
 
     # 计算章节映射
@@ -559,8 +580,29 @@ async def handle_ending_selection_node(state: AgentState) -> Dict[str, Any]:
     episode_duration = user_config.get("episode_duration", 2)
 
     # 获取付费卡点信息
+    # ✅ GAP-5 修复：selected_plan 标准格式没有 paywall_design 字段
+    # 需要从 plan content markdown 中提取，与 validate_input_node 保持一致
+    paywall_range = "10-12"  # 默认值
     paywall_design = selected_plan.get("paywall_design") or {}
-    paywall_range = paywall_design.get("episode_range", "10-12")
+    if isinstance(paywall_design, dict) and paywall_design.get("episode_range"):
+        paywall_range = paywall_design["episode_range"]
+    else:
+        # 从 plan content markdown 中提取付费卡点集数范围
+        plan_content = selected_plan.get("content", "")
+        if plan_content:
+            import re as _re
+
+            paywall_match = _re.search(
+                r"付费卡点.*?第?\s*(\d+)\s*[-~到至]\s*(\d+)\s*集",
+                plan_content,
+                _re.DOTALL,
+            )
+            if paywall_match:
+                paywall_range = f"{paywall_match.group(1)}-{paywall_match.group(2)}"
+                logger.info(
+                    "✅ Extracted paywall range from plan content in handle_ending",
+                    paywall_range=paywall_range,
+                )
     paywall_episodes = parse_paywall_range(paywall_range)
 
     # 计算章节映射
@@ -710,13 +752,23 @@ async def validate_output_node(state: AgentState) -> Dict[str, Any]:
                 chapter_count=chapter_count,
             )
 
+            # 添加友好的状态消息到 checkpoint
+            progress_message = AIMessage(
+                content=f"✅ 第 {current_batch_index + 1} 批生成完成（故事骨架），正在自动继续下一批..."
+            )
+
+            # Bug Fix: 返回 accumulated_content 以便外部保存到数据库
             return {
+                "messages": [progress_message],
                 "validation_status": "batch_complete",
                 "chapter_count": chapter_count,
                 "last_successful_node": "validate_output",
                 "needs_next_batch": True,  # 自动继续
                 "auto_continue": True,  # 标记自动继续，不显示按钮
                 "retry_count": 0,  # 重置重试计数，每批独立计算
+                "accumulated_content": accumulated_content,  # 返回累积内容以便保存
+                "current_batch_index": current_batch_index,
+                "total_batches": total_batches,
             }
 
         # 第1批及以后：构建 SDUI 交互块，让用户选择
@@ -832,13 +884,29 @@ async def validate_output_node(state: AgentState) -> Dict[str, Any]:
             dismissible=False,
         )
 
+        # 添加友好的状态消息到 checkpoint
+        status_text = (
+            f"✅ 大纲生成完成！（共 {chapter_count} 章）"
+            if not has_more_batches
+            else f"✅ 第 {current_batch_index} 批生成完成（共 {chapter_count} 章）"
+        )
+        progress_message = AIMessage(
+            content=status_text,
+            additional_kwargs={"ui_interaction": action_ui.dict()},
+        )
+
+        # Bug Fix: 返回 accumulated_content 以便外部保存到数据库
         return {
+            "messages": [progress_message],
             "validation_status": "batch_complete",
             "chapter_count": chapter_count,
             "last_successful_node": "validate_output",
             "needs_next_batch": has_more_batches,
             "ui_interaction": action_ui.dict(),
             "retry_count": 0,  # 重置重试计数，每批独立计算
+            "accumulated_content": accumulated_content,  # 返回累积内容以便保存
+            "current_batch_index": current_batch_index,
+            "total_batches": total_batches,
         }
 
     # ===== 最终验证（所有批次完成后）=====
@@ -904,7 +972,10 @@ async def validate_output_node(state: AgentState) -> Dict[str, Any]:
         "validation_status": "complete",
         "chapter_count": chapter_count,
         "skeleton_content": content_to_validate,  # 使用累积的完整内容
+        "accumulated_content": content_to_validate,  # Bug Fix: 同时返回 accumulated_content
         "last_successful_node": "validate_output",
+        "current_batch_index": current_batch_index,
+        "total_batches": total_batches,
     }
 
 

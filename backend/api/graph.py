@@ -351,10 +351,9 @@ async def chat_init_endpoint(request: ChatInitRequest):
         thread_id = request.session_id or f"thread-{uuid.uuid4()}"
 
         # 从 checkpointer 查询历史记录
-        from backend.graph.checkpointer import get_or_create_checkpointer, checkpointer_manager
+        from backend.graph.checkpointer import get_checkpointer
         from langchain_core.messages import HumanMessage, AIMessage
 
-        checkpointer, conn = await get_or_create_checkpointer()
         config = {"configurable": {"thread_id": thread_id}}
 
         # 从 checkpointer 加载历史记录
@@ -364,7 +363,8 @@ async def chat_init_endpoint(request: ChatInitRequest):
         checkpoint = None
 
         try:
-            if checkpointer:
+            # 使用上下文管理器正确管理连接生命周期
+            async with get_checkpointer() as checkpointer:
                 read_config = {"configurable": {"thread_id": thread_id}}
                 checkpoint = await checkpointer.aget(read_config)
 
@@ -377,109 +377,104 @@ async def chat_init_endpoint(request: ChatInitRequest):
                     # 获取 ui_interaction
                     saved_ui_interaction = channel_values.get("ui_interaction")
 
-            # 检查是否成功加载了消息
-            if channel_values and "messages" in channel_values:
-                raw_messages = channel_values["messages"]
+                # 检查是否成功加载了消息
+                if channel_values and "messages" in channel_values:
+                    raw_messages = channel_values["messages"]
 
-                # 转换 LangChain 消息为 ChatMessage 格式
-                for idx, msg in enumerate(raw_messages):
-                    # 处理 LangChain 消息对象
-                    if isinstance(msg, (HumanMessage, AIMessage)):
-                        role = "user" if isinstance(msg, HumanMessage) else "assistant"
-                        formatted_content = format_message_content(content_to_string(msg.content))
-
-                        # 从消息的 additional_kwargs 中提取 ui_interaction
-                        # 这是最可靠的来源，因为 SDUI 在创建时就嵌入了消息中
-                        msg_ui_interaction = None
-                        if hasattr(msg, "additional_kwargs") and msg.additional_kwargs:
-                            ui_data = msg.additional_kwargs.get("ui_interaction")
-                            if ui_data:
-                                try:
-                                    if isinstance(ui_data, UIInteractionBlock):
-                                        msg_ui_interaction = ui_data
-                                    elif isinstance(ui_data, dict):
-                                        msg_ui_interaction = UIInteractionBlock(**ui_data)
-                                except Exception as e:
-                                    logger.warning(
-                                        f"Failed to parse ui_interaction from additional_kwargs: {e}"
-                                    )
-
-                    # 处理 dict 格式消息 (从 checkpoint 加载的原始格式)
-                    elif isinstance(msg, dict):
-                        msg_ui_interaction = None
-                        # LangChain message_to_dict 格式: {"type": "ai", "data": {"content": "..."}}
-                        if "type" in msg and "data" in msg:
-                            msg_type = msg.get("type", "")
-                            msg_data = msg.get("data", {})
-                            role = "user" if msg_type == "human" else "assistant"
-                            content = content_to_string(
-                                msg_data.get("content", "")
-                                if isinstance(msg_data, dict)
-                                else msg_data
+                    # 转换 LangChain 消息为 ChatMessage 格式
+                    for idx, msg in enumerate(raw_messages):
+                        # 处理 LangChain 消息对象
+                        if isinstance(msg, (HumanMessage, AIMessage)):
+                            role = "user" if isinstance(msg, HumanMessage) else "assistant"
+                            formatted_content = format_message_content(
+                                content_to_string(msg.content)
                             )
-                            formatted_content = format_message_content(content)
 
-                            # 从 data.additional_kwargs 中提取 ui_interaction
-                            if isinstance(msg_data, dict):
-                                ui_data = msg_data.get("additional_kwargs", {}).get(
-                                    "ui_interaction"
-                                )
+                            # 从消息的 additional_kwargs 中提取 ui_interaction
+                            # 这是最可靠的来源，因为 SDUI 在创建时就嵌入了消息中
+                            msg_ui_interaction = None
+                            if hasattr(msg, "additional_kwargs") and msg.additional_kwargs:
+                                ui_data = msg.additional_kwargs.get("ui_interaction")
                                 if ui_data:
                                     try:
                                         if isinstance(ui_data, UIInteractionBlock):
                                             msg_ui_interaction = ui_data
                                         elif isinstance(ui_data, dict):
                                             msg_ui_interaction = UIInteractionBlock(**ui_data)
-                                    except Exception:
-                                        pass
-                        # 简单格式: {"role": "assistant", "content": "..."}
-                        elif "role" in msg:
-                            role = msg.get("role", "assistant")
-                            formatted_content = format_message_content(
-                                content_to_string(msg.get("content", ""))
-                            )
+                                    except Exception as e:
+                                        logger.warning(
+                                            f"Failed to parse ui_interaction from additional_kwargs: {e}"
+                                        )
+
+                        # 处理 dict 格式消息 (从 checkpoint 加载的原始格式)
+                        elif isinstance(msg, dict):
+                            msg_ui_interaction = None
+                            # LangChain message_to_dict 格式: {"type": "ai", "data": {"content": "..."}}
+                            if "type" in msg and "data" in msg:
+                                msg_type = msg.get("type", "")
+                                msg_data = msg.get("data", {})
+                                role = "user" if msg_type == "human" else "assistant"
+                                content = content_to_string(
+                                    msg_data.get("content", "")
+                                    if isinstance(msg_data, dict)
+                                    else msg_data
+                                )
+                                formatted_content = format_message_content(content)
+
+                                # 从 data.additional_kwargs 中提取 ui_interaction
+                                if isinstance(msg_data, dict):
+                                    ui_data = msg_data.get("additional_kwargs", {}).get(
+                                        "ui_interaction"
+                                    )
+                                    if ui_data:
+                                        try:
+                                            if isinstance(ui_data, UIInteractionBlock):
+                                                msg_ui_interaction = ui_data
+                                            elif isinstance(ui_data, dict):
+                                                msg_ui_interaction = UIInteractionBlock(**ui_data)
+                                        except Exception:
+                                            pass
+                            # 简单格式: {"role": "assistant", "content": "..."}
+                            elif "role" in msg:
+                                role = msg.get("role", "assistant")
+                                formatted_content = format_message_content(
+                                    content_to_string(msg.get("content", ""))
+                                )
+                            else:
+                                continue  # 无法识别的格式，跳过
                         else:
-                            continue  # 无法识别的格式，跳过
-                    else:
-                        continue  # 无法识别的类型，跳过
+                            continue  # 无法识别的类型，跳过
 
-                    # 如果消息本身没有 ui_interaction，尝试使用全局保存的 ui_interaction
-                    # 但只为欢迎消息（第一条 AI 消息）附加
-                    ui_interaction_data = msg_ui_interaction
-                    if (
-                        not ui_interaction_data
-                        and idx == 0
-                        and role == "assistant"
-                        and saved_ui_interaction
-                    ):
-                        try:
-                            if isinstance(saved_ui_interaction, UIInteractionBlock):
-                                ui_interaction_data = saved_ui_interaction
-                            elif isinstance(saved_ui_interaction, dict):
-                                ui_interaction_data = UIInteractionBlock(**saved_ui_interaction)
-                        except Exception as e:
-                            logger.warning(f"Failed to parse saved_ui_interaction: {e}")
+                        # 如果消息本身没有 ui_interaction，尝试使用全局保存的 ui_interaction
+                        # 但只为欢迎消息（第一条 AI 消息）附加
+                        ui_interaction_data = msg_ui_interaction
+                        if (
+                            not ui_interaction_data
+                            and idx == 0
+                            and role == "assistant"
+                            and saved_ui_interaction
+                        ):
+                            try:
+                                if isinstance(saved_ui_interaction, UIInteractionBlock):
+                                    ui_interaction_data = saved_ui_interaction
+                                elif isinstance(saved_ui_interaction, dict):
+                                    ui_interaction_data = UIInteractionBlock(**saved_ui_interaction)
+                            except Exception as e:
+                                logger.warning(f"Failed to parse saved_ui_interaction: {e}")
 
-                    history_messages.append(
-                        ChatMessage(
-                            id=f"msg-{thread_id}-{idx}",
-                            role=role,
-                            content=formatted_content,
-                            timestamp=datetime.now().isoformat(),
-                            ui_interaction=ui_interaction_data,
+                        history_messages.append(
+                            ChatMessage(
+                                id=f"msg-{thread_id}-{idx}",
+                                role=role,
+                                content=formatted_content,
+                                timestamp=datetime.now().isoformat(),
+                                ui_interaction=ui_interaction_data,
+                            )
                         )
-                    )
         except Exception as e:
             logger.warning(
                 "Failed to load history from checkpointer", thread_id=thread_id, error=str(e)
             )
-        finally:
-            # 归还数据库连接到连接池
-            if conn:
-                try:
-                    await checkpointer_manager._pool.putconn(conn)
-                except Exception as e:
-                    logger.warning("Failed to return connection to pool", error=str(e))
 
         # 检查是否有正在进行的生成
         is_generating = False
@@ -621,12 +616,15 @@ async def chat_reset_endpoint(request: ChatInitRequest):
             thread_id=thread_id,
         )
 
-        from backend.graph.checkpointer import get_or_create_checkpointer, checkpointer_manager
+        from backend.graph.checkpointer import checkpointer_manager
 
-        # 获取连接直接执行 SQL
-        _, conn = await get_or_create_checkpointer()
+        # 直接从连接池获取连接执行 SQL
+        if not checkpointer_manager._initialized or not checkpointer_manager._pool:
+            raise HTTPException(status_code=500, detail="Checkpointer not initialized")
 
+        conn = None
         try:
+            conn = await checkpointer_manager._pool.getconn()
             async with conn.cursor() as cur:
                 # 执行删除操作
                 # 注意：这是物理删除，不可恢复
@@ -641,10 +639,13 @@ async def chat_reset_endpoint(request: ChatInitRequest):
 
         except Exception as e:
             logger.error("Database delete error", error=str(e))
-            raise e
+            raise HTTPException(status_code=500, detail=f"删除失败: {str(e)}")
         finally:
-            if conn:
-                await checkpointer_manager._pool.putconn(conn)
+            if conn and checkpointer_manager._pool:
+                try:
+                    await checkpointer_manager._pool.putconn(conn)
+                except Exception as e:
+                    logger.warning("Failed to return connection to pool", error=str(e))
 
     except Exception as e:
         logger.error("Chat reset error", error=str(e))
@@ -673,11 +674,10 @@ async def get_chat_messages(
     从 checkpointer 中获取指定 thread 的所有消息历史
     """
     try:
-        from backend.graph.checkpointer import get_or_create_checkpointer, checkpointer_manager
+        from backend.graph.checkpointer import get_checkpointer
 
-        checkpointer, conn = await get_or_create_checkpointer()
-
-        try:
+        # 使用上下文管理器正确管理连接生命周期
+        async with get_checkpointer() as checkpointer:
             # 查询 checkpoint
             config = {"configurable": {"thread_id": thread_id}}
             checkpoint = await checkpointer.aget(config)
@@ -728,24 +728,13 @@ async def get_chat_messages(
                 "messages": messages,
                 "has_history": len(messages) > 0,
             }
-        except Exception as e:
-            logger.warning("No history found for thread", thread_id=thread_id, error=str(e))
-            return {
-                "thread_id": thread_id,
-                "messages": [],
-                "has_history": False,
-            }
-        finally:
-            # 归还数据库连接到连接池
-            if conn:
-                try:
-                    await checkpointer_manager._pool.putconn(conn)
-                except Exception as e:
-                    logger.warning("Failed to return connection to pool", error=str(e))
-
     except Exception as e:
-        logger.error("Failed to get chat messages", thread_id=thread_id, error=str(e))
-        raise HTTPException(status_code=500, detail=f"Failed to fetch chat history: {str(e)}")
+        logger.warning("No history found for thread", thread_id=thread_id, error=str(e))
+        return {
+            "thread_id": thread_id,
+            "messages": [],
+            "has_history": False,
+        }
 
 
 @router.get("/chat")
@@ -892,8 +881,19 @@ async def chat_sse_endpoint(
 
             # content_to_string 已提取到模块级别
 
-            if messages:
-                # 使用最后一条 AI 消息（而非最长的消息）
+            # ========== Bug Fix: 优先使用 skeleton_content（分批生成的累积内容）==========
+            # skeleton_builder 分批生成时，skeleton_content 包含所有批次的累积内容
+            # 而 messages 只包含当前批次的输出，会导致只显示最后一批
+            skeleton_content = result.get("skeleton_content", "")
+            if skeleton_content:
+                ai_content = content_to_string(skeleton_content)
+                logger.info(
+                    "Using skeleton_content from state",
+                    content_length=len(ai_content),
+                    source="skeleton_content",
+                )
+            elif messages:
+                # 回退：使用最后一条 AI 消息（适用于非 skeleton_builder 的场景）
                 # 重新生成方案时，checkpoint 包含所有历史 AI 消息，
                 # 最后一条才是本次执行的最新结果
                 for msg in reversed(messages):
@@ -901,6 +901,11 @@ async def chat_sse_endpoint(
                         msg_type = getattr(msg, "type", None)
                         if msg_type == "ai" or msg_type is None:
                             ai_content = content_to_string(msg.content)
+                            logger.info(
+                                "Using AI message content",
+                                content_length=len(ai_content),
+                                source="last_ai_message",
+                            )
                             break
 
             # 清理 AI 内容（提取 ui_feedback、thought_process 或其他可读内容）
@@ -951,13 +956,9 @@ async def chat_sse_endpoint(
 
             display_content = extract_display_content(ai_content)
 
-            # 分词发送（模拟流式输出）
+            # 一次性发送完整内容（不再分词模拟流式）
             if display_content:
-                words = display_content.split()
-                for i, word in enumerate(words):
-                    yield f"data: {json.dumps({'type': 'token', 'content': word + ' '})}\n\n"
-                    if i < len(words) - 1:
-                        await asyncio.sleep(0.05)
+                yield f"data: {json.dumps({'type': 'token', 'content': display_content})}\n\n"
 
             # 如果用户选择了方案，更新项目名称为方案标题
             if result and isinstance(result, dict):
@@ -979,6 +980,72 @@ async def chat_sse_endpoint(
                             logger.warning(
                                 "Failed to update project name", project_id=project_id, error=str(e)
                             )
+
+            # ========== Bug Fix: 保存大纲到数据库 ==========
+            # 每完成一批就保存当前累积的内容，支持断点续传和部分预览
+            # 注意：不同节点返回的内容字段名可能不同
+            accumulated_content = result.get("accumulated_content", "") or result.get(
+                "skeleton_content", ""
+            )
+            current_batch_index = result.get("current_batch_index", 0)
+            total_batches = result.get("total_batches", 1)
+            last_successful_node = result.get("last_successful_node", "")
+
+            # 调试日志：记录关键字段
+            logger.info(
+                "Checking outline save conditions",
+                project_id=project_id,
+                has_content=bool(accumulated_content),
+                content_length=len(accumulated_content) if accumulated_content else 0,
+                last_successful_node=last_successful_node,
+                current_batch_index=current_batch_index,
+                total_batches=total_batches,
+            )
+
+            # 只要有骨架内容就保存（放宽条件，不严格检查 last_successful_node）
+            # 包括：skeleton_builder（agent生成）、validate_output（输出验证）、output_formatter（格式化输出）
+            skeleton_related_nodes = [
+                "skeleton_builder",
+                "validate_output",
+                "output_formatter",
+                "batch_coordinator",
+            ]
+            is_skeleton_node = last_successful_node in skeleton_related_nodes
+            has_batch_info = current_batch_index > 0 or total_batches > 1
+
+            if accumulated_content and (is_skeleton_node or has_batch_info):
+                try:
+                    from backend.api.skeleton_builder import parse_skeleton_to_outline
+                    from backend.services.database import get_db_service
+
+                    db = get_db_service()
+                    outline_data = parse_skeleton_to_outline(accumulated_content, project_id)
+
+                    # 添加批次进度信息到 metadata
+                    outline_data["metadata"] = outline_data.get("metadata", {})
+                    outline_data["metadata"]["current_batch"] = current_batch_index
+                    outline_data["metadata"]["total_batches"] = total_batches
+                    outline_data["metadata"]["needs_next_batch"] = (
+                        current_batch_index < total_batches
+                    )
+                    outline_data["metadata"]["batch_progress"] = (
+                        f"{current_batch_index}/{total_batches}"
+                    )
+
+                    await db.save_outline(project_id, outline_data)
+                    logger.info(
+                        "Outline saved to database from graph chat",
+                        project_id=project_id,
+                        batch=f"{current_batch_index}/{total_batches}",
+                        episodes_count=len(outline_data.get("episodes", [])),
+                        needs_next_batch=current_batch_index < total_batches,
+                    )
+                except Exception as save_error:
+                    logger.error(
+                        "Failed to save outline from graph chat",
+                        project_id=project_id,
+                        error=str(save_error),
+                    )
 
             # 发送完成事件
             content_status = get_content_status(result)

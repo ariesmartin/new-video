@@ -191,13 +191,31 @@ def route_after_story_planner(
     """
     Story Planner 后的路由决策
 
-    如果用户已选择方案，则进入 Skeleton Builder。
-    否则等待用户输入。
+    如果用户通过 SDUI 按钮 start_skeleton_building 触发，则进入 Skeleton Builder。
+    如果刚完成 select_plan（selected_plan 刚被设置），等待用户点击"开始大纲拆解"按钮。
     """
     selected_plan = state.get("selected_plan")
+    last_successful_node = state.get("last_successful_node", "")
+    routed_params = state.get("routed_parameters", {})
+    action = routed_params.get("action", "")
 
-    if selected_plan:
-        logger.info("Plan selected, proceeding to skeleton_builder")
+    # ✅ GAP-4 修复：只有当 action 明确是 start_skeleton_building 时才自动跳转
+    # select_plan 后应等待用户点击"开始大纲拆解"按钮
+    if action == "start_skeleton_building" and selected_plan:
+        logger.info("User explicitly requested skeleton building, proceeding")
+        return "skeleton_builder"
+
+    # select_plan 完成后，等待用户确认（不自动跳转）
+    if last_successful_node == "story_planner_plan_selected":
+        logger.info("Plan just selected, waiting for user to click '开始大纲拆解'")
+        return "wait_for_input"
+
+    # 其他情况：如果有 selected_plan 且来自非 select_plan 流程（如恢复会话），跳转
+    if selected_plan and last_successful_node not in [
+        "story_planner",
+        "story_planner_plan_selected",
+    ]:
+        logger.info("Plan already selected (session restored), proceeding to skeleton_builder")
         return "skeleton_builder"
 
     logger.info("Waiting for user plan selection")
