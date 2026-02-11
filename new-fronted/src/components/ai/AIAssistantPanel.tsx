@@ -12,6 +12,7 @@ import {
 } from "@/components/ui/tooltip";
 import { ConfirmDialog } from "@/components/common/ConfirmDialog";
 import { chatService, type Message } from '@/api/services/chat';
+import { projectsService } from '@/api/services/projects';
 import { useAppStore, useUIStore } from '@/hooks/useStore';
 import ReactMarkdown from 'react-markdown';
 import remarkGfm from 'remark-gfm';
@@ -34,14 +35,13 @@ interface AIAssistantPanelProps {
 
 export function AIAssistantPanel({ projectId: externalProjectId, sceneContext }: AIAssistantPanelProps) {
   const [inputValue, setInputValue] = useState('');
-  const [streamingContent, setStreamingContent] = useState('');
   const [thinkingStatus, setThinkingStatus] = useState('AI 正在思考中...');
   const [showResetDialog, setShowResetDialog] = useState(false);
   const [readerContent, setReaderContent] = useState<string | null>(null);
 
   const abortControllerRef = useRef<(() => void) | null>(null);
 
-  const { currentEpisode, currentProject } = useAppStore();
+  const { currentEpisode, currentProject, setCurrentProject } = useAppStore();
   const addToast = useUIStore((state) => state.addToast);
 
   // 确定项目 ID
@@ -75,7 +75,7 @@ export function AIAssistantPanel({ projectId: externalProjectId, sceneContext }:
   // 使用统一的自动滚动 hook
   const messagesEndRef = useChatScroll({
     messages,
-    isStreaming: !!streamingContent
+    isStreaming: false
   });
 
   // 发送用户消息
@@ -93,9 +93,7 @@ export function AIAssistantPanel({ projectId: externalProjectId, sceneContext }:
     setMessages(prev => [...prev, userMessage]);
     setInputValue('');
     setThinkingStatus('AI 正在思考中...');
-    setStreamingContent('');
 
-    let accumulatedContent = '';
     let lastUiInteraction: Message['ui_interaction'] = undefined;
 
     const effectiveProjectId = externalProjectId || currentProject?.id || chatService.getTempProjectId();
@@ -114,34 +112,28 @@ export function AIAssistantPanel({ projectId: externalProjectId, sceneContext }:
             setThinkingStatus(status);
           },
           onMessage: (message) => {
-            accumulatedContent = message.content;
             if (message.ui_interaction) {
               lastUiInteraction = message.ui_interaction;
             }
-            setStreamingContent(accumulatedContent);
+            setMessages(prev => [...prev, {
+              id: `ai-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`,
+              role: 'assistant',
+              content: message.content,
+              timestamp: new Date(),
+              ui_interaction: message.ui_interaction,
+            }]);
           },
-          onComplete: () => {
-            console.log('[AIAssistantPanel] Message complete, content length:', accumulatedContent.length);
-            if (accumulatedContent) {
-              const newMessage: Message = {
-                id: `ai-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`,
-                role: 'assistant',
-                content: accumulatedContent,
-                timestamp: new Date(),
-                ui_interaction: lastUiInteraction,
-              };
-              setMessages(prev => {
-                if (lastUiInteraction?.buttons?.some((b: any) => b.action === 'select_plan')) {
-                  const filtered = prev.filter(m => 
-                    !(m.role === 'assistant' && m.ui_interaction?.buttons?.some((b: any) => b.action === 'select_plan'))
-                  );
-                  return [...filtered, newMessage];
-                }
-                return [...prev, newMessage];
-              });
-            }
-            setStreamingContent('');
+          onComplete: async () => {
             abortControllerRef.current = null;
+            if (projectId) {
+              try {
+                const { useWorkshopStore } = await import('@/store/workshopStore');
+                await useWorkshopStore.getState().loadOutline(projectId);
+                console.log('[AIAssistantPanel] Outline refreshed after generation');
+              } catch (error) {
+                console.error('[AIAssistantPanel] Failed to refresh outline:', error);
+              }
+            }
           },
           onError: (error) => {
             console.error('[AIAssistantPanel] Message error:', error);
@@ -151,7 +143,6 @@ export function AIAssistantPanel({ projectId: externalProjectId, sceneContext }:
               content: `抱歉，发生了错误：${error}`,
               timestamp: new Date(),
             }]);
-            setStreamingContent('');
             abortControllerRef.current = null;
           },
         },
@@ -243,9 +234,7 @@ export function AIAssistantPanel({ projectId: externalProjectId, sceneContext }:
     setMessages(prev => [...prev, userMessage]);
 
     setThinkingStatus('AI 正在处理...');
-    setStreamingContent('');
 
-    let accumulatedContent = '';
     let lastUiInteraction: Message['ui_interaction'] = undefined;
 
     const effectiveProjectId = externalProjectId || currentProject?.id || chatService.getTempProjectId();
@@ -264,34 +253,38 @@ export function AIAssistantPanel({ projectId: externalProjectId, sceneContext }:
             setThinkingStatus(status);
           },
           onMessage: (message) => {
-            accumulatedContent = message.content;
             if (message.ui_interaction) {
               lastUiInteraction = message.ui_interaction;
             }
-            setStreamingContent(accumulatedContent);
+            setMessages(prev => [...prev, {
+              id: `ai-action-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`,
+              role: 'assistant',
+              content: message.content,
+              timestamp: new Date(),
+              ui_interaction: message.ui_interaction,
+            }]);
           },
-          onComplete: () => {
-            console.log('[AIAssistantPanel] Action complete, content length:', accumulatedContent.length, 'has UI:', !!lastUiInteraction);
-            if (accumulatedContent || lastUiInteraction) {
-              const newMessage: Message = {
-                id: `ai-action-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`,
-                role: 'assistant',
-                content: accumulatedContent || '',
-                timestamp: new Date(),
-                ui_interaction: lastUiInteraction,
-              };
-              setMessages(prev => {
-                // 如果新消息包含方案按钮，替换掉之前包含方案的消息（重新生成场景）
-                if (lastUiInteraction?.buttons?.some((b: any) => b.action === 'select_plan')) {
-                  const filtered = prev.filter(m => 
-                    !(m.role === 'assistant' && m.ui_interaction?.buttons?.some((b: any) => b.action === 'select_plan'))
-                  );
-                  return [...filtered, newMessage];
+          onComplete: async () => {
+            if (action === 'select_plan' && effectiveProjectId) {
+              try {
+                const projectRes = await projectsService.getProject(effectiveProjectId);
+                if (projectRes.data) {
+                  setCurrentProject(projectRes.data);
+                  console.log('[AIAssistantPanel] Project refreshed after plan selection:', projectRes.data.name);
                 }
-                return [...prev, newMessage];
-              });
+              } catch (error) {
+                console.error('[AIAssistantPanel] Failed to refresh project:', error);
+              }
             }
-            setStreamingContent('');
+            if (effectiveProjectId) {
+              try {
+                const { useWorkshopStore } = await import('@/store/workshopStore');
+                await useWorkshopStore.getState().loadOutline(effectiveProjectId);
+                console.log('[AIAssistantPanel] Outline refreshed after action');
+              } catch (error) {
+                console.error('[AIAssistantPanel] Failed to refresh outline:', error);
+              }
+            }
             abortControllerRef.current = null;
           },
           onError: (error) => {
@@ -302,7 +295,6 @@ export function AIAssistantPanel({ projectId: externalProjectId, sceneContext }:
               content: `抱歉，操作失败：${error}`,
               timestamp: new Date(),
             }]);
-            setStreamingContent('');
             abortControllerRef.current = null;
           },
         },
@@ -325,7 +317,6 @@ export function AIAssistantPanel({ projectId: externalProjectId, sceneContext }:
     if (abortControllerRef.current) {
       abortControllerRef.current();
       abortControllerRef.current = null;
-      setStreamingContent('');
       setThinkingStatus('已停止');
     }
   }, []);
@@ -348,7 +339,6 @@ export function AIAssistantPanel({ projectId: externalProjectId, sceneContext }:
       abortControllerRef.current = null;
     }
 
-    setStreamingContent('');
     setShowResetDialog(false);
 
     try {
@@ -517,52 +507,8 @@ export function AIAssistantPanel({ projectId: externalProjectId, sceneContext }:
           })}
           )()}
 
-          {/* Streaming Content */}
-          {streamingContent && (
-            <div className="flex justify-start w-full">
-              <div className="bg-elevated border border-border rounded-2xl rounded-bl-md px-4 py-3 max-h-[60vh] overflow-y-auto min-w-0 overflow-hidden"
-                style={{ width: 'auto', maxWidth: 'min(90%, calc(100% - 32px))' }}>
-                <div className="w-full text-sm break-all overflow-hidden min-w-0" style={{ overflowWrap: 'anywhere' }}>
-                  <ReactMarkdown
-                    remarkPlugins={[remarkGfm]}
-                    components={{
-                      p: ScriptRenderer,
-                      h1: ({ children }) => <h1 className="text-base font-bold mt-3 mb-1.5 text-primary/90 border-b border-border/30 pb-1">{children}</h1>,
-                      h2: ({ children }) => <h2 className="text-sm font-bold mt-2.5 mb-1 text-primary/80">{children}</h2>,
-                      h3: ({ children }) => <h3 className="text-sm font-semibold mt-2 mb-1 text-text-primary">{children}</h3>,
-                      h4: ({ children }) => <h4 className="text-xs font-semibold mt-1.5 mb-0.5 text-text-primary">{children}</h4>,
-                      h5: ({ children }) => <h5 className="text-xs font-medium mt-1 mb-0.5 text-text-secondary">{children}</h5>,
-                      h6: ({ children }) => <h6 className="text-xs font-medium mt-1 mb-0.5 text-text-tertiary">{children}</h6>,
-                      table: ({ children }) => <div className="overflow-x-auto my-2"><table className="w-full text-xs border-collapse">{children}</table></div>,
-                      thead: ({ children }) => <thead className="bg-elevated">{children}</thead>,
-                      tbody: ({ children }) => <tbody>{children}</tbody>,
-                      tr: ({ children }) => <tr className="border-b border-border/20">{children}</tr>,
-                      th: ({ children }) => <th className="border border-border/30 px-2 py-1 text-left font-medium text-text-secondary bg-elevated/50">{children}</th>,
-                      td: ({ children }) => <td className="border border-border/30 px-2 py-1 text-text-tertiary">{children}</td>,
-                      ul: ({ children }) => <ul className="list-disc list-inside my-1 space-y-0.5 text-text-secondary">{children}</ul>,
-                      ol: ({ children }) => <ol className="list-decimal list-inside my-1 space-y-0.5 text-text-secondary">{children}</ol>,
-                      li: ({ children }) => <li className="text-text-secondary">{children}</li>,
-                      hr: () => <hr className="my-3 border-border/30" />,
-                      blockquote: ({ children }) => <blockquote className="border-l-2 border-primary/30 pl-3 my-2 text-text-secondary italic">{children}</blockquote>,
-                      strong: ({ children }) => <strong className="font-semibold text-text-primary">{children}</strong>,
-                      pre: ({ children }) => (
-                        <pre className="overflow-x-auto max-w-full text-xs bg-black/5 rounded p-2 my-2">{children}</pre>
-                      ),
-                      code: ({ children }) => (
-                        <code className="text-xs bg-black/5 rounded px-1 py-0.5">{children}</code>
-                      )
-                    }}
-                  >
-                    {cleanJsonFromContent(streamingContent)}
-                  </ReactMarkdown>
-                </div>
-                <span className="inline-block w-2 h-4 bg-primary ml-1 animate-pulse" />
-              </div>
-            </div>
-          )}
-
           {/* Thinking Indicator */}
-          {isTyping && !streamingContent && (
+          {isTyping && (
             <div className="flex justify-start">
               <div className="bg-elevated border border-border rounded-2xl rounded-bl-md px-4 py-3">
                 <div className="flex items-center gap-2 text-text-tertiary text-sm">

@@ -34,7 +34,6 @@ export function AIAssistantBar() {
   const [height, setHeight] = useState(() => getInitialHeight());
   const [inputValue, setInputValue] = useState('');
   const [isResizing, setIsResizing] = useState(false);
-  const [streamingContent, setStreamingContent] = useState('');
   const [thinkingStatus, setThinkingStatus] = useState('AI 正在思考中...');
   const [showResetDialog, setShowResetDialog] = useState(false);
 
@@ -62,7 +61,7 @@ export function AIAssistantBar() {
   // 使用统一的自动滚动 hook
   const messagesEndRef = useChatScroll({
     messages,
-    isStreaming: !!streamingContent,
+    isStreaming: false,
     enabled: isExpanded
   });
 
@@ -149,6 +148,13 @@ export function AIAssistantBar() {
   const handleActionClick = useCallback(async (action: string, payload?: Record<string, unknown>) => {
     const actionMessage = JSON.stringify({ action, payload });
 
+    setMessages(prev => prev.filter(msg => {
+      if (msg.role !== 'assistant') return true;
+      const uiInteraction = msg.ui_interaction;
+      if (!uiInteraction?.buttons) return true;
+      return !uiInteraction.buttons.some((btn: any) => btn.action === action);
+    }));
+
     // 根据 action 生成友好标签
     const actionLabels: Record<string, string> = {
       'CMD:start_market_analysis': '🚀 开始市场分析',
@@ -212,24 +218,18 @@ export function AIAssistantBar() {
           },
           onStatus: (status) => setThinkingStatus(status),
           onMessage: (message) => {
-            accumulatedContent = message.content;
             if (message.ui_interaction) {
               lastUiInteraction = message.ui_interaction;
             }
-            setStreamingContent(accumulatedContent);
+            setMessages(prev => [...prev, {
+              id: `ai-action-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`,
+              role: 'assistant',
+              content: message.content,
+              timestamp: new Date(),
+              ui_interaction: message.ui_interaction,
+            }]);
           },
           onComplete: () => {
-            if (accumulatedContent || lastUiInteraction) {
-              const newMessage: Message = {
-                id: `ai-action-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`,
-                role: 'assistant',
-                content: accumulatedContent,
-                timestamp: new Date(),
-                ui_interaction: lastUiInteraction,
-              };
-              setMessages(prev => [...prev, newMessage]);
-            }
-            setStreamingContent('');
             abortControllerRef.current = null;
           },
           onError: (error) => {
@@ -240,7 +240,6 @@ export function AIAssistantBar() {
               content: `抱歉，操作失败：${error}`,
               timestamp: new Date(),
             }]);
-            setStreamingContent('');
             abortControllerRef.current = null;
           },
         },
@@ -292,19 +291,15 @@ export function AIAssistantBar() {
             if (message.ui_interaction) {
               lastUiInteraction = message.ui_interaction;
             }
-            setStreamingContent(message.content);
+            setMessages(prev => [...prev, {
+              id: `ai-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`,
+              role: 'assistant',
+              content: message.content,
+              timestamp: new Date(),
+              ui_interaction: message.ui_interaction,
+            }]);
           },
           onComplete: () => {
-            if (accumulatedContent || hasReceivedContent) {
-              setMessages(prev => [...prev, {
-                id: `ai-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`,
-                role: 'assistant',
-                content: accumulatedContent,
-                timestamp: new Date(),
-                ui_interaction: lastUiInteraction,
-              }]);
-            }
-            setStreamingContent('');
             abortControllerRef.current = null;
           },
           onError: (error) => {
@@ -314,7 +309,6 @@ export function AIAssistantBar() {
               content: `抱歉，发生了错误：${error}`,
               timestamp: new Date(),
             }]);
-            setStreamingContent('');
             abortControllerRef.current = null;
           },
           onNodeStart: (node, desc) => {
@@ -377,7 +371,6 @@ export function AIAssistantBar() {
       abortControllerRef.current = null;
     }
 
-    setStreamingContent('');
     setShowResetDialog(false);
 
     if (projectId) {
@@ -618,34 +611,13 @@ export function AIAssistantBar() {
                   );
                 })}
 
-                {isTyping && !streamingContent && (
+                {isTyping && (
                   <div className="flex justify-start">
                     <div className="bg-elevated/50 border border-border/50 rounded-2xl rounded-bl-md px-4 py-3">
                       <div className="flex items-center gap-2 text-text-tertiary">
                         <Loader2 className="animate-spin w-4 h-4 text-primary" />
                         <span className="text-xs sm:text-sm">{thinkingStatus}</span>
                       </div>
-                    </div>
-                  </div>
-                )}
-
-                {streamingContent && (
-                  <div className="flex justify-start">
-                    <div className="bg-elevated border border-border rounded-2xl rounded-bl-md px-4 py-3 max-w-[85%] sm:max-w-[80%] min-w-0">
-                      <div className="prose prose-sm prose-invert max-w-none text-sm overflow-hidden break-words min-w-0 [&>p]:mb-2 [&>p:last-child]:mb-0 [&>ul]:list-disc [&>ul]:pl-4 [&>ol]:list-decimal [&>ol]:pl-4 [&>pre]:overflow-x-auto">
-                        <ReactMarkdown
-                          remarkPlugins={[remarkGfm]}
-                          components={{
-                            p: ScriptRenderer
-                          }}
-                        >
-                          {cleanJsonFromContent(streamingContent)}
-                        </ReactMarkdown>
-                      </div>
-                      <span className="inline-block w-2 h-4 bg-primary ml-1 animate-pulse" />
-                      <p className="text-xs mt-1.5 text-text-tertiary">
-                        {new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
-                      </p>
                     </div>
                   </div>
                 )}

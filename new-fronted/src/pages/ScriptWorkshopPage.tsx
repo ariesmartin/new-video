@@ -11,17 +11,13 @@ import {
   Music,
   Loader2,
   Sparkles,
-  BookOpen,
-  CheckCircle,
-  AlertTriangle,
-  XCircle
+  BookOpen
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { Separator } from '@/components/ui/separator';
 import { Logo } from '@/components/ui/Logo';
-import { cn } from '@/lib/utils';
 import { ResizablePanel } from '@/components/ui/ResizablePanel';
 import { AIAssistantPanel } from '@/components/ai/AIAssistantPanel';
 import { useUIStore } from '@/hooks/useStore';
@@ -44,7 +40,7 @@ import { reviewService } from '@/api/services/review';
 import { ConfirmNovelNameDialog } from '@/components/modals/ConfirmNovelNameDialog';
 import type { components } from '@/types/api';
 import type { OutlineNode } from '@/types/outline';
-import type { ChapterReview } from '@/types/review';
+import type { ChapterReview, GlobalReview } from '@/types/review';
 
 type SceneResponse = components['schemas']['SceneResponse'];
 type ShotResponse = components['schemas']['ShotResponse'];
@@ -53,12 +49,12 @@ type ProjectResponse = components['schemas']['ProjectResponse'];
 
 export function ScriptWorkshopPage() {
   const navigate = useNavigate();
-  const { projectId, episodeId } = useParams<{ projectId: string; episodeId: string }>();
+  const { projectId, episodeId } = useParams<{ projectId: string; episodeId?: string }>();
   const { openBackstageModal, addToast } = useUIStore();
   const abortControllerRef = useRef<AbortController | null>(null);
+  const isAICreationMode = !episodeId;
 
   const {
-    outline,
     outlineNodes,
     selectedNodeId,
     selectNode,
@@ -104,16 +100,24 @@ export function ScriptWorkshopPage() {
   const lastSavedTextRef = useRef('');
 
   useEffect(() => {
-    if (!projectId || !episodeId) return;
+    if (!projectId) return;
 
     const loadData = async () => {
       setIsLoading(true);
       setError(null);
 
       try {
+        if (isAICreationMode) {
+          const projectRes = await projectsService.getProject(projectId);
+          setProject(projectRes.data);
+          await loadOutline(projectId);
+          setIsLoading(false);
+          return;
+        }
+
         const [episodeRes, scenesRes, projectRes] = await Promise.all([
-          episodesService.getEpisode(projectId, episodeId),
-          scenesService.listScenes(episodeId),
+          episodesService.getEpisode(projectId, episodeId!),
+          scenesService.listScenes(episodeId!),
           projectsService.getProject(projectId),
         ]);
 
@@ -143,7 +147,7 @@ export function ScriptWorkshopPage() {
     };
 
     loadData();
-  }, [projectId, episodeId, loadGlobalReview]);
+  }, [projectId, episodeId, loadGlobalReview, isAICreationMode]);
 
   useEffect(() => {
     if (!episodeId || !selectedSceneId) return;
@@ -464,6 +468,21 @@ export function ScriptWorkshopPage() {
   };
 
   const renderEditorContent = () => {
+    if (isAICreationMode) {
+      return (
+        <div className="flex-1 flex flex-col items-center justify-center p-8 text-center">
+          <Sparkles className="w-20 h-20 mb-6 text-primary/60" />
+          <h2 className="text-2xl font-semibold mb-3 text-text-primary">开始你的创作之旅</h2>
+          <p className="text-base text-text-secondary max-w-lg mb-6">
+            告诉我你想创作什么类型的故事？AI助手会帮你生成选题方案、大纲和剧本。
+          </p>
+          <Button variant="outline" size="lg" onClick={() => navigate(`/project/${projectId}`)}>
+            返回画布
+          </Button>
+        </div>
+      );
+    }
+
     switch (activeModule) {
       case 'outline':
         if (!selectedNode) {

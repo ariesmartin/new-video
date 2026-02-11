@@ -145,7 +145,7 @@ export function ProjectPage() {
       return;
     }
 
-    setIsCreateOptionsOpen(true);
+    navigate(`/project/${project.id}/script-workshop`);
   };
 
   const handleAICreation = async () => {

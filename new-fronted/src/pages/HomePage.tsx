@@ -10,11 +10,11 @@ import {
 import { projectAutoCreate } from '@/api/services/projectAutoCreate';
 import { chatService } from '@/api/services/chat';
 import { useAppStore, useUIStore, useProjectStore } from '@/hooks/useStore';
-import type { Project, Episode } from '@/types';
+import type { Project } from '@/types';
 
 export function HomePage() {
   const navigate = useNavigate();
-  const { theme, currentProject, currentEpisode } = useAppStore();
+    const { theme, currentProject } = useAppStore();
   const { addProject, fetchProjects } = useProjectStore();
   const setCurrentProject = useAppStore((state: { setCurrentProject: (p: Project | null) => void }) => state.setCurrentProject);
   const setCurrentEpisode = useAppStore((state: { setCurrentEpisode: (e: any) => void }) => state.setCurrentEpisode);
@@ -33,10 +33,7 @@ export function HomePage() {
   }, [theme]);
 
   const handleGenerate = async (prompt: string, fastMode: boolean) => {
-    // 1. 携带 Prompt
     sessionStorage.setItem('startup_prompt', prompt);
-
-    // 2. 清除旧会话状态，确保是全新的开始
     chatService.clearSession();
 
     setIsLoading(true);
@@ -46,14 +43,12 @@ export function HomePage() {
     });
 
     try {
-      // 3. 强制创建新的临时项目 (不尝试恢复)
-      const { project, episode } = await projectAutoCreate.createTemporaryProject();
+      const { project } = await projectAutoCreate.createTemporaryProject();
 
       setCurrentProject(project as unknown as Project);
-      setCurrentEpisode(episode as unknown as Episode);
+      setCurrentEpisode(null);
 
-      // 4. 跳转到剧本工坊，AI 会在那里自动读取 startup_prompt 并开始工作
-      navigate(`/project/${project.id}/episode/${episode.episodeId}/script-workshop`);
+      navigate(`/project/${project.id}/script-workshop`);
     } catch (error) {
       console.error('Failed to create project:', error);
       addToast({ type: 'error', message: '创建项目失败，请重试' });
@@ -85,30 +80,21 @@ export function HomePage() {
   const handleNavigateToScriptWorkshop = async () => {
     if (isLoading) return;
 
-    if (currentProject?.id && currentEpisode?.id) {
-      navigate(`/project/${currentProject.id}/episode/${currentEpisode.id}/script-workshop`);
+    if (currentProject?.id) {
+      navigate(`/project/${currentProject.id}/script-workshop`);
       return;
     }
 
     setIsLoading(true);
 
     try {
-      const recovered = await projectAutoCreate.recoverTemporaryProject();
-
-      if (recovered) {
-        setCurrentProject(recovered.project as unknown as Project);
-        setCurrentEpisode(recovered.episode as unknown as Episode);
-        navigate(`/project/${recovered.project.id}/episode/${recovered.episode.episodeId}/script-workshop`);
-        return;
-      }
-
-      const { project, episode } = await projectAutoCreate.createTemporaryProject();
+      const { project } = await projectAutoCreate.createTemporaryProject();
 
       setCurrentProject(project as unknown as Project);
-      setCurrentEpisode(episode as unknown as Episode);
+      setCurrentEpisode(null);
 
       addToast({ type: 'success', message: '已进入剧本工坊，开始创作吧！' });
-      navigate(`/project/${project.id}/episode/${episode.episodeId}/script-workshop`);
+      navigate(`/project/${project.id}/script-workshop`);
 
     } catch (error) {
       console.error('创建临时项目失败:', error);
